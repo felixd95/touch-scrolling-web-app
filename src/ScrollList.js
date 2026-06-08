@@ -3,7 +3,7 @@ import './ScrollList.css';
 
 function ScrollList() {
   const [targetId, setTargetId] = useState(Math.floor(Math.random() * 2000));
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -11,7 +11,7 @@ function ScrollList() {
   const [touchStartY, setTouchStartY] = useState(null);
   const [lastTouchY, setLastTouchY] = useState(null);
   const [containerHeight, setContainerHeight] = useState(0);
-  const [multiplier, setMultiplier] = useState(1);
+  const [multiplierInput, setMultiplierInput] = useState('');
   const timerInterval = useRef(null);
   const countdownInterval = useRef(null);
   const scrollListRef = useRef(null);
@@ -89,7 +89,8 @@ function ScrollList() {
   };
 
   const transfer = (deltaY) => {
-    const factor = multiplier > 0 ? multiplier : 1;
+    const parsed = parseFloat(multiplierInput);
+    const factor = parsed > 0 ? parsed : 1;
     setTranslateY((current) => clampTranslate(current + deltaY * factor));
   };
 
@@ -131,9 +132,16 @@ function ScrollList() {
               type="number"
               min="0.1"
               step="0.1"
-              value={multiplier}
-              onChange={(event) => setMultiplier(Number(event.target.value) || 1)}
-              disabled={isSearching}
+              value={multiplierInput}
+              onChange={(event) => {
+                const v = event.target.value;
+                setMultiplierInput(v);
+                const parsed = parseFloat(v);
+                if (!isNaN(parsed) && parsed > 0 && countdown === null) {
+                  setCountdown(3);
+                }
+              }}
+              disabled={isSearching || (countdown !== null && countdown > 0)}
             />
             <small>Wird nach Ablauf des Countdowns verwendet.</small>
           </div>

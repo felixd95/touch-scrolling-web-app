@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
 import outputs from './amplify_outputs.json';
@@ -9,8 +9,134 @@ Amplify.configure(outputs);
 
 const client = generateClient();
 
+function LoginForm({ onSuccess }) {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const checkEmail = async (e) => {
+    e && e.preventDefault();
+    setError('');
+    if (!email) return setError('Bitte E-Mail eingeben');
+    setLoading(true);
+    try {
+      const resp = await fetch(outputs.data.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': outputs.data.api_key,
+        },
+        body: JSON.stringify({
+          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id email } } }`,
+          variables: { filter: { email: { eq: email } } },
+        }),
+      });
+
+      const json = await resp.json();
+      const items = json.data?.listParticipants?.items || [];
+      if (items.length > 0) {
+        onSuccess();
+      } else {
+        setError('E-Mail nicht gefunden');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Fehler beim Prüfen der E-Mail');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={checkEmail} className="form">
+      <label>
+        E-Mail
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </label>
+      <button type="submit" disabled={loading}>{loading ? 'Prüfe...' : 'Weiter'}</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </form>
+  );
+}
+
+function ParticipantsList({ onBack }) {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchList = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const resp = await fetch(outputs.data.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': outputs.data.api_key,
+          },
+          body: JSON.stringify({
+            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay } } }`,
+          }),
+        });
+        const json = await resp.json();
+        if (!mounted) return;
+        setItems(json.data?.listParticipants?.items || []);
+      } catch (err) {
+        console.error(err);
+        if (mounted) setError('Fehler beim Laden der Einträge');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchList();
+    return () => { mounted = false };
+  }, []);
+
+  return (
+    <div className="card">
+      <h2>Teilnehmer</h2>
+      <div style={{ marginBottom: 12 }}>
+        <button className="nav-button" onClick={onBack}>Zurück</button>
+      </div>
+      {loading && <p>Lade...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {!loading && !error && (
+        <div style={{ maxHeight: '60vh', overflow: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: 6 }}>ID</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>Name</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>E-Mail</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>Geburtstag</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>Device</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>ScreenTime</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((p) => (
+                <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
+                  <td style={{ padding: 6 }}>{p.id}</td>
+                  <td style={{ padding: 6 }}>{(p.firstName || '') + ' ' + (p.lastName || '')}</td>
+                  <td style={{ padding: 6 }}>{p.email}</td>
+                  <td style={{ padding: 6 }}>{p.birthDate}</td>
+                  <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
+                  <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function App() {
-  const [currentPage, setCurrentPage] = useState('form'); // 'form' oder 'scrolllist'
+  const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'form' oder 'scrolllist'
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -34,31 +160,67 @@ function App() {
     e.preventDefault();
     setLoading(true);
     setStatus('');
-
     try {
-      await client.models.Participant.create(
-        {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim(),
-          birthDate: formData.birthDate,
-          privateSmartphone: formData.privateSmartphone.trim(),
-          screenTimePerDay: formData.screenTimePerDay,
+      // check if email already exists
+      const resp = await fetch(outputs.data.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': outputs.data.api_key,
         },
-        {
-          authMode: 'apiKey',
-        }
-      );
-
-      setStatus('Data saved successfully.');
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        birthDate: '',
-        privateSmartphone: '',
-        screenTimePerDay: '',
+        body: JSON.stringify({
+          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id email } } }`,
+          variables: { filter: { email: { eq: formData.email.trim() } } },
+        }),
       });
+
+      const json = await resp.json();
+      const items = json.data?.listParticipants?.items || [];
+      if (items.length > 0) {
+        setStatus('E-Mail ist bereits vergeben. Bitte andere E-Mail verwenden.');
+        setLoading(false);
+        return;
+      }
+
+      // create participant
+      const createResp = await fetch(outputs.data.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': outputs.data.api_key,
+        },
+        body: JSON.stringify({
+          query: `mutation CreateParticipant($input: CreateParticipantInput!) { createParticipant(input: $input) { id email } }`,
+          variables: {
+            input: {
+              firstName: formData.firstName.trim(),
+              lastName: formData.lastName.trim(),
+              email: formData.email.trim(),
+              birthDate: formData.birthDate,
+              privateSmartphone: formData.privateSmartphone.trim(),
+              screenTimePerDay: formData.screenTimePerDay,
+            },
+          },
+        }),
+      });
+
+      const createJson = await createResp.json();
+      if (createJson.errors) {
+        console.error(createJson.errors);
+        setStatus('Fehler beim Anlegen des Benutzers.');
+      } else {
+        setStatus('Registrierung erfolgreich. Weiterleitung...');
+        // clear form
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          birthDate: '',
+          privateSmartphone: '',
+          screenTimePerDay: '',
+        });
+        setCurrentPage('scrolllist');
+      }
     } catch (error) {
       setStatus('Saving failed.');
       console.error(error);
@@ -69,11 +231,31 @@ function App() {
 
   return (
     <main className="page">
-      {currentPage === 'form' ? (
+      {currentPage === 'landing' ? (
         <div className="card">
-          <h1>Participant information</h1>
-          <p>Please enter your personal information before starting the study.</p>
-
+          <h1>Willkommen</h1>
+          <div style={{ display: 'grid', gap: 12 }}>
+            <button className="nav-button" onClick={() => setCurrentPage('login')}>
+              Ich habe mich bereits registriert
+            </button>
+            <button className="nav-button" onClick={() => setCurrentPage('form')}>
+              Ich möchte mich registrieren
+            </button>
+            <button className="nav-button" onClick={() => setCurrentPage('list')}>
+              Teilnehmer anzeigen
+            </button>
+          </div>
+        </div>
+      ) : currentPage === 'login' ? (
+        <div className="card">
+          <h2>Login</h2>
+          <LoginForm onSuccess={() => setCurrentPage('scrolllist')} />
+          <div style={{ marginTop: 12 }}>
+            <button className="nav-button" onClick={() => setCurrentPage('landing')}>Zurück</button>
+          </div>
+        </div>
+      ) : currentPage === 'form' ? (
+        <div className="card">
           <form onSubmit={handleSubmit} className="form">
             <label>
               First name
@@ -147,19 +329,19 @@ function App() {
               </select>
             </label>
 
-            <button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Start study'}
-            </button>
+              <button type="submit" disabled={loading}>
+                {loading ? 'Saving...' : 'Start study'}
+              </button>
 
-            {status && <p>{status}</p>}
-          </form>
-          
-          <button className="nav-button" onClick={() => setCurrentPage('scrolllist')}>
-            Go to Scroll List
-          </button>
+              {status && <p>{status}</p>}
+            </form>
         </div>
       ) : (
-        <ScrollList />
+        currentPage === 'list' ? (
+          <ParticipantsList onBack={() => setCurrentPage('landing')} />
+        ) : (
+          <ScrollList />
+        )
       )}
     </main>
   );
