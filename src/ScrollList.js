@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import './ScrollList.css';
+import outputs from './amplify_outputs.json';
 
-function ScrollList() {
+function ScrollList({ participantId }) {
   const [targetId, setTargetId] = useState(Math.floor(Math.random() * 2000));
   const [countdown, setCountdown] = useState(null);
   const [startTime, setStartTime] = useState(null);
@@ -12,6 +13,8 @@ function ScrollList() {
   const [lastTouchY, setLastTouchY] = useState(null);
   const [containerHeight, setContainerHeight] = useState(0);
   const [multiplierInput, setMultiplierInput] = useState('');
+  const [startTranslateY, setStartTranslateY] = useState(0);
+  const [activeMultiplier, setActiveMultiplier] = useState(null);
   const timerInterval = useRef(null);
   const countdownInterval = useRef(null);
   const scrollListRef = useRef(null);
@@ -24,6 +27,8 @@ function ScrollList() {
       }, 1000);
     } else if (countdown === 0) {
       setStartTime(Date.now());
+      setStartTranslateY(translateY);
+      setActiveMultiplier(parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
       setIsSearching(true);
       setCountdown(-1); // Set to -1 to stop countdown
     }
@@ -57,6 +62,55 @@ function ScrollList() {
   const handleButtonClick = (id) => {
     if (id === targetId && isSearching) {
       setIsSearching(false);
+      // collect result data
+      const endTime = Date.now();
+      const totalTime = endTime - startTime;
+      const scrollDistance = Math.abs(translateY - startTranslateY);
+      const timestamp = new Date().toISOString();
+      const multiplierUsed = activeMultiplier || (parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
+      // try to save result remotely, fallback to localStorage
+      saveResult({ participantId, timeMs: totalTime, scrollDistance, timestamp, multiplierUsed });
+    }
+  };
+
+  const saveResult = async (result) => {
+    const fallbackSave = () => {
+      try {
+        const existing = JSON.parse(localStorage.getItem('results') || '[]');
+        existing.push(result);
+        localStorage.setItem('results', JSON.stringify(existing));
+      } catch (e) {
+        console.error('Fallback save failed', e);
+      }
+    };
+
+    if (!result.participantId) {
+      // no participant id available; save locally
+      fallbackSave();
+      return;
+    }
+
+    try {
+      const resp = await fetch(outputs.data.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': outputs.data.api_key,
+        },
+        body: JSON.stringify({
+            query: `mutation CreateResult($input: CreateResultInput!) { createResult(input: $input) { id participantId timeMs scrollDistance timestamp multiplierUsed } }`,
+            variables: { input: result },
+          }),
+      });
+
+      const json = await resp.json();
+      if (json.errors) {
+        console.warn('Server save failed, falling back to localStorage', json.errors);
+        fallbackSave();
+      }
+    } catch (err) {
+      console.error('Error saving result', err);
+      fallbackSave();
     }
   };
 
@@ -136,13 +190,23 @@ function ScrollList() {
               onChange={(event) => {
                 const v = event.target.value;
                 setMultiplierInput(v);
-                const parsed = parseFloat(v);
-                if (!isNaN(parsed) && parsed > 0 && countdown === null) {
-                  setCountdown(3);
-                }
               }}
               disabled={isSearching || (countdown !== null && countdown > 0)}
             />
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const parsed = parseFloat(multiplierInput);
+                  if (!isNaN(parsed) && parsed > 0 && countdown === null && !isSearching) {
+                    setCountdown(3);
+                  }
+                }}
+                disabled={isSearching || (countdown !== null && countdown > 0)}
+              >
+                Start
+              </button>
+            </div>
             <small>Wird nach Ablauf des Countdowns verwendet.</small>
           </div>
 

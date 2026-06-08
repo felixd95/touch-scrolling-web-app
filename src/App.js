@@ -35,7 +35,7 @@ function LoginForm({ onSuccess }) {
       const json = await resp.json();
       const items = json.data?.listParticipants?.items || [];
       if (items.length > 0) {
-        onSuccess();
+        onSuccess(items[0].id);
       } else {
         setError('E-Mail nicht gefunden');
       }
@@ -63,6 +63,7 @@ function ParticipantsList({ onBack }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [results, setResults] = useState([]);
 
   useEffect(() => {
     let mounted = true;
@@ -83,6 +84,25 @@ function ParticipantsList({ onBack }) {
         const json = await resp.json();
         if (!mounted) return;
         setItems(json.data?.listParticipants?.items || []);
+        // try to load remote results (if Result model exists), otherwise fallback to localStorage
+        try {
+          const r = await fetch(outputs.data.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
+            body: JSON.stringify({ query: `query ListResults { listResults { items { id participantId timeMs scrollDistance timestamp multiplierUsed } } }` }),
+          });
+          const rjson = await r.json();
+          if (rjson.data && rjson.data.listResults) {
+            setResults(rjson.data.listResults.items || []);
+          } else {
+            // fallback to localStorage
+            const local = JSON.parse(localStorage.getItem('results') || '[]');
+            setResults(local);
+          }
+        } catch (err) {
+          const local = JSON.parse(localStorage.getItem('results') || '[]');
+          setResults(local);
+        }
       } catch (err) {
         console.error(err);
         if (mounted) setError('Fehler beim Laden der Einträge');
@@ -114,19 +134,31 @@ function ParticipantsList({ onBack }) {
                 <th style={{ textAlign: 'left', padding: 6 }}>Geburtstag</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Device</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>ScreenTime</th>
+                    <th style={{ textAlign: 'left', padding: 6 }}>Letzte Zeit (ms)</th>
+                    <th style={{ textAlign: 'left', padding: 6 }}>Letzter Multiplier</th>
+                    <th style={{ textAlign: 'left', padding: 6 }}>Letzte Distanz (px)</th>
+                    <th style={{ textAlign: 'left', padding: 6 }}>Letztes Datum</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((p) => (
-                <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
-                  <td style={{ padding: 6 }}>{p.id}</td>
-                  <td style={{ padding: 6 }}>{(p.firstName || '') + ' ' + (p.lastName || '')}</td>
-                  <td style={{ padding: 6 }}>{p.email}</td>
-                  <td style={{ padding: 6 }}>{p.birthDate}</td>
-                  <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
-                  <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
-                </tr>
-              ))}
+                  {items.map((p) => {
+                    const pResults = results.filter(r => r.participantId === p.id);
+                    const last = pResults.length > 0 ? pResults.sort((a,b)=> (a.timestamp||0) > (b.timestamp||0) ? -1:1)[0] : null;
+                    return (
+                      <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
+                        <td style={{ padding: 6 }}>{p.id}</td>
+                        <td style={{ padding: 6 }}>{(p.firstName || '') + ' ' + (p.lastName || '')}</td>
+                        <td style={{ padding: 6 }}>{p.email}</td>
+                        <td style={{ padding: 6 }}>{p.birthDate}</td>
+                        <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
+                        <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
+                        <td style={{ padding: 6 }}>{last ? last.timeMs : '-'}</td>
+                        <td style={{ padding: 6 }}>{last ? last.multiplierUsed : '-'}</td>
+                        <td style={{ padding: 6 }}>{last ? last.scrollDistance : '-'}</td>
+                        <td style={{ padding: 6 }}>{last ? (new Date(last.timestamp)).toLocaleString() : '-'}</td>
+                      </tr>
+                    )
+                  })}
             </tbody>
           </table>
         </div>
@@ -148,6 +180,7 @@ function App() {
 
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  const [participantId, setParticipantId] = useState(null);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -219,6 +252,8 @@ function App() {
           privateSmartphone: '',
           screenTimePerDay: '',
         });
+        const newId = createJson.data?.createParticipant?.id;
+        if (newId) setParticipantId(newId);
         setCurrentPage('scrolllist');
       }
     } catch (error) {
@@ -249,7 +284,7 @@ function App() {
       ) : currentPage === 'login' ? (
         <div className="card">
           <h2>Login</h2>
-          <LoginForm onSuccess={() => setCurrentPage('scrolllist')} />
+          <LoginForm onSuccess={(id) => { setParticipantId(id); setCurrentPage('scrolllist'); }} />
           <div style={{ marginTop: 12 }}>
             <button className="nav-button" onClick={() => setCurrentPage('landing')}>Zurück</button>
           </div>
@@ -339,8 +374,8 @@ function App() {
       ) : (
         currentPage === 'list' ? (
           <ParticipantsList onBack={() => setCurrentPage('landing')} />
-        ) : (
-          <ScrollList />
+          ) : (
+          <ScrollList participantId={participantId} />
         )
       )}
     </main>
