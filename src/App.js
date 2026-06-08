@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
-import outputs from './amplify_outputs.json';
+import outputs from '../amplify_outputs.json';
 import './App.css';
 
 Amplify.configure(outputs);
@@ -34,14 +34,19 @@ function App() {
     setStatus('');
 
     try {
-      await client.models.Participant.create({
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.trim(),
-        birthDate: formData.birthDate,
-        privateSmartphone: formData.privateSmartphone.trim(),
-        screenTimePerDay: formData.screenTimePerDay,
-      });
+      await client.models.Participant.create(
+        {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          birthDate: formData.birthDate,
+          privateSmartphone: formData.privateSmartphone.trim(),
+          screenTimePerDay: formData.screenTimePerDay,
+        },
+        {
+          authMode: 'apiKey',
+        }
+      );
 
       setStatus('Data saved successfully.');
       setFormData({
