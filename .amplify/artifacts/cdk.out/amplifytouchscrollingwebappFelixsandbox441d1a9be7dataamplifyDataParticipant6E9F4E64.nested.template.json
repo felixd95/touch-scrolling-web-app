@@ -1,0 +1,1847 @@
+{
+ "Parameters": {
+  "DynamoDBModelTableReadIOPS": {
+   "Type": "Number",
+   "Default": 5,
+   "Description": "The number of read IOPS the table should support."
+  },
+  "DynamoDBModelTableWriteIOPS": {
+   "Type": "Number",
+   "Default": 5,
+   "Description": "The number of write IOPS the table should support."
+  },
+  "DynamoDBBillingMode": {
+   "Type": "String",
+   "Default": "PAY_PER_REQUEST",
+   "AllowedValues": [
+    "PAY_PER_REQUEST",
+    "PROVISIONED"
+   ],
+   "Description": "Configure @model types to create DynamoDB tables with PAY_PER_REQUEST or PROVISIONED billing modes."
+  },
+  "DynamoDBEnablePointInTimeRecovery": {
+   "Type": "String",
+   "Default": "false",
+   "AllowedValues": [
+    "true",
+    "false"
+   ],
+   "Description": "Whether to enable Point in Time Recovery on the table."
+  },
+  "DynamoDBEnableServerSideEncryption": {
+   "Type": "String",
+   "Default": "true",
+   "AllowedValues": [
+    "true",
+    "false"
+   ],
+   "Description": "Enable server side encryption powered by KMS."
+  },
+  "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource1A22B41BOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataAmplifyTableManage3EDCDFB3": {
+   "Type": "String"
+  },
+  "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId": {
+   "Type": "String"
+  },
+  "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName": {
+   "Type": "String"
+  }
+ },
+ "Conditions": {
+  "HasEnvironmentParameter": {
+   "Fn::Not": [
+    {
+     "Fn::Equals": [
+      "NONE",
+      "NONE"
+     ]
+    }
+   ]
+  },
+  "ShouldUsePayPerRequestBilling": {
+   "Fn::Equals": [
+    {
+     "Ref": "DynamoDBBillingMode"
+    },
+    "PAY_PER_REQUEST"
+   ]
+  },
+  "ShouldUsePointInTimeRecovery": {
+   "Fn::Equals": [
+    {
+     "Ref": "DynamoDBEnablePointInTimeRecovery"
+    },
+    "true"
+   ]
+  },
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-3"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-4"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "il-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Equals": [
+      {
+       "Ref": "AWS::Region"
+      },
+      "us-west-2"
+     ]
+    }
+   ]
+  }
+ },
+ "Resources": {
+  "ParticipantTable": {
+   "Type": "Custom::AmplifyDynamoDBTable",
+   "Properties": {
+    "ServiceToken": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource1A22B41BOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataAmplifyTableManage3EDCDFB3"
+    },
+    "tableName": {
+     "Fn::Join": [
+      "",
+      [
+       "Participant-",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "-NONE"
+      ]
+     ]
+    },
+    "attributeDefinitions": [
+     {
+      "attributeName": "id",
+      "attributeType": "S"
+     }
+    ],
+    "keySchema": [
+     {
+      "attributeName": "id",
+      "keyType": "HASH"
+     }
+    ],
+    "provisionedThroughput": {
+     "Fn::If": [
+      "ShouldUsePayPerRequestBilling",
+      {
+       "Ref": "AWS::NoValue"
+      },
+      {
+       "ReadCapacityUnits": {
+        "Ref": "DynamoDBModelTableReadIOPS"
+       },
+       "WriteCapacityUnits": {
+        "Ref": "DynamoDBModelTableWriteIOPS"
+       }
+      }
+     ]
+    },
+    "sseSpecification": {
+     "sseEnabled": false
+    },
+    "streamSpecification": {
+     "streamViewType": "NEW_AND_OLD_IMAGES"
+    },
+    "deletionProtectionEnabled": false,
+    "allowDestructiveGraphqlSchemaUpdates": true,
+    "replaceTableUponGsiUpdate": true,
+    "pointInTimeRecoverySpecification": {
+     "Fn::If": [
+      "ShouldUsePointInTimeRecovery",
+      {
+       "PointInTimeRecoveryEnabled": true
+      },
+      {
+       "Ref": "AWS::NoValue"
+      }
+     ]
+    },
+    "billingMode": {
+     "Fn::If": [
+      "ShouldUsePayPerRequestBilling",
+      "PAY_PER_REQUEST",
+      {
+       "Ref": "AWS::NoValue"
+      }
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/ParticipantTable/Default/Default"
+   }
+  },
+  "ParticipantIAMRoleEBCFB9C9": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": [
+          "dynamodb:BatchGetItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:GetItem",
+          "dynamodb:Scan",
+          "dynamodb:Query",
+          "dynamodb:UpdateItem",
+          "dynamodb:ConditionCheckItem",
+          "dynamodb:DescribeTable",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator"
+         ],
+         "Effect": "Allow",
+         "Resource": [
+          {
+           "Fn::Sub": [
+            "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${tablename}",
+            {
+             "tablename": {
+              "Fn::Join": [
+               "",
+               [
+                "Participant-",
+                {
+                 "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+                },
+                "-NONE"
+               ]
+              ]
+             }
+            }
+           ]
+          },
+          {
+           "Fn::Sub": [
+            "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${tablename}/*",
+            {
+             "tablename": {
+              "Fn::Join": [
+               "",
+               [
+                "Participant-",
+                {
+                 "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+                },
+                "-NONE"
+               ]
+              ]
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "DynamoDBAccess"
+     }
+    ],
+    "RoleName": {
+     "Fn::Join": [
+      "",
+      [
+       "ParticipantIAMRole8c902f-",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "-NONE"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "amplify:deployment-type",
+      "Value": "sandbox"
+     },
+     {
+      "Key": "amplify:friendly-name",
+      "Value": "amplifyData"
+     },
+     {
+      "Key": "created-by",
+      "Value": "amplify"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/ParticipantIAMRole/Resource"
+   }
+  },
+  "ParticipantDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DynamoDBConfig": {
+     "AwsRegion": {
+      "Ref": "AWS::Region"
+     },
+     "TableName": {
+      "Fn::Select": [
+       1,
+       {
+        "Fn::Split": [
+         "/",
+         {
+          "Fn::Select": [
+           5,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::GetAtt": [
+               "ParticipantTable",
+               "TableArn"
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    },
+    "Name": "ParticipantTable",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "ParticipantIAMRoleEBCFB9C9",
+      "Arn"
+     ]
+    },
+    "Type": "AMAZON_DYNAMODB"
+   },
+   "DependsOn": [
+    "ParticipantIAMRoleEBCFB9C9"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/ParticipantDataSource/Resource"
+   }
+  },
+  "QuerygetParticipantauth0FunctionQuerygetParticipantauth0FunctionAppSyncFunctionEE01980A": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerygetParticipantauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/74c1522efb7733193e4d75cee5b96595110452c456623a36d786f743aea94e7c.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/QuerygetParticipantauth0Function/QuerygetParticipantauth0Function.AppSyncFunction"
+   }
+  },
+  "QuerygetParticipantpostAuth0FunctionQuerygetParticipantpostAuth0FunctionAppSyncFunction3B6F0FBC": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerygetParticipantpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/QuerygetParticipantpostAuth0Function/QuerygetParticipantpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "QueryGetParticipantDataResolverFnQueryGetParticipantDataResolverFnAppSyncFunctionD13E5C9E": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "ParticipantDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QueryGetParticipantDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/08f4d557693d96c1a4efba0f9dc91330e4b19772fd5477c156468843e3d9cb5e.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4c6a2d29f01c6091bd1d9afe16e5849d456c96f17c3b215938c8067399532719.vtl"
+    }
+   },
+   "DependsOn": [
+    "ParticipantDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/QueryGetParticipantDataResolverFn/QueryGetParticipantDataResolverFn.AppSyncFunction"
+   }
+  },
+  "GetParticipantResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "FieldName": "getParticipant",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "QuerygetParticipantauth0FunctionQuerygetParticipantauth0FunctionAppSyncFunctionEE01980A",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QuerygetParticipantpostAuth0FunctionQuerygetParticipantpostAuth0FunctionAppSyncFunction3B6F0FBC",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QueryGetParticipantDataResolverFnQueryGetParticipantDataResolverFnAppSyncFunctionD13E5C9E",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Query\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"getParticipant\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "ParticipantTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Query"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/queryGetParticipantResolver"
+   }
+  },
+  "QuerylistParticipantsauth0FunctionQuerylistParticipantsauth0FunctionAppSyncFunctionE41B2449": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerylistParticipantsauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/74c1522efb7733193e4d75cee5b96595110452c456623a36d786f743aea94e7c.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/QuerylistParticipantsauth0Function/QuerylistParticipantsauth0Function.AppSyncFunction"
+   }
+  },
+  "QuerylistParticipantspostAuth0FunctionQuerylistParticipantspostAuth0FunctionAppSyncFunction6899857C": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerylistParticipantspostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/QuerylistParticipantspostAuth0Function/QuerylistParticipantspostAuth0Function.AppSyncFunction"
+   }
+  },
+  "QueryListParticipantsDataResolverFnQueryListParticipantsDataResolverFnAppSyncFunction57D74309": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "ParticipantDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QueryListParticipantsDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/9fcbe070ecd3023c5bf5b966fa9584757db9762eef123bad0820bd87591b2174.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/cc01911d0269d4080ea57505dc445dfc315ef7ad85d3d9d4ea1357858bff451d.vtl"
+    }
+   },
+   "DependsOn": [
+    "ParticipantDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/QueryListParticipantsDataResolverFn/QueryListParticipantsDataResolverFn.AppSyncFunction"
+   }
+  },
+  "ListParticipantResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "FieldName": "listParticipants",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "QuerylistParticipantsauth0FunctionQuerylistParticipantsauth0FunctionAppSyncFunctionE41B2449",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QuerylistParticipantspostAuth0FunctionQuerylistParticipantspostAuth0FunctionAppSyncFunction6899857C",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QueryListParticipantsDataResolverFnQueryListParticipantsDataResolverFnAppSyncFunction57D74309",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Query\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"listParticipants\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "ParticipantTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Query"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/queryListParticipantsResolver"
+   }
+  },
+  "MutationcreateParticipantinit0FunctionMutationcreateParticipantinit0FunctionAppSyncFunctionDBF781D0": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationcreateParticipantinit0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/a183ddccbd956316c38ef97177b8f088ef0826f62023323f5ae6053d348ccffc.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationcreateParticipantinit0Function/MutationcreateParticipantinit0Function.AppSyncFunction"
+   }
+  },
+  "MutationcreateParticipantauth0FunctionMutationcreateParticipantauth0FunctionAppSyncFunctionC39F1276": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationcreateParticipantauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/eda4511e01e0956a1b97d4ca904a6671ee21a1a583dff170fb18cbbd4f9dd6e6.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationcreateParticipantauth0Function/MutationcreateParticipantauth0Function.AppSyncFunction"
+   }
+  },
+  "MutationcreateParticipantpostAuth0FunctionMutationcreateParticipantpostAuth0FunctionAppSyncFunctionDFBEACE1": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationcreateParticipantpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationcreateParticipantpostAuth0Function/MutationcreateParticipantpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationCreateParticipantDataResolverFnMutationCreateParticipantDataResolverFnAppSyncFunction47407D0A": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "ParticipantDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationCreateParticipantDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/e6d4d3050c3bc110c8a8d9908722485a5f3e9a98992ec907e8134b0e8ce63e96.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
+    }
+   },
+   "DependsOn": [
+    "ParticipantDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationCreateParticipantDataResolverFn/MutationCreateParticipantDataResolverFn.AppSyncFunction"
+   }
+  },
+  "CreateParticipantResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "FieldName": "createParticipant",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "MutationcreateParticipantinit0FunctionMutationcreateParticipantinit0FunctionAppSyncFunctionDBF781D0",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationcreateParticipantauth0FunctionMutationcreateParticipantauth0FunctionAppSyncFunctionC39F1276",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationcreateParticipantpostAuth0FunctionMutationcreateParticipantpostAuth0FunctionAppSyncFunctionDFBEACE1",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationCreateParticipantDataResolverFnMutationCreateParticipantDataResolverFnAppSyncFunction47407D0A",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"createParticipant\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "ParticipantTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Mutation"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/mutationCreateParticipantResolver"
+   }
+  },
+  "MutationupdateParticipantinit0FunctionMutationupdateParticipantinit0FunctionAppSyncFunctionF6B238C9": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationupdateParticipantinit0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/06db846fd14e6fc371f22b12b5545ba8e2dbfeda85d8c8d586c71c282166657b.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationupdateParticipantinit0Function/MutationupdateParticipantinit0Function.AppSyncFunction"
+   }
+  },
+  "MutationupdateParticipantauth0FunctionMutationupdateParticipantauth0FunctionAppSyncFunctionAE7232B4": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "ParticipantDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationupdateParticipantauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/cd0b7103bd7f11aa4b0201590c636ce2c0edbf9e5dd157cb5e0819bc7d7f4738.vtl"
+    }
+   },
+   "DependsOn": [
+    "ParticipantDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationupdateParticipantauth0Function/MutationupdateParticipantauth0Function.AppSyncFunction"
+   }
+  },
+  "MutationupdateParticipantpostAuth0FunctionMutationupdateParticipantpostAuth0FunctionAppSyncFunctionCB544B2D": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationupdateParticipantpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationupdateParticipantpostAuth0Function/MutationupdateParticipantpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationUpdateParticipantDataResolverFnMutationUpdateParticipantDataResolverFnAppSyncFunctionA465EA74": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "ParticipantDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationUpdateParticipantDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/474bf0776ec2164a13191d1a0a9e057154931e4918fea5086f49850d02a5371b.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
+    }
+   },
+   "DependsOn": [
+    "ParticipantDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationUpdateParticipantDataResolverFn/MutationUpdateParticipantDataResolverFn.AppSyncFunction"
+   }
+  },
+  "UpdateParticipantResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "FieldName": "updateParticipant",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "MutationupdateParticipantinit0FunctionMutationupdateParticipantinit0FunctionAppSyncFunctionF6B238C9",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationupdateParticipantauth0FunctionMutationupdateParticipantauth0FunctionAppSyncFunctionAE7232B4",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationupdateParticipantpostAuth0FunctionMutationupdateParticipantpostAuth0FunctionAppSyncFunctionCB544B2D",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationUpdateParticipantDataResolverFnMutationUpdateParticipantDataResolverFnAppSyncFunctionA465EA74",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"updateParticipant\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "ParticipantTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Mutation"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/mutationUpdateParticipantResolver"
+   }
+  },
+  "MutationdeleteParticipantauth0FunctionMutationdeleteParticipantauth0FunctionAppSyncFunction0D591B26": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "ParticipantDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationdeleteParticipantauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/0064bfbd7fdaea51ef97e8494f036beca0be53bc5c1c7b05c29a27f9cdb28bd2.vtl"
+    }
+   },
+   "DependsOn": [
+    "ParticipantDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationdeleteParticipantauth0Function/MutationdeleteParticipantauth0Function.AppSyncFunction"
+   }
+  },
+  "MutationdeleteParticipantpostAuth0FunctionMutationdeleteParticipantpostAuth0FunctionAppSyncFunctionE051CED1": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationdeleteParticipantpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationdeleteParticipantpostAuth0Function/MutationdeleteParticipantpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationDeleteParticipantDataResolverFnMutationDeleteParticipantDataResolverFnAppSyncFunction4D5C1E25": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "ParticipantDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationDeleteParticipantDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4f7907d1209a2c9953a0c053df402c634e359546d70c7cc5c2e8e21ea734880f.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
+    }
+   },
+   "DependsOn": [
+    "ParticipantDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/MutationDeleteParticipantDataResolverFn/MutationDeleteParticipantDataResolverFn.AppSyncFunction"
+   }
+  },
+  "DeleteParticipantResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "FieldName": "deleteParticipant",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "MutationdeleteParticipantauth0FunctionMutationdeleteParticipantauth0FunctionAppSyncFunction0D591B26",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationdeleteParticipantpostAuth0FunctionMutationdeleteParticipantpostAuth0FunctionAppSyncFunctionE051CED1",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationDeleteParticipantDataResolverFnMutationDeleteParticipantDataResolverFnAppSyncFunction4D5C1E25",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"deleteParticipant\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "ParticipantTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Mutation"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/mutationDeleteParticipantResolver"
+   }
+  },
+  "SubscriptiononCreateParticipantauth0FunctionSubscriptiononCreateParticipantauth0FunctionAppSyncFunctionFFF5C067": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononCreateParticipantauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/0064bfbd7fdaea51ef97e8494f036beca0be53bc5c1c7b05c29a27f9cdb28bd2.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptiononCreateParticipantauth0Function/SubscriptiononCreateParticipantauth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptiononCreateParticipantpostAuth0FunctionSubscriptiononCreateParticipantpostAuth0FunctionAppSyncFunctionF7F7EEB3": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononCreateParticipantpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptiononCreateParticipantpostAuth0Function/SubscriptiononCreateParticipantpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptionOnCreateParticipantDataResolverFnSubscriptionOnCreateParticipantDataResolverFnAppSyncFunction0E10B517": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptionOnCreateParticipantDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptionOnCreateParticipantDataResolverFn/SubscriptionOnCreateParticipantDataResolverFn.AppSyncFunction"
+   }
+  },
+  "SubscriptiononCreateParticipantResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "FieldName": "onCreateParticipant",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononCreateParticipantauth0FunctionSubscriptiononCreateParticipantauth0FunctionAppSyncFunctionFFF5C067",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononCreateParticipantpostAuth0FunctionSubscriptiononCreateParticipantpostAuth0FunctionAppSyncFunctionF7F7EEB3",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptionOnCreateParticipantDataResolverFnSubscriptionOnCreateParticipantDataResolverFnAppSyncFunction0E10B517",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onCreateParticipant\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Subscription"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/subscriptionOnCreateParticipantResolver"
+   }
+  },
+  "SubscriptiononUpdateParticipantauth0FunctionSubscriptiononUpdateParticipantauth0FunctionAppSyncFunction52548D0C": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononUpdateParticipantauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/0064bfbd7fdaea51ef97e8494f036beca0be53bc5c1c7b05c29a27f9cdb28bd2.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptiononUpdateParticipantauth0Function/SubscriptiononUpdateParticipantauth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptiononUpdateParticipantpostAuth0FunctionSubscriptiononUpdateParticipantpostAuth0FunctionAppSyncFunctionCCD97267": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononUpdateParticipantpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptiononUpdateParticipantpostAuth0Function/SubscriptiononUpdateParticipantpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptionOnUpdateParticipantDataResolverFnSubscriptionOnUpdateParticipantDataResolverFnAppSyncFunction1EA1D0EC": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptionOnUpdateParticipantDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptionOnUpdateParticipantDataResolverFn/SubscriptionOnUpdateParticipantDataResolverFn.AppSyncFunction"
+   }
+  },
+  "SubscriptiononUpdateParticipantResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "FieldName": "onUpdateParticipant",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononUpdateParticipantauth0FunctionSubscriptiononUpdateParticipantauth0FunctionAppSyncFunction52548D0C",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononUpdateParticipantpostAuth0FunctionSubscriptiononUpdateParticipantpostAuth0FunctionAppSyncFunctionCCD97267",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptionOnUpdateParticipantDataResolverFnSubscriptionOnUpdateParticipantDataResolverFnAppSyncFunction1EA1D0EC",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onUpdateParticipant\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Subscription"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/subscriptionOnUpdateParticipantResolver"
+   }
+  },
+  "SubscriptiononDeleteParticipantauth0FunctionSubscriptiononDeleteParticipantauth0FunctionAppSyncFunctionBA58E6F4": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononDeleteParticipantauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/0064bfbd7fdaea51ef97e8494f036beca0be53bc5c1c7b05c29a27f9cdb28bd2.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptiononDeleteParticipantauth0Function/SubscriptiononDeleteParticipantauth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptiononDeleteParticipantpostAuth0FunctionSubscriptiononDeleteParticipantpostAuth0FunctionAppSyncFunctionC71B3564": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononDeleteParticipantpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptiononDeleteParticipantpostAuth0Function/SubscriptiononDeleteParticipantpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptionOnDeleteParticipantDataResolverFnSubscriptionOnDeleteParticipantDataResolverFnAppSyncFunction0D19DD46": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptionOnDeleteParticipantDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/SubscriptionOnDeleteParticipantDataResolverFn/SubscriptionOnDeleteParticipantDataResolverFn.AppSyncFunction"
+   }
+  },
+  "SubscriptiononDeleteParticipantResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    "FieldName": "onDeleteParticipant",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononDeleteParticipantauth0FunctionSubscriptiononDeleteParticipantauth0FunctionAppSyncFunctionBA58E6F4",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononDeleteParticipantpostAuth0FunctionSubscriptiononDeleteParticipantpostAuth0FunctionAppSyncFunctionC71B3564",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptionOnDeleteParticipantDataResolverFnSubscriptionOnDeleteParticipantDataResolverFnAppSyncFunction0D19DD46",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onDeleteParticipant\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Subscription"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/subscriptionOnDeleteParticipantResolver"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WQQWvDMAyFf8vujlYyBttxTehxG+nuRbGV4CaxgyV3lJD/PjsdHTs9feghPamE8vkFdg/4zYU2QzHaFpZ3YiFzFNSDqjr3iQEnEgoZKu+MFeudaoh9DJpUFVn89Iedu9dp7GkxV4eTNy18YTvSHpmUxQmWxo83d9JV4Tzz1WlY6s1etzUKHu8j/9MhOp1DpDSd7WPALdHv5vFCYVX8dEJmEoa3LIlhH/VAkgOs2fsRZY6itnY6treuX5XzhuDMj5dyB6/pMWe2tgjRiZ0Impv+ADG/IGU1AQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Outputs": {
+  "GetAttParticipantTableStreamArn": {
+   "Description": "Your DynamoDB table StreamArn.",
+   "Value": {
+    "Fn::GetAtt": [
+     "ParticipantTable",
+     "TableStreamArn"
+    ]
+   },
+   "Export": {
+    "Name": {
+     "Fn::Join": [
+      ":",
+      [
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "GetAtt:ParticipantTable:StreamArn"
+      ]
+     ]
+    }
+   }
+  },
+  "GetAttParticipantTableName": {
+   "Description": "Your DynamoDB table name.",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "Participant-",
+      {
+       "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+      },
+      "-NONE"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": {
+     "Fn::Join": [
+      ":",
+      [
+       {
+        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+       },
+       "GetAtt:ParticipantTable:Name"
+      ]
+     ]
+    }
+   }
+  }
+ }
+}

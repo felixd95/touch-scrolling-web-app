@@ -1,0 +1,9 @@
+type Participant @model @auth(rules: [{allow: public, provider: apiKey}])
+{
+  firstName: String!
+  lastName: String!
+  email: AWSEmail!
+  birthDate: AWSDate!
+  privateSmartphone: String!
+  screenTimePerDay: String!
+}
