@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
 import outputs from './amplify_outputs.json';
+import ScrollList from './ScrollList';
 import './App.css';
 
 Amplify.configure(outputs);
@@ -9,6 +10,7 @@ Amplify.configure(outputs);
 const client = generateClient();
 
 function App() {
+  const [currentPage, setCurrentPage] = useState('form'); // 'form' oder 'scrolllist'
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -67,90 +69,98 @@ function App() {
 
   return (
     <main className="page">
-      <div className="card">
-        <h1>Participant information</h1>
-        <p>Please enter your personal information before starting the study.</p>
+      {currentPage === 'form' ? (
+        <div className="card">
+          <h1>Participant information</h1>
+          <p>Please enter your personal information before starting the study.</p>
 
-        <form onSubmit={handleSubmit} className="form">
-          <label>
-            First name
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              required
-            />
-          </label>
+          <form onSubmit={handleSubmit} className="form">
+            <label>
+              First name
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                required
+              />
+            </label>
 
-          <label>
-            Last name
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              required
-            />
-          </label>
+            <label>
+              Last name
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                required
+              />
+            </label>
 
-          <label>
-            Email
-            <input
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </label>
+            <label>
+              Email
+              <input
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </label>
 
-          <label>
-            Date of birth
-            <input
-              type="date"
-              name="birthDate"
-              value={formData.birthDate}
-              onChange={handleChange}
-              required
-            />
-          </label>
+            <label>
+              Date of birth
+              <input
+                type="date"
+                name="birthDate"
+                value={formData.birthDate}
+                onChange={handleChange}
+                required
+              />
+            </label>
 
-          <label>
-            Private smartphone
-            <input
-              type="text"
-              name="privateSmartphone"
-              value={formData.privateSmartphone}
-              onChange={handleChange}
-              placeholder="e.g. iPhone 14, Galaxy S23"
-              required
-            />
-          </label>
+            <label>
+              Private smartphone
+              <input
+                type="text"
+                name="privateSmartphone"
+                value={formData.privateSmartphone}
+                onChange={handleChange}
+                placeholder="e.g. iPhone 14, Galaxy S23"
+                required
+              />
+            </label>
 
-          <label>
-            Screen time per day
-            <select
-              name="screenTimePerDay"
-              value={formData.screenTimePerDay}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Please select</option>
-              <option value="<1h">Less than 1 hour</option>
-              <option value="1-2h">1–2 hours</option>
-              <option value="2-4h">2–4 hours</option>
-              <option value="4-6h">4–6 hours</option>
-              <option value=">6h">More than 6 hours</option>
-            </select>
-          </label>
+            <label>
+              Screen time per day
+              <select
+                name="screenTimePerDay"
+                value={formData.screenTimePerDay}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Please select</option>
+                <option value="<1h">Less than 1 hour</option>
+                <option value="1-2h">1–2 hours</option>
+                <option value="2-4h">2–4 hours</option>
+                <option value="4-6h">4–6 hours</option>
+                <option value=">6h">More than 6 hours</option>
+              </select>
+            </label>
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : 'Start study'}
+            <button type="submit" disabled={loading}>
+              {loading ? 'Saving...' : 'Start study'}
+            </button>
+
+            {status && <p>{status}</p>}
+          </form>
+          
+          <button className="nav-button" onClick={() => setCurrentPage('scrolllist')}>
+            Go to Scroll List
           </button>
-
-          {status && <p>{status}</p>}
-        </form>
-      </div>
+        </div>
+      ) : (
+        <ScrollList />
+      )}
     </main>
   );
 }
