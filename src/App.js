@@ -139,10 +139,6 @@ function ParticipantsList({ onBack }) {
                 <th style={{ textAlign: 'left', padding: 6 }}>Geburtstag</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Device</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>ScreenTime</th>
-                    <th style={{ textAlign: 'left', padding: 6 }}>Letzte Zeit (ms)</th>
-                    <th style={{ textAlign: 'left', padding: 6 }}>Letzter Multiplier</th>
-                    <th style={{ textAlign: 'left', padding: 6 }}>Letzte Distanz (px)</th>
-                    <th style={{ textAlign: 'left', padding: 6 }}>Letztes Datum</th>
               </tr>
             </thead>
             <tbody>
@@ -166,10 +162,6 @@ function ParticipantsList({ onBack }) {
                         <td style={{ padding: 6 }}>{p.birthDate}</td>
                         <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
                         <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
-                        <td style={{ padding: 6 }}>{attemptsArr.length > 0 ? attemptsArr[attemptsArr.length-1].timeMs : '-'}</td>
-                        <td style={{ padding: 6 }}>{attemptsArr.length > 0 ? attemptsArr[attemptsArr.length-1].multiplierUsed : '-'}</td>
-                        <td style={{ padding: 6 }}>{attemptsArr.length > 0 ? attemptsArr[attemptsArr.length-1].scrollDistance : '-'}</td>
-                        <td style={{ padding: 6 }}>{attemptsArr.length > 0 ? (new Date(attemptsArr[attemptsArr.length-1].timestamp)).toLocaleString() : '-'}</td>
                         <td style={{ padding: 6 }}>
                           <button className="nav-button" onClick={() => { setSelectedParticipant({ ...p, attempts: attemptsArr }); setSelectedIndex(attemptsArr.length - 1); }} disabled={attemptsArr.length===0}>
                             View Attempts

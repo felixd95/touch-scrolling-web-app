@@ -64,10 +64,11 @@
             },
             "attempts": {
               "name": "attempts",
-              "isArray": false,
-              "type": "String",
+              "isArray": true,
+              "type": "AWSJSON",
               "isRequired": false,
-              "attributes": []
+              "attributes": [],
+              "isArrayNullable": true
             },
             "createdAt": {
               "name": "createdAt",

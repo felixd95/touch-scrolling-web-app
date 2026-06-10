@@ -9,7 +9,7 @@ const schema = a.schema({
       birthDate: a.date().required(),
       privateSmartphone: a.string().required(),
       screenTimePerDay: a.string().required(),
-      attempts: a.string(),
+      attempts: a.json().array(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
   Result: a

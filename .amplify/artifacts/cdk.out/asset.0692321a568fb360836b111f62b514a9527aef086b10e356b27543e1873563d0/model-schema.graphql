@@ -1,0 +1,19 @@
+type Participant @model @auth(rules: [{allow: public, provider: apiKey}])
+{
+  firstName: String!
+  lastName: String!
+  email: AWSEmail!
+  birthDate: AWSDate!
+  privateSmartphone: String!
+  screenTimePerDay: String!
+  attempts: [AWSJSON]
+}
+
+type Result @model @auth(rules: [{allow: public, provider: apiKey}])
+{
+  participantId: ID!
+  timeMs: String!
+  scrollDistance: String!
+  timestamp: String!
+  multiplierUsed: String!
+}

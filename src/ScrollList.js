@@ -15,6 +15,7 @@ function ScrollList({ participantId }) {
   const [multiplierInput, setMultiplierInput] = useState('');
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
+  const [roundCompleted, setRoundCompleted] = useState(false);
   const timerInterval = useRef(null);
   const countdownInterval = useRef(null);
   const scrollListRef = useRef(null);
@@ -62,6 +63,10 @@ function ScrollList({ participantId }) {
   const handleButtonClick = (id) => {
     if (id === targetId && isSearching) {
       setIsSearching(false);
+      setRoundCompleted(true);
+      setActiveMultiplier(null);
+      setMultiplierInput('');
+      setCountdown(null);
       // collect result data
       const endTime = Date.now();
       const totalTime = endTime - startTime;
@@ -138,6 +143,7 @@ function ScrollList({ participantId }) {
     setStartTime(null);
     setElapsedTime(null);
     setIsSearching(false);
+    setRoundCompleted(false);
     setTranslateY(0);
   };
 
@@ -217,7 +223,7 @@ function ScrollList({ participantId }) {
                 onClick={() => {
                   const parsed = parseFloat(multiplierInput);
                   if (!isNaN(parsed) && parsed > 0 && countdown === null && !isSearching) {
-                    setCountdown(3);
+                    handleStartNew();
                   }
                 }}
                 disabled={isSearching || (countdown !== null && countdown > 0)}
@@ -238,6 +244,12 @@ function ScrollList({ participantId }) {
 
           {isSearching && (
             <div className="timer">Time: {formatTime(elapsedTime || 0)}</div>
+          )}
+
+          {roundCompleted && !isSearching && countdown === null && (
+            <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
+              Ziel gefunden! Bitte gib einen neuen Multiplier ein und drücke Start für den nächsten Durchlauf.
+            </div>
           )}
         </div>
       </div>
