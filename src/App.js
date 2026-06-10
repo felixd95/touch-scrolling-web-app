@@ -64,6 +64,8 @@ function ParticipantsList({ onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [results, setResults] = useState([]);
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -78,31 +80,34 @@ function ParticipantsList({ onBack }) {
             'x-api-key': outputs.data.api_key,
           },
           body: JSON.stringify({
-            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay } } }`,
+            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay attempts } } }`,
           }),
         });
         const json = await resp.json();
         if (!mounted) return;
-        setItems(json.data?.listParticipants?.items || []);
-        // try to load remote results (if Result model exists), otherwise fallback to localStorage
-        try {
-          const r = await fetch(outputs.data.url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
-            body: JSON.stringify({ query: `query ListResults { listResults { items { id participantId timeMs scrollDistance timestamp multiplierUsed } } }` }),
-          });
-          const rjson = await r.json();
-          if (rjson.data && rjson.data.listResults) {
-            setResults(rjson.data.listResults.items || []);
-          } else {
-            // fallback to localStorage
-            const local = JSON.parse(localStorage.getItem('results') || '[]');
-            setResults(local);
+        const itemsWithAttempts = json.data?.listParticipants?.items || [];
+        setItems(itemsWithAttempts);
+        // collect all attempts from participants (remote attempts stored in participant.attempts or localStorage fallback)
+        const allAttempts = [];
+        for (const p of itemsWithAttempts) {
+          if (p.attempts) {
+            try {
+              const arr = JSON.parse(p.attempts || '[]');
+              for (const a of arr) allAttempts.push(a);
+            } catch (e) {
+              // ignore parse errors
+            }
           }
-        } catch (err) {
-          const local = JSON.parse(localStorage.getItem('results') || '[]');
-          setResults(local);
         }
+        // merge with local fallback (participantResults)
+        try {
+          const localMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
+          for (const pid of Object.keys(localMap)) {
+            const arr = localMap[pid] || [];
+            for (const a of arr) allAttempts.push(a);
+          }
+        } catch (e) {}
+        setResults(allAttempts);
       } catch (err) {
         console.error(err);
         if (mounted) setError('Fehler beim Laden der Einträge');
@@ -142,8 +147,17 @@ function ParticipantsList({ onBack }) {
             </thead>
             <tbody>
                   {items.map((p) => {
-                    const pResults = results.filter(r => r.participantId === p.id);
-                    const last = pResults.length > 0 ? pResults.sort((a,b)=> (a.timestamp||0) > (b.timestamp||0) ? -1:1)[0] : null;
+                    // parse attempts array for this participant
+                    let attemptsArr = [];
+                    if (p.attempts) {
+                      try { attemptsArr = JSON.parse(p.attempts); } catch (e) { attemptsArr = []; }
+                    }
+                    // also include local fallback for this participant
+                    try {
+                      const localMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
+                      if (localMap[p.id]) attemptsArr = (attemptsArr || []).concat(localMap[p.id]);
+                    } catch (e) {}
+
                     return (
                       <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
                         <td style={{ padding: 6 }}>{p.id}</td>
@@ -152,10 +166,15 @@ function ParticipantsList({ onBack }) {
                         <td style={{ padding: 6 }}>{p.birthDate}</td>
                         <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
                         <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
-                        <td style={{ padding: 6 }}>{last ? last.timeMs : '-'}</td>
-                        <td style={{ padding: 6 }}>{last ? last.multiplierUsed : '-'}</td>
-                        <td style={{ padding: 6 }}>{last ? last.scrollDistance : '-'}</td>
-                        <td style={{ padding: 6 }}>{last ? (new Date(last.timestamp)).toLocaleString() : '-'}</td>
+                        <td style={{ padding: 6 }}>{attemptsArr.length > 0 ? attemptsArr[attemptsArr.length-1].timeMs : '-'}</td>
+                        <td style={{ padding: 6 }}>{attemptsArr.length > 0 ? attemptsArr[attemptsArr.length-1].multiplierUsed : '-'}</td>
+                        <td style={{ padding: 6 }}>{attemptsArr.length > 0 ? attemptsArr[attemptsArr.length-1].scrollDistance : '-'}</td>
+                        <td style={{ padding: 6 }}>{attemptsArr.length > 0 ? (new Date(attemptsArr[attemptsArr.length-1].timestamp)).toLocaleString() : '-'}</td>
+                        <td style={{ padding: 6 }}>
+                          <button className="nav-button" onClick={() => { setSelectedParticipant({ ...p, attempts: attemptsArr }); setSelectedIndex(attemptsArr.length - 1); }} disabled={attemptsArr.length===0}>
+                            View Attempts
+                          </button>
+                        </td>
                       </tr>
                     )
                   })}
@@ -163,6 +182,23 @@ function ParticipantsList({ onBack }) {
           </table>
         </div>
       )}
+          {selectedParticipant && (
+            <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
+              <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
+              <label>
+                Select index:
+                <select value={selectedIndex} onChange={(e) => setSelectedIndex(Number(e.target.value))} style={{ marginLeft: 8 }}>
+                  {Array.from({ length: selectedParticipant.attempts.length }, (_, i) => (
+                    <option key={i} value={i}>{i}</option>
+                  ))}
+                </select>
+              </label>
+              <pre style={{ whiteSpace: 'pre-wrap', marginTop: 12, background: '#f7f7f7', padding: 8 }}>{JSON.stringify(selectedParticipant.attempts[selectedIndex], null, 2)}</pre>
+              <div style={{ marginTop: 8 }}>
+                <button className="nav-button" onClick={() => setSelectedParticipant(null)}>Close</button>
+              </div>
+            </div>
+          )}
     </div>
   );
 }

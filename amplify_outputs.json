@@ -62,6 +62,13 @@
               "isRequired": true,
               "attributes": []
             },
+            "attempts": {
+              "name": "attempts",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
             "createdAt": {
               "name": "createdAt",
               "isArray": false,

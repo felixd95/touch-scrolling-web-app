@@ -76,36 +76,54 @@ function ScrollList({ participantId }) {
   const saveResult = async (result) => {
     const fallbackSave = () => {
       try {
-        const existing = JSON.parse(localStorage.getItem('results') || '[]');
-        existing.push(result);
-        localStorage.setItem('results', JSON.stringify(existing));
+        // store per-participant attempts mapping
+        const existingMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
+        const pid = result.participantId || 'anonymous';
+        const arr = existingMap[pid] || [];
+        // maintain up to 100 entries
+        if (arr.length >= 100) arr.shift();
+        arr.push(result);
+        existingMap[pid] = arr;
+        localStorage.setItem('participantResults', JSON.stringify(existingMap));
       } catch (e) {
         console.error('Fallback save failed', e);
       }
     };
 
     if (!result.participantId) {
-      // no participant id available; save locally
       fallbackSave();
       return;
     }
 
     try {
-      const resp = await fetch(outputs.data.url, {
+      // fetch current participant attempts
+      const qresp = await fetch(outputs.data.url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': outputs.data.api_key,
-        },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
-            query: `mutation CreateResult($input: CreateResultInput!) { createResult(input: $input) { id participantId timeMs scrollDistance timestamp multiplierUsed } }`,
-            variables: { input: result },
-          }),
+          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts } } }`,
+          variables: { filter: { id: { eq: result.participantId } } },
+        }),
       });
+      const qjson = await qresp.json();
+      const existing = (qjson.data?.listParticipants?.items[0]?.attempts) || null;
+      let arr = [];
+      try { arr = existing ? JSON.parse(existing) : []; } catch (e) { arr = []; }
+      if (arr.length >= 100) arr.shift();
+      arr.push(result);
 
-      const json = await resp.json();
-      if (json.errors) {
-        console.warn('Server save failed, falling back to localStorage', json.errors);
+      // update participant attempts
+      const updResp = await fetch(outputs.data.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
+        body: JSON.stringify({
+          query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id attempts } }`,
+          variables: { input: { id: result.participantId, attempts: JSON.stringify(arr) } },
+        }),
+      });
+      const updJson = await updResp.json();
+      if (updJson.errors) {
+        console.warn('Update failed, falling back to localStorage', updJson.errors);
         fallbackSave();
       }
     } catch (err) {
