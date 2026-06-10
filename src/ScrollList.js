@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import './ScrollList.css';
 import outputs from './amplify_outputs.json';
 
+const NUM_ITEMS = 1000;
+
 function ScrollList({ participantId }) {
-  const [targetId, setTargetId] = useState(Math.floor(Math.random() * 2000));
+  const [targetId, setTargetId] = useState(Math.floor(Math.random() * NUM_ITEMS));
   const [countdown, setCountdown] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(null);
@@ -73,8 +75,9 @@ function ScrollList({ participantId }) {
       const scrollDistance = Math.abs(translateY - startTranslateY);
       const timestamp = new Date().toISOString();
       const multiplierUsed = activeMultiplier || (parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
+      const targetNumber = targetId + 1;
       // try to save result remotely, fallback to localStorage
-      saveResult({ participantId, timeMs: totalTime, scrollDistance, timestamp, multiplierUsed });
+      saveResult({ participantId, timeMs: totalTime, scrollDistance, timestamp, multiplierUsed, targetNumber });
     }
   };
 
@@ -138,7 +141,7 @@ function ScrollList({ participantId }) {
   };
 
   const handleStartNew = () => {
-    setTargetId(Math.floor(Math.random() * 2000));
+    setTargetId(Math.floor(Math.random() * NUM_ITEMS));
     setCountdown(3);
     setStartTime(null);
     setElapsedTime(null);
@@ -161,9 +164,7 @@ function ScrollList({ participantId }) {
 
   const clampTranslate = (value) => {
     const itemHeight = 44; // approximate button height plus gap
-    const contentHeight = 1000 * itemHeight;
-    const minTranslate = Math.min(0, containerHeight - contentHeight - 20);
-    return Math.max(minTranslate, Math.min(0, value));
+    const contentHeight = NUM_ITEMS * itemHeight;
   };
 
   const transfer = (deltaY) => {
@@ -264,7 +265,7 @@ function ScrollList({ participantId }) {
           onTouchCancel={handleTouchEnd}
         >
           <div className="scroll-list-inner" style={{ transform: `translateY(${translateY}px)` }}>
-            {Array.from({ length: 1000 }, (_, i) => (
+            {Array.from({ length: NUM_ITEMS }, (_, i) => (
               <button
                 key={i}
                 className={`list-item ${i === targetId ? 'target' : ''} ${
