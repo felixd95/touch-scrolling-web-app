@@ -165,6 +165,8 @@ function ScrollList({ participantId }) {
   const clampTranslate = (value) => {
     const itemHeight = 44; // approximate button height plus gap
     const contentHeight = NUM_ITEMS * itemHeight;
+    const minTranslate = Math.min(0, containerHeight - contentHeight - 20);
+    return Math.max(minTranslate, Math.min(0, value));
   };
 
   const transfer = (deltaY) => {
