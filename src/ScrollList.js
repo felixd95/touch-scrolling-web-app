@@ -170,8 +170,11 @@ function ScrollList({ participantId }) {
   };
 
   const transfer = (deltaY) => {
-    const parsed = parseFloat(multiplierInput);
-    const factor = parsed > 0 ? parsed : 1;
+    let factor = 1;
+    if (isSearching) {
+      const parsed = parseFloat(multiplierInput);
+      factor = parsed > 0 ? parsed : 1;
+    }
     setTranslateY((current) => clampTranslate(current + deltaY * factor));
   };
 
@@ -183,8 +186,10 @@ function ScrollList({ participantId }) {
   };
 
   const handleTouchMove = (event) => {
-    if (!isSearching || event.touches.length !== 1) return;
-    event.preventDefault();
+    if (event.touches.length !== 1) return;
+    if (isSearching) {
+      event.preventDefault();
+    }
     const touchY = event.touches[0].clientY;
     const deltaY = touchY - lastTouchY;
     setLastTouchY(touchY);
