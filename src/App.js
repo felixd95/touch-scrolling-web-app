@@ -67,6 +67,11 @@ function ParticipantsList({ onBack }) {
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [selectedRunIndex, setSelectedRunIndex] = useState(0);
 
+  const formatMetric = (value, digits = 2) => {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
+    return Number(value).toFixed(digits);
+  };
+
   const buildRunGroups = (attempts) => {
     if (!Array.isArray(attempts) || attempts.length === 0) return [];
 
@@ -153,7 +158,7 @@ function ParticipantsList({ onBack }) {
   }, []);
 
   return (
-    <div className="card">
+    <div className="card" style={{ maxWidth: '1100px', maxHeight: '90vh', overflowY: 'auto' }}>
       <h2>Teilnehmer</h2>
       <div style={{ marginBottom: 12 }}>
         <button className="nav-button" onClick={onBack}>Zurück</button>
@@ -161,7 +166,7 @@ function ParticipantsList({ onBack }) {
       {loading && <p>Lade...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {!loading && !error && (
-        <div style={{ maxHeight: '60vh', overflow: 'auto' }}>
+        <div style={{ maxHeight: '40vh', overflow: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
@@ -231,11 +236,11 @@ function ParticipantsList({ onBack }) {
                   ))}
                 </select>
               </label>
-              <div style={{ marginTop: 12 }}>
+              <div style={{ marginTop: 12, maxHeight: '40vh', overflow: 'auto' }}>
                 {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).length === 0 ? (
                   <p>Keine Ergebnisse für den ausgewählten Durchlauf.</p>
                 ) : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse', background: '#f7f7f7' }}>
+                  <table style={{ minWidth: 1400, width: '100%', borderCollapse: 'collapse', background: '#f7f7f7' }}>
                     <thead>
                       <tr>
                         <th style={{ textAlign: 'left', padding: 6 }}>#</th>
@@ -243,6 +248,14 @@ function ParticipantsList({ onBack }) {
                         <th style={{ textAlign: 'left', padding: 6 }}>Zeit (ms)</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Distanz</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Multiplier</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Flicks</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Switchbacks</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Overshoot</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Overshoot Count</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Max Overshoot (px)</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Startdistanz (px)</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Startdistanz (Items)</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Flick-Details</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Timestamp</th>
                       </tr>
                     </thead>
@@ -254,6 +267,31 @@ function ParticipantsList({ onBack }) {
                           <td style={{ padding: 6 }}>{attempt?.timeMs ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.scrollDistance ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.multiplierUsed ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.flickCount ?? attempt?.clutchCount ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.switchbackCount ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.overshoot?.didOvershoot ? 'Ja' : 'Nein'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.overshoot?.count ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.overshoot?.maxDistancePx ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.startDistancePx ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.startDistanceItems)}</td>
+                          <td style={{ padding: 6 }}>
+                            {Array.isArray(attempt?.flicks) && attempt.flicks.length > 0 ? (
+                              <details>
+                                <summary>{attempt.flicks.length} Flicks anzeigen</summary>
+                                <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
+                                  {attempt.flicks.map((flick, flickIdx) => (
+                                    <div key={flickIdx} style={{ fontSize: 12, lineHeight: 1.4, background: '#fff', padding: 6, borderRadius: 4, border: '1px solid #e2e2e2' }}>
+                                      <strong>Flick {flickIdx + 1}:</strong>{' '}
+                                      dir={flick?.direction ?? '-'}, dist(px)={formatMetric(flick?.distancePx, 1)}, dist(items)={formatMetric(flick?.distanceItems, 2)},
+                                      dur(ms)={formatMetric(flick?.durationMs, 1)}, avg(px/ms)={formatMetric(flick?.avgSpeedPxMs, 3)}, max(px/ms)={formatMetric(flick?.maxSpeedPxMs, 3)}
+                                    </div>
+                                  ))}
+                                </div>
+                              </details>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
                           <td style={{ padding: 6 }}>{attempt?.timestamp ?? '-'}</td>
                         </tr>
                       ))}
