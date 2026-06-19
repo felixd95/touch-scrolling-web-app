@@ -22,6 +22,7 @@ function ScrollList({ participantId }) {
   const [roundCompleted, setRoundCompleted] = useState(false);
   const timerInterval = useRef(null);
   const scrollListRef = useRef(null);
+  const scrollListInnerRef = useRef(null);
 
   // (removed countdown-based start - starting now happens on first touch)
 
@@ -146,9 +147,20 @@ function ScrollList({ participantId }) {
     return () => window.removeEventListener('resize', updateHeight);
   }, []);
 
+  const getContentHeight = () => {
+    if (scrollListInnerRef.current) {
+      return scrollListInnerRef.current.scrollHeight;
+    }
+
+    return 0;
+  };
+
   const clampTranslate = (value) => {
-    const itemHeight = 44; // approximate button height plus gap
-    const contentHeight = NUM_ITEMS * itemHeight;
+    const contentHeight = getContentHeight();
+    if (!contentHeight) {
+      return Math.min(0, value);
+    }
+
     const minTranslate = Math.min(0, containerHeight - contentHeight - 20);
     return Math.max(minTranslate, Math.min(0, value));
   };
@@ -268,7 +280,7 @@ function ScrollList({ participantId }) {
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
-          <div className="scroll-list-inner" style={{ transform: `translateY(${translateY}px)` }}>
+          <div ref={scrollListInnerRef} className="scroll-list-inner" style={{ transform: `translateY(${translateY}px)` }}>
             {Array.from({ length: NUM_ITEMS }, (_, i) => (
               <button
                 key={i}
