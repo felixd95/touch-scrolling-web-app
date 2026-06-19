@@ -6,7 +6,7 @@ const NUM_ITEMS = 1000;
 
 function ScrollList({ participantId }) {
   const [targetId, setTargetId] = useState(Math.floor(Math.random() * NUM_ITEMS));
-  const [countdown, setCountdown] = useState(null);
+  // countdown removed; start happens on first scroll
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -17,31 +17,15 @@ function ScrollList({ participantId }) {
   const [multiplierInput, setMultiplierInput] = useState('');
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
+  const [multiplierTarget, setMultiplierTarget] = useState(null);
+  const [savedRuns, setSavedRuns] = useState(0);
+  const [practiceRunDone, setPracticeRunDone] = useState(false);
+  const [runCount, setRunCount] = useState(0);
   const [roundCompleted, setRoundCompleted] = useState(false);
   const timerInterval = useRef(null);
-  const countdownInterval = useRef(null);
   const scrollListRef = useRef(null);
 
-  // Countdown timer
-  useEffect(() => {
-    if (countdown > 0) {
-      countdownInterval.current = setTimeout(() => {
-        setCountdown(countdown - 1);
-      }, 1000);
-    } else if (countdown === 0) {
-      setStartTime(Date.now());
-      setStartTranslateY(translateY);
-      setActiveMultiplier(parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
-      setIsSearching(true);
-      setCountdown(-1); // Set to -1 to stop countdown
-    }
-
-    return () => {
-      if (countdownInterval.current) {
-        clearTimeout(countdownInterval.current);
-      }
-    };
-  }, [countdown]);
+  // (removed countdown-based start - starting now happens on first touch)
 
   // Search timer
   useEffect(() => {
@@ -64,20 +48,33 @@ function ScrollList({ participantId }) {
 
   const handleButtonClick = (id) => {
     if (id === targetId && isSearching) {
-      setIsSearching(false);
-      setRoundCompleted(true);
-      setActiveMultiplier(null);
-      setMultiplierInput('');
-      setCountdown(null);
-      // collect result data
       const endTime = Date.now();
       const totalTime = endTime - startTime;
       const scrollDistance = Math.abs(translateY - startTranslateY);
       const timestamp = new Date().toISOString();
       const multiplierUsed = activeMultiplier || (parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
       const targetNumber = targetId + 1;
-      // try to save result remotely, fallback to localStorage
-      saveResult({ participantId, timeMs: totalTime, scrollDistance, timestamp, multiplierUsed, targetNumber });
+      const practice = !practiceRunDone;
+      const finalSavedRun = practiceRunDone && savedRuns >= 9;
+
+      if (!practice) {
+        saveResult({ participantId, timeMs: totalTime, scrollDistance, timestamp, multiplierUsed, targetNumber });
+        setSavedRuns((prev) => prev + 1);
+      } else {
+        setPracticeRunDone(true);
+      }
+
+      setIsSearching(false);
+      setRoundCompleted(true);
+      setActiveMultiplier(null);
+
+      if (finalSavedRun) {
+        setMultiplierTarget(null);
+        setMultiplierInput('');
+        setPracticeRunDone(false);
+        setSavedRuns(0);
+        setRunCount(0);
+      }
     }
   };
 
@@ -142,7 +139,6 @@ function ScrollList({ participantId }) {
 
   const handleStartNew = () => {
     setTargetId(Math.floor(Math.random() * NUM_ITEMS));
-    setCountdown(3);
     setStartTime(null);
     setElapsedTime(null);
     setIsSearching(false);
@@ -172,7 +168,7 @@ function ScrollList({ participantId }) {
   const transfer = (deltaY) => {
     let factor = 1;
     if (isSearching) {
-      const parsed = parseFloat(multiplierInput);
+      const parsed = activeMultiplier != null ? activeMultiplier : parseFloat(multiplierInput);
       factor = parsed > 0 ? parsed : 1;
     }
     setTranslateY((current) => clampTranslate(current + deltaY * factor));
@@ -183,6 +179,28 @@ function ScrollList({ participantId }) {
     const touchY = event.touches[0].clientY;
     setTouchStartY(touchY);
     setLastTouchY(touchY);
+
+    const parsed = parseFloat(multiplierInput);
+    const mult = parsed > 0 ? parsed : 1;
+    const isNewMultiplier = multiplierTarget === null || mult !== multiplierTarget;
+    const multiplierDone = practiceRunDone && savedRuns >= 10;
+
+    if (!isSearching && (!multiplierDone || isNewMultiplier)) {
+      if (isNewMultiplier) {
+        setMultiplierTarget(mult);
+        setSavedRuns(0);
+        setPracticeRunDone(false);
+        setRunCount(1);
+      } else {
+        setRunCount((prev) => prev + 1);
+      }
+
+      setActiveMultiplier(mult);
+      setStartTime(Date.now());
+      setStartTranslateY(translateY);
+      setIsSearching(true);
+      setRoundCompleted(false);
+    }
   };
 
   const handleTouchMove = (event) => {
@@ -223,40 +241,27 @@ function ScrollList({ participantId }) {
                 const v = event.target.value;
                 setMultiplierInput(v);
               }}
-              disabled={isSearching || (countdown !== null && countdown > 0)}
+              disabled={isSearching}
             />
-            <div style={{ marginTop: 8 }}>
-              <button
-                type="button"
-                onClick={() => {
-                  const parsed = parseFloat(multiplierInput);
-                  if (!isNaN(parsed) && parsed > 0 && countdown === null && !isSearching) {
-                    handleStartNew();
-                  }
-                }}
-                disabled={isSearching || (countdown !== null && countdown > 0)}
-              >
-                Start
-              </button>
-            </div>
-            <small>Wird nach Ablauf des Countdowns verwendet.</small>
+            {/* Start on scroll - no explicit Start button required */}
+            <small>Der Durchlauf startet, sobald du mit dem Scrollen beginnst.</small>
           </div>
 
           <div className="countdown-display">
             <h3>Find:</h3>
             <div className="target-number">{targetId + 1}</div>
-            {countdown > 0 && (
-              <div className="countdown-text">Starting in {countdown}...</div>
-            )}
+            <div style={{ marginTop: 6, fontSize: 13, color: '#555' }}>
+              {runCount > 0 ? `Durchlauf ${runCount} von 11` : 'Bereit für den ersten Durchlauf.'}
+            </div>
           </div>
 
           {isSearching && (
             <div className="timer">Time: {formatTime(elapsedTime || 0)}</div>
           )}
 
-          {roundCompleted && !isSearching && countdown === null && (
+          {roundCompleted && !isSearching && (
             <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
-              Ziel gefunden! Bitte gib einen neuen Multiplier ein und drücke Start für den nächsten Durchlauf.
+              Ziel gefunden! Bitte gib einen neuen Multiplier ein. Scrollen startet den nächsten Durchlauf.
             </div>
           )}
         </div>

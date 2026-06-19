@@ -65,7 +65,39 @@ function ParticipantsList({ onBack }) {
   const [error, setError] = useState('');
   const [results, setResults] = useState([]);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedRunIndex, setSelectedRunIndex] = useState(0);
+
+  const buildRunGroups = (attempts) => {
+    if (!Array.isArray(attempts) || attempts.length === 0) return [];
+
+    const sorted = [...attempts].sort((a, b) => {
+      const ta = a?.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const tb = b?.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return ta - tb;
+    });
+
+    const groups = [];
+    for (const attempt of sorted) {
+      const multiplier = Number(attempt?.multiplierUsed ?? 1);
+      const current = groups[groups.length - 1];
+
+      if (!current) {
+        groups.push({ multiplier, attempts: [attempt] });
+        continue;
+      }
+
+      const sameMultiplier = Number(current.multiplier) === multiplier;
+      const hasRoom = current.attempts.length < 10;
+
+      if (sameMultiplier && hasRoom) {
+        current.attempts.push(attempt);
+      } else {
+        groups.push({ multiplier, attempts: [attempt] });
+      }
+    }
+
+    return groups;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -163,7 +195,15 @@ function ParticipantsList({ onBack }) {
                         <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
                         <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
                         <td style={{ padding: 6 }}>
-                          <button className="nav-button" onClick={() => { setSelectedParticipant({ ...p, attempts: attemptsArr }); setSelectedIndex(attemptsArr.length - 1); }} disabled={attemptsArr.length===0}>
+                          <button
+                            className="nav-button"
+                            onClick={() => {
+                              const runGroups = buildRunGroups(attemptsArr);
+                              setSelectedParticipant({ ...p, attempts: attemptsArr, runGroups });
+                              setSelectedRunIndex(Math.max(0, runGroups.length - 1));
+                            }}
+                            disabled={attemptsArr.length===0}
+                          >
                             View Attempts
                           </button>
                         </td>
@@ -178,14 +218,52 @@ function ParticipantsList({ onBack }) {
             <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
               <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
               <label>
-                Select index:
-                <select value={selectedIndex} onChange={(e) => setSelectedIndex(Number(e.target.value))} style={{ marginLeft: 8 }}>
-                  {Array.from({ length: selectedParticipant.attempts.length }, (_, i) => (
-                    <option key={i} value={i}>{i}</option>
+                Durchlauf wählen:
+                <select
+                  value={selectedRunIndex}
+                  onChange={(e) => setSelectedRunIndex(Number(e.target.value))}
+                  style={{ marginLeft: 8 }}
+                >
+                  {(selectedParticipant.runGroups || []).map((group, i) => (
+                    <option key={i} value={i}>
+                      Durchlauf {i + 1} (Multiplier: {group.multiplier})
+                    </option>
                   ))}
                 </select>
               </label>
-              <pre style={{ whiteSpace: 'pre-wrap', marginTop: 12, background: '#f7f7f7', padding: 8 }}>{JSON.stringify(selectedParticipant.attempts[selectedIndex], null, 2)}</pre>
+              <div style={{ marginTop: 12 }}>
+                {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).length === 0 ? (
+                  <p>Keine Ergebnisse für den ausgewählten Durchlauf.</p>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', background: '#f7f7f7' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: 6 }}>#</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Target</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Zeit (ms)</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Distanz</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Multiplier</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Timestamp</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).map((attempt, idx) => (
+                        <tr key={`${attempt?.timestamp || 'na'}-${idx}`} style={{ borderTop: '1px solid #e5e5e5' }}>
+                          <td style={{ padding: 6 }}>{idx + 1}</td>
+                          <td style={{ padding: 6 }}>{attempt?.targetNumber ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.timeMs ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.scrollDistance ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.multiplierUsed ?? '-'}</td>
+                          <td style={{ padding: 6 }}>{attempt?.timestamp ?? '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+              <div style={{ marginTop: 8, color: '#666' }}>
+                Anzahl Ergebnisse im Durchlauf: {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).length}
+              </div>
               <div style={{ marginTop: 8 }}>
                 <button className="nav-button" onClick={() => setSelectedParticipant(null)}>Close</button>
               </div>
