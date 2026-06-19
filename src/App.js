@@ -248,6 +248,8 @@ function ParticipantsList({ onBack }) {
                         <th style={{ textAlign: 'left', padding: 6 }}>Zeit (ms)</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Distanz</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Multiplier</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Flick Threshold v (px/ms)</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Flick Threshold d (px)</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Flicks</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Switchbacks</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Overshoot</th>
@@ -267,6 +269,12 @@ function ParticipantsList({ onBack }) {
                           <td style={{ padding: 6 }}>{attempt?.timeMs ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.scrollDistance ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.multiplierUsed ?? '-'}</td>
+                          <td style={{ padding: 6 }}>
+                            {formatMetric(attempt?.flickThresholds?.velocityPxMs ?? 0.2, 2)}
+                          </td>
+                          <td style={{ padding: 6 }}>
+                            {formatMetric(attempt?.flickThresholds?.distancePx ?? 12, 0)}
+                          </td>
                           <td style={{ padding: 6 }}>{attempt?.flickCount ?? attempt?.clutchCount ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.switchbackCount ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.overshoot?.didOvershoot ? 'Ja' : 'Nein'}</td>

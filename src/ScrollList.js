@@ -15,6 +15,8 @@ function ScrollList({ participantId }) {
   const [multiplierInput, setMultiplierInput] = useState('');
   const [residualFactorInput, setResidualFactorInput] = useState('1.0');
   const [decayInput, setDecayInput] = useState('0.95');
+  const [flickVelocityThresholdInput, setFlickVelocityThresholdInput] = useState('0.2');
+  const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('12');
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
   const [multiplierTarget, setMultiplierTarget] = useState(null);
@@ -332,11 +334,23 @@ function ScrollList({ participantId }) {
         : (parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
 
     const residualFactor = parseFloat(residualFactorInput) >= 0 ? parseFloat(residualFactorInput) : 1;
+    const flickVelocityThreshold =
+      parseFloat(flickVelocityThresholdInput) >= 0 ? parseFloat(flickVelocityThresholdInput) : 0.2;
+    const flickDistanceThreshold =
+      parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 12;
 
-    let launchVelocity = velocityRef.current * flickMultiplier + residualVelocityRef.current * residualFactor;
-    launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
+    const gestureDistancePx = touchStatsRef.current.active ? touchStatsRef.current.pathDistancePx : 0;
+    const hasFlickVelocity = Math.abs(velocityRef.current) >= flickVelocityThreshold;
+    const hasFlickDistance = gestureDistancePx >= flickDistanceThreshold;
+    const isFlick = hasFlickVelocity && hasFlickDistance;
 
-    if (touchStatsRef.current.active && trialMetricsRef.current) {
+    let launchVelocity = 0;
+    if (isFlick) {
+      launchVelocity = velocityRef.current * flickMultiplier + residualVelocityRef.current * residualFactor;
+      launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
+    }
+
+    if (touchStatsRef.current.active && trialMetricsRef.current && isFlick) {
       const gestureDurationMs = Math.max(endNow - touchStatsRef.current.startTime, 1);
       const netDistancePx = translateY - touchStatsRef.current.startTranslateY;
       let direction = 'none';
@@ -374,7 +388,9 @@ function ScrollList({ participantId }) {
 
     velocityRef.current = launchVelocity;
     residualVelocityRef.current = launchVelocity;
-    startMomentum();
+    if (isFlick) {
+      startMomentum();
+    }
 
     touchStatsRef.current.active = false;
     setLastTouchY(null);
@@ -417,6 +433,11 @@ function ScrollList({ participantId }) {
         switchbackCount: trial?.switchbackCount || 0,
         startDistancePx: trial?.startDistancePx || 0,
         startDistanceItems: trial?.startDistanceItems ?? null,
+        flickThresholds: {
+          velocityPxMs:
+            parseFloat(flickVelocityThresholdInput) >= 0 ? parseFloat(flickVelocityThresholdInput) : 0.2,
+          distancePx: parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 12,
+        },
       });
 
       const nextRunCount = runCount + 1;
@@ -488,6 +509,32 @@ function ScrollList({ participantId }) {
                   disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
                 />
               </div>
+
+              <div>
+                <label htmlFor="flickVelocityThreshold">Flick threshold speed (px/ms)</label>
+                <input
+                  id="flickVelocityThreshold"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={flickVelocityThresholdInput}
+                  onChange={(event) => setFlickVelocityThresholdInput(event.target.value)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="flickDistanceThreshold">Flick threshold distance (px)</label>
+                <input
+                  id="flickDistanceThreshold"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={flickDistanceThresholdInput}
+                  onChange={(event) => setFlickDistanceThresholdInput(event.target.value)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                />
+              </div>
             </div>
           </div>
 
@@ -534,6 +581,12 @@ function ScrollList({ participantId }) {
                   i === targetId && !isSearching ? 'found' : ''
                 }`}
                 onClick={() => handleButtonClick(i)}
+                onTouchEnd={(event) => {
+                  if (i === targetId) {
+                    event.stopPropagation();
+                    handleButtonClick(i);
+                  }
+                }}
                 disabled={!isSearching}
               >
                 {i + 1}
