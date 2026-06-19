@@ -489,11 +489,6 @@ function ScrollList({ participantId }) {
                 />
               </div>
             </div>
-            <small>
-              Dragging bleibt 1:1. Android-Logik: Restgeschwindigkeit wird beim naechsten Flick addiert.
-              Der Addition-Faktor steuert, wie stark vorherige Flicks beitragen (0 = aus, 1 = normal, {'>'}1 = verstaerkt).
-              Decay steuert das Abbremsen (kleiner = stoppt schneller, groesser = rollt laenger).
-            </small>
           </div>
 
           <div className="countdown-display">

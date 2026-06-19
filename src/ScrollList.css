@@ -174,8 +174,10 @@
 }
 
 .list-item.target {
-  border: 2px solid #ffc107;
-  background-color: #fffbe6;
+  border: 3px solid #ff0000 !important;
+  background-color: #ffdddd !important;
+  color: #cc0000 !important;
+  font-weight: bold !important;
 }
 
 .list-item.found {
@@ -188,8 +190,11 @@
 .list-item:disabled {
   background-color: #f0f0f0;
   color: #000;
-  cursor: not-allowed;
   border-color: #ccc;
+}
+
+.list-item:disabled:not(.target) {
+  cursor: not-allowed;
 }
 
 .list-item:disabled:hover {
