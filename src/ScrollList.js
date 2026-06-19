@@ -18,8 +18,6 @@ function ScrollList({ participantId }) {
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
   const [multiplierTarget, setMultiplierTarget] = useState(null);
-  const [savedRuns, setSavedRuns] = useState(0);
-  const [practiceRunDone, setPracticeRunDone] = useState(false);
   const [runCount, setRunCount] = useState(0);
   const [roundCompleted, setRoundCompleted] = useState(false);
   const timerInterval = useRef(null);
@@ -54,25 +52,24 @@ function ScrollList({ participantId }) {
       const timestamp = new Date().toISOString();
       const multiplierUsed = activeMultiplier || (parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
       const targetNumber = targetId + 1;
-      const practice = !practiceRunDone;
-      const finalSavedRun = practiceRunDone && savedRuns >= 9;
 
-      if (!practice) {
-        saveResult({ participantId, timeMs: totalTime, scrollDistance, timestamp, multiplierUsed, targetNumber });
-        setSavedRuns((prev) => prev + 1);
-      } else {
-        setPracticeRunDone(true);
-      }
+      saveResult({ participantId, timeMs: totalTime, scrollDistance, timestamp, multiplierUsed, targetNumber });
+
+      const nextRunCount = runCount + 1;
+      const runBlockFinished = nextRunCount >= 11;
 
       setIsSearching(false);
       setRoundCompleted(true);
       setActiveMultiplier(null);
+      setRunCount(nextRunCount);
+      setTargetId(Math.floor(Math.random() * NUM_ITEMS));
+      setTranslateY(0);
+      setStartTime(null);
+      setElapsedTime(null);
 
-      if (finalSavedRun) {
+      if (runBlockFinished) {
         setMultiplierTarget(null);
         setMultiplierInput('');
-        setPracticeRunDone(false);
-        setSavedRuns(0);
         setRunCount(0);
       }
     }
@@ -137,15 +134,6 @@ function ScrollList({ participantId }) {
     }
   };
 
-  const handleStartNew = () => {
-    setTargetId(Math.floor(Math.random() * NUM_ITEMS));
-    setStartTime(null);
-    setElapsedTime(null);
-    setIsSearching(false);
-    setRoundCompleted(false);
-    setTranslateY(0);
-  };
-
   useEffect(() => {
     const updateHeight = () => {
       if (scrollListRef.current) {
@@ -181,18 +169,16 @@ function ScrollList({ participantId }) {
     setLastTouchY(touchY);
 
     const parsed = parseFloat(multiplierInput);
-    const mult = parsed > 0 ? parsed : 1;
-    const isNewMultiplier = multiplierTarget === null || mult !== multiplierTarget;
-    const multiplierDone = practiceRunDone && savedRuns >= 10;
+    const canStartNewBlock = multiplierTarget === null;
 
-    if (!isSearching && (!multiplierDone || isNewMultiplier)) {
-      if (isNewMultiplier) {
+    if (canStartNewBlock && !(parsed > 0)) {
+      return;
+    }
+
+    if (!isSearching && runCount < 11) {
+      const mult = canStartNewBlock ? parsed : multiplierTarget;
+      if (canStartNewBlock) {
         setMultiplierTarget(mult);
-        setSavedRuns(0);
-        setPracticeRunDone(false);
-        setRunCount(1);
-      } else {
-        setRunCount((prev) => prev + 1);
       }
 
       setActiveMultiplier(mult);
@@ -241,17 +227,21 @@ function ScrollList({ participantId }) {
                 const v = event.target.value;
                 setMultiplierInput(v);
               }}
-              disabled={isSearching}
+              disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
             />
             {/* Start on scroll - no explicit Start button required */}
-            <small>Der Durchlauf startet, sobald du mit dem Scrollen beginnst.</small>
+            <small>Multiplier einmal eingeben, dann 11 Durchlaeufe nacheinander durch Scrollen starten.</small>
           </div>
 
           <div className="countdown-display">
             <h3>Find:</h3>
             <div className="target-number">{targetId + 1}</div>
             <div style={{ marginTop: 6, fontSize: 13, color: '#555' }}>
-              {runCount > 0 ? `Durchlauf ${runCount} von 11` : 'Bereit für den ersten Durchlauf.'}
+              {isSearching
+                ? `Durchlauf ${runCount + 1} von 11 laeuft.`
+                : runCount > 0
+                  ? `${runCount} von 11 Durchlaeufen abgeschlossen.`
+                  : 'Bereit fuer den ersten Durchlauf.'}
             </div>
           </div>
 
@@ -261,7 +251,9 @@ function ScrollList({ participantId }) {
 
           {roundCompleted && !isSearching && (
             <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
-              Ziel gefunden! Bitte gib einen neuen Multiplier ein. Scrollen startet den nächsten Durchlauf.
+              {multiplierTarget === null
+                ? '11 Durchlaeufe abgeschlossen. Bitte neuen Multiplier eingeben, dann scrollen.'
+                : 'Ziel gefunden! Liste wurde zurueckgesetzt und neue Zahl gesetzt. Scrollen startet den naechsten Durchlauf.'}
             </div>
           )}
         </div>
