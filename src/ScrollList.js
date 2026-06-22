@@ -152,6 +152,29 @@ function ScrollList({ participantId }) {
     return targetCenterY - containerCenterY;
   };
 
+  const clamp01 = (value) => Math.max(0, Math.min(1, value));
+
+  const getTargetPositionRatio = () => {
+    if (NUM_ITEMS <= 1) return 0;
+    return clamp01(targetId / (NUM_ITEMS - 1));
+  };
+
+  const getCurrentPositionRatio = () => {
+    const inner = scrollListInnerRef.current;
+    if (!inner || inner.children.length < 2 || containerHeight <= 0 || NUM_ITEMS <= 1) return 0;
+
+    const first = inner.children[0];
+    const second = inner.children[1];
+    const pitch = second.offsetTop - first.offsetTop;
+    if (!(pitch > 0)) return 0;
+
+    const firstCenterInner = first.offsetTop + first.clientHeight / 2;
+    const centerInInnerSpace = containerHeight / 2 - translateY;
+    const centeredIndex = (centerInInnerSpace - firstCenterInner) / pitch;
+
+    return clamp01(centeredIndex / (NUM_ITEMS - 1));
+  };
+
   const observeTargetMetrics = (translateValue) => {
     const trial = trialMetricsRef.current;
     if (!trial) return;
@@ -463,6 +486,9 @@ function ScrollList({ participantId }) {
     }
   };
 
+  const targetPositionRatio = getTargetPositionRatio();
+  const currentPositionRatio = getCurrentPositionRatio();
+
   return (
     <div className="scroll-list-wrapper">
       <div className="timer-panel">
@@ -561,6 +587,21 @@ function ScrollList({ participantId }) {
                 : 'Ziel gefunden! Scrollen startet den naechsten Durchlauf.'}
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="distance-feedback" aria-hidden="true">
+        <div className="distance-track">
+          <div
+            className="distance-marker distance-marker-target"
+            style={{ top: `${targetPositionRatio * 100}%` }}
+            title="Target"
+          />
+          <div
+            className="distance-marker distance-marker-current"
+            style={{ top: `${currentPositionRatio * 100}%` }}
+            title="Current Position"
+          />
         </div>
       </div>
 
