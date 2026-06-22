@@ -66,6 +66,8 @@ function ParticipantsList({ onBack }) {
   const [results, setResults] = useState([]);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [selectedRunIndex, setSelectedRunIndex] = useState(0);
+  const [deleteError, setDeleteError] = useState('');
+  const [deletingRun, setDeletingRun] = useState(false);
 
   const formatMetric = (value, digits = 2) => {
     if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
@@ -102,6 +104,104 @@ function ParticipantsList({ onBack }) {
     }
 
     return groups;
+  };
+
+  const updateLocalParticipantAttempts = (participantId, attempts) => {
+    try {
+      const localMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
+      localMap[participantId] = attempts;
+      localStorage.setItem('participantResults', JSON.stringify(localMap));
+    } catch (e) {
+      // ignore local cache write errors
+    }
+  };
+
+  const updateParticipantAttemptsInBackend = async (participantId, attempts) => {
+    const resp = await fetch(outputs.data.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': outputs.data.api_key,
+      },
+      body: JSON.stringify({
+        query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id attempts } }`,
+        variables: { input: { id: participantId, attempts: JSON.stringify(attempts) } },
+      }),
+    });
+
+    const json = await resp.json();
+    if (json.errors?.length) {
+      throw new Error(json.errors[0]?.message || 'Backend update failed');
+    }
+
+    return json.data?.updateParticipant;
+  };
+
+  const handleDeleteSelectedRun = async () => {
+    if (!selectedParticipant) return;
+
+    const runGroups = selectedParticipant.runGroups || [];
+    const selectedGroup = runGroups[selectedRunIndex];
+    if (!selectedGroup) return;
+
+    const shouldDelete = window.confirm(
+      `Durchlauf ${selectedRunIndex + 1} mit ${selectedGroup.attempts.length} Versuch(en) wirklich loeschen?`
+    );
+    if (!shouldDelete) return;
+
+    setDeleteError('');
+    setDeletingRun(true);
+
+    try {
+      const currentAttempts = selectedParticipant.attempts || [];
+      const removeIndices = new Set();
+
+      for (const runAttempt of selectedGroup.attempts) {
+        const matchIndex = currentAttempts.findIndex(
+          (candidate, idx) => !removeIndices.has(idx) && candidate === runAttempt
+        );
+
+        if (matchIndex >= 0) {
+          removeIndices.add(matchIndex);
+        }
+      }
+
+      const nextAttempts = currentAttempts.filter((_, idx) => !removeIndices.has(idx));
+
+      await updateParticipantAttemptsInBackend(selectedParticipant.id, nextAttempts);
+      updateLocalParticipantAttempts(selectedParticipant.id, nextAttempts);
+
+      const nextRunGroups = buildRunGroups(nextAttempts);
+
+      setItems((prev) =>
+        prev.map((p) =>
+          p.id === selectedParticipant.id
+            ? { ...p, attempts: JSON.stringify(nextAttempts) }
+            : p
+        )
+      );
+
+      setResults((prev) => {
+        const withoutParticipant = prev.filter((a) => a?.participantId !== selectedParticipant.id);
+        return [...withoutParticipant, ...nextAttempts];
+      });
+
+      setSelectedParticipant((prev) =>
+        prev
+          ? { ...prev, attempts: nextAttempts, runGroups: nextRunGroups }
+          : prev
+      );
+
+      setSelectedRunIndex((prev) => {
+        if (nextRunGroups.length === 0) return 0;
+        return Math.min(prev, nextRunGroups.length - 1);
+      });
+    } catch (err) {
+      console.error(err);
+      setDeleteError('Durchlauf konnte nicht geloescht werden.');
+    } finally {
+      setDeletingRun(false);
+    }
   };
 
   useEffect(() => {
@@ -222,20 +322,32 @@ function ParticipantsList({ onBack }) {
           {selectedParticipant && (
             <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
               <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
-              <label>
-                Durchlauf wählen:
-                <select
-                  value={selectedRunIndex}
-                  onChange={(e) => setSelectedRunIndex(Number(e.target.value))}
-                  style={{ marginLeft: 8 }}
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <label>
+                  Durchlauf wählen:
+                  <select
+                    value={selectedRunIndex}
+                    onChange={(e) => setSelectedRunIndex(Number(e.target.value))}
+                    style={{ marginLeft: 8 }}
+                    disabled={(selectedParticipant.runGroups || []).length === 0 || deletingRun}
+                  >
+                    {(selectedParticipant.runGroups || []).map((group, i) => (
+                      <option key={i} value={i}>
+                        Durchlauf {i + 1} (Multiplier: {group.multiplier})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  className="nav-button"
+                  onClick={handleDeleteSelectedRun}
+                  disabled={(selectedParticipant.runGroups || []).length === 0 || deletingRun}
+                  style={{ background: '#c62828' }}
                 >
-                  {(selectedParticipant.runGroups || []).map((group, i) => (
-                    <option key={i} value={i}>
-                      Durchlauf {i + 1} (Multiplier: {group.multiplier})
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  {deletingRun ? 'Loesche...' : 'Diesen Durchlauf loeschen'}
+                </button>
+              </div>
+              {deleteError && <p style={{ color: '#c62828', marginTop: 8 }}>{deleteError}</p>}
               <div style={{ marginTop: 12, maxHeight: '40vh', overflow: 'auto' }}>
                 {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).length === 0 ? (
                   <p>Keine Ergebnisse für den ausgewählten Durchlauf.</p>
