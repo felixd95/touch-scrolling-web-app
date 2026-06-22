@@ -404,9 +404,11 @@ function ParticipantsList({ onBack }) {
                         <th style={{ textAlign: 'left', padding: 6 }}>Target</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Zeit (ms)</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Distanz</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Multiplier</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Flick Threshold v (px/ms)</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Flick Threshold d (px)</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>a</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>b</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>k</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>α</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>β</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Flicks</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Switchbacks</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Overshoot</th>
@@ -425,13 +427,11 @@ function ParticipantsList({ onBack }) {
                           <td style={{ padding: 6 }}>{attempt?.targetNumber ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.timeMs ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.scrollDistance ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.multiplierUsed ?? '-'}</td>
-                          <td style={{ padding: 6 }}>
-                            {formatMetric(attempt?.flickThresholds?.velocityPxMs ?? 0.2, 2)}
-                          </td>
-                          <td style={{ padding: 6 }}>
-                            {formatMetric(attempt?.flickThresholds?.distancePx ?? 12, 0)}
-                          </td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.a ?? 0.1, 2)}</td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.b ?? 0.5, 2)}</td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.k ?? 1.0, 2)}</td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.alpha ?? 1.0, 2)}</td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.beta ?? 0.5, 2)}</td>
                           <td style={{ padding: 6 }}>{attempt?.flickCount ?? attempt?.clutchCount ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.switchbackCount ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.overshoot?.didOvershoot ? 'Ja' : 'Nein'}</td>

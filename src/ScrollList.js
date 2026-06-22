@@ -12,8 +12,11 @@ function ScrollList({ participantId }) {
   const [translateY, setTranslateY] = useState(0);
   const [lastTouchY, setLastTouchY] = useState(null);
   const [containerHeight, setContainerHeight] = useState(0);
-  const [multiplierInput, setMultiplierInput] = useState('');
-  const [residualFactorInput, setResidualFactorInput] = useState('1.0');
+  const [aInput, setAInput] = useState('0.1');
+  const [bInput, setBInput] = useState('0.5');
+  const [kInput, setKInput] = useState('1.0');
+  const [alphaInput, setAlphaInput] = useState('1.0');
+  const [betaInput, setBetaInput] = useState('0.5');
   const [decayInput, setDecayInput] = useState('0.95');
   const [flickVelocityThresholdInput, setFlickVelocityThresholdInput] = useState('0.2');
   const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('12');
@@ -289,15 +292,15 @@ function ScrollList({ participantId }) {
     lastMoveTimeRef.current = now;
     velocityRef.current = 0;
 
-    const parsed = parseFloat(multiplierInput);
+    const parsedA = parseFloat(aInput);
     const canStartNewBlock = multiplierTarget === null;
 
-    if (canStartNewBlock && !(parsed > 0)) {
+    if (canStartNewBlock && !(parsedA >= 0)) {
       return;
     }
 
     if (!isSearching && runCount < 11) {
-      const mult = canStartNewBlock ? parsed : multiplierTarget;
+      const mult = canStartNewBlock ? parsedA : multiplierTarget;
       if (canStartNewBlock) {
         setMultiplierTarget(mult);
       }
@@ -351,12 +354,11 @@ function ScrollList({ participantId }) {
   const handleTouchEnd = () => {
     const endNow = performance.now();
 
-    const flickMultiplier =
-      activeMultiplier != null
-        ? activeMultiplier
-        : (parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
-
-    const residualFactor = parseFloat(residualFactorInput) >= 0 ? parseFloat(residualFactorInput) : 1;
+    const a = activeMultiplier != null ? activeMultiplier : (parseFloat(aInput) >= 0 ? parseFloat(aInput) : 0.1);
+    const b = parseFloat(bInput) >= 0 ? parseFloat(bInput) : 0.5;
+    const k = parseFloat(kInput) >= 0 ? parseFloat(kInput) : 1.0;
+    const alpha = parseFloat(alphaInput) >= 0 ? parseFloat(alphaInput) : 1.0;
+    const beta = parseFloat(betaInput) >= 0 ? parseFloat(betaInput) : 0.5;
     const flickVelocityThreshold =
       parseFloat(flickVelocityThresholdInput) >= 0 ? parseFloat(flickVelocityThresholdInput) : 0.2;
     const flickDistanceThreshold =
@@ -369,7 +371,7 @@ function ScrollList({ participantId }) {
 
     let launchVelocity = 0;
     if (isFlick) {
-      launchVelocity = velocityRef.current * flickMultiplier + residualVelocityRef.current * residualFactor;
+      launchVelocity = velocityRef.current * (a + b * alpha) + residualVelocityRef.current * beta;
       launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
     }
 
@@ -433,8 +435,7 @@ function ScrollList({ participantId }) {
       const totalTime = endTime - startTime;
       const scrollDistance = Math.abs(translateY - startTranslateY);
       const timestamp = new Date().toISOString();
-      const multiplierUsed =
-        activeMultiplier || (parseFloat(multiplierInput) > 0 ? parseFloat(multiplierInput) : 1);
+      const multiplierUsed = activeMultiplier || (parseFloat(aInput) >= 0 ? parseFloat(aInput) : 0.1);
       const targetNumber = targetId + 1;
       const trial = trialMetricsRef.current;
 
@@ -461,6 +462,13 @@ function ScrollList({ participantId }) {
             parseFloat(flickVelocityThresholdInput) >= 0 ? parseFloat(flickVelocityThresholdInput) : 0.2,
           distancePx: parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 12,
         },
+        paperParams: {
+          a: parseFloat(aInput) >= 0 ? parseFloat(aInput) : 0.1,
+          b: parseFloat(bInput) >= 0 ? parseFloat(bInput) : 0.5,
+          k: parseFloat(kInput) >= 0 ? parseFloat(kInput) : 1.0,
+          alpha: parseFloat(alphaInput) >= 0 ? parseFloat(alphaInput) : 1.0,
+          beta: parseFloat(betaInput) >= 0 ? parseFloat(betaInput) : 0.5,
+        },
       });
 
       const nextRunCount = runCount + 1;
@@ -480,7 +488,7 @@ function ScrollList({ participantId }) {
 
       if (runBlockFinished) {
         setMultiplierTarget(null);
-        setMultiplierInput('');
+        setAInput('0.1');
         setRunCount(0);
       }
     }
@@ -497,27 +505,66 @@ function ScrollList({ participantId }) {
             <h4 style={{ margin: 0, textAlign: 'left', fontSize: 16 }}>Parameterwahl</h4>
             <div style={{ display: 'grid', gap: 10 }}>
               <div>
-                <label htmlFor="multiplier">Flick multiplier</label>
+                <label htmlFor="paramA">a (base)</label>
                 <input
-                  id="multiplier"
+                  id="paramA"
                   type="number"
-                  min="0.1"
-                  step="0.1"
-                  value={multiplierInput}
-                  onChange={(event) => setMultiplierInput(event.target.value)}
+                  min="0"
+                  step="0.01"
+                  value={aInput}
+                  onChange={(event) => setAInput(event.target.value)}
                   disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
                 />
               </div>
 
               <div>
-                <label htmlFor="residualFactor">Flick addition factor</label>
+                <label htmlFor="paramB">b (linear)</label>
                 <input
-                  id="residualFactor"
+                  id="paramB"
                   type="number"
                   min="0"
-                  step="0.1"
-                  value={residualFactorInput}
-                  onChange={(event) => setResidualFactorInput(event.target.value)}
+                  step="0.01"
+                  value={bInput}
+                  onChange={(event) => setBInput(event.target.value)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="paramK">k (log weight)</label>
+                <input
+                  id="paramK"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={kInput}
+                  onChange={(event) => setKInput(event.target.value)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="paramAlpha">α (approach speed)</label>
+                <input
+                  id="paramAlpha"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={alphaInput}
+                  onChange={(event) => setAlphaInput(event.target.value)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="paramBeta">β (residual)</label>
+                <input
+                  id="paramBeta"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={betaInput}
+                  onChange={(event) => setBetaInput(event.target.value)}
                   disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
                 />
               </div>
