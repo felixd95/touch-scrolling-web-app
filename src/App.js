@@ -204,6 +204,43 @@ function ParticipantsList({ onBack }) {
     }
   };
 
+  const handleDownloadAllData = () => {
+    const dataToExport = items.map((p) => {
+      let attemptsArr = [];
+      if (p.attempts) {
+        try {
+          attemptsArr = JSON.parse(p.attempts);
+        } catch (e) {
+          attemptsArr = [];
+        }
+      }
+      return {
+        participantId: p.id,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        birthDate: p.birthDate,
+        privateSmartphone: p.privateSmartphone,
+        screenTimePerDay: p.screenTimePerDay,
+        attempts: attemptsArr,
+      };
+    });
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `touch-scrolling-data-${timestamp}.json`;
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     let mounted = true;
     const fetchList = async () => {
@@ -260,8 +297,16 @@ function ParticipantsList({ onBack }) {
   return (
     <div className="card" style={{ maxWidth: '1100px', maxHeight: '90vh', overflowY: 'auto' }}>
       <h2>Teilnehmer</h2>
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button className="nav-button" onClick={onBack}>Zurück</button>
+        <button
+          className="nav-button"
+          onClick={handleDownloadAllData}
+          disabled={loading || items.length === 0}
+          style={{ background: '#0066cc' }}
+        >
+          Download Daten (JSON)
+        </button>
       </div>
       {loading && <p>Lade...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
