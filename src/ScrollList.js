@@ -314,7 +314,7 @@ function ScrollList({ participantId }) {
       beginTrialMetrics(translateY);
     }
 
-    if (isSearching || (!isSearching && runCount < 11 && !(canStartNewBlock && !(parsed > 0)))) {
+    if (isSearching || (!isSearching && runCount < 11 && !(canStartNewBlock && !(parsedA >= 0)))) {
       touchStatsRef.current = {
         active: true,
         startTime: now,
