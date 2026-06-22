@@ -42,7 +42,7 @@
      ]
     },
     "DefinitionS3Location": {
-     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/10084d8c7b31dd57926ec923a61c35f4524d2beb887f501f4add557b6330a875.graphql"
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/754318467e6f18d71219623b0cb467e7d5b19a841ed6fead02953c7b5a0d5baf.graphql"
     }
    },
    "UpdateReplacePolicy": "Delete",
@@ -60,7 +60,7 @@
       "ApiId"
      ]
     },
-    "Expires": 1784719363
+    "Expires": 1784724944
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete",
@@ -209,7 +209,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/cc6d1199bcbb478736ca5a5a30fb26b5f91b3b7d1f44c357f5a1537903deb1e2.json"
+       "/c651e202bba32a0d3355e6538f35ab0a45e6f3838321d350e89ac8423f455167.json"
       ]
      ]
     }
@@ -482,7 +482,7 @@
      }
     ],
     "SourceObjectKeys": [
-     "0692321a568fb360836b111f62b514a9527aef086b10e356b27543e1873563d0.zip"
+     "13e1956bfc13e93e26ffa6194b6abe47e33f392ae737dec99d51728faa79e2a6.zip"
     ],
     "SourceMarkers": [
      {}
@@ -987,7 +987,7 @@
      }
     ],
     "SourceObjectKeys": [
-     "0976ce47aa39d6302d56cc6a7e32ca3a0877623cb492ae298989750428419851.zip"
+     "cadeea795ef3aa281017142a8191967a00c23f89b3bd043e3c03e9c27d1fcbc1.zip"
     ],
     "SourceMarkers": [
      {}
@@ -1426,6 +1426,22 @@
     "Fn::GetAtt": [
      "amplifyDataGraphQLAPIDefaultApiKey1C8ED374",
      "ApiKey"
+    ]
+   }
+  },
+  "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn": {
+   "Value": {
+    "Fn::GetAtt": [
+     "amplifyDataParticipantNestedStackParticipantNestedStackResourceCCD8383E",
+     "Outputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn"
+    ]
+   }
+  },
+  "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn": {
+   "Value": {
+    "Fn::GetAtt": [
+     "amplifyDataParticipantNestedStackParticipantNestedStackResourceCCD8383E",
+     "Outputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn"
     ]
    }
   }

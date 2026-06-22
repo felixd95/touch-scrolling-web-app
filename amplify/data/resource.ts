@@ -10,6 +10,7 @@ const schema = a.schema({
       privateSmartphone: a.string().required(),
       screenTimePerDay: a.string().required(),
       attempts: a.json().array(),
+      nextParameterSet: a.json(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
   Result: a

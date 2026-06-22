@@ -8,6 +8,21 @@ import './App.css';
 Amplify.configure(outputs);
 
 const client = generateClient();
+const RUNS_PER_BLOCK = 10;
+const DEFAULT_NEXT_PARAMETER_SET = {
+  a: 0.1,
+  b: 0.5,
+  k: 1.0,
+  alpha: 1.0,
+  beta: 0.5,
+  decay: 0.95,
+  flickVelocityThreshold: 0.2,
+  flickDistanceThreshold: 12,
+  blockSize: RUNS_PER_BLOCK,
+  status: 'ready',
+  source: 'participant-create-default',
+  generatedFromAttemptCount: 0,
+};
 
 function LoginForm({ onSuccess }) {
   const [email, setEmail] = useState('');
@@ -94,7 +109,7 @@ function ParticipantsList({ onBack }) {
       }
 
       const sameMultiplier = Number(current.multiplier) === multiplier;
-      const hasRoom = current.attempts.length < 10;
+      const hasRoom = current.attempts.length < RUNS_PER_BLOCK;
 
       if (sameMultiplier && hasRoom) {
         current.attempts.push(attempt);
@@ -222,6 +237,7 @@ function ParticipantsList({ onBack }) {
         birthDate: p.birthDate,
         privateSmartphone: p.privateSmartphone,
         screenTimePerDay: p.screenTimePerDay,
+        nextParameterSet: p.nextParameterSet ?? null,
         attempts: attemptsArr,
       };
     });
@@ -254,7 +270,7 @@ function ParticipantsList({ onBack }) {
             'x-api-key': outputs.data.api_key,
           },
           body: JSON.stringify({
-            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay attempts } } }`,
+            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay attempts nextParameterSet } } }`,
           }),
         });
         const json = await resp.json();
@@ -367,6 +383,11 @@ function ParticipantsList({ onBack }) {
           {selectedParticipant && (
             <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
               <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
+              {selectedParticipant.nextParameterSet && (
+                <div style={{ marginBottom: 10, fontSize: 13, color: '#4c5967' }}>
+                  Naechster Parametersatz: a={formatMetric(selectedParticipant.nextParameterSet.a)}, b={formatMetric(selectedParticipant.nextParameterSet.b)}, k={formatMetric(selectedParticipant.nextParameterSet.k)}, alpha={formatMetric(selectedParticipant.nextParameterSet.alpha)}, beta={formatMetric(selectedParticipant.nextParameterSet.beta)}, decay={formatMetric(selectedParticipant.nextParameterSet.decay, 3)}
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 <label>
                   Durchlauf wählen:
@@ -541,6 +562,7 @@ function App() {
               birthDate: formData.birthDate,
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
+              nextParameterSet: DEFAULT_NEXT_PARAMETER_SET,
             },
           },
         }),

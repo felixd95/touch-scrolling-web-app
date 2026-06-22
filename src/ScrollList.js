@@ -3,6 +3,18 @@ import './ScrollList.css';
 import outputs from './amplify_outputs.json';
 
 const NUM_ITEMS = 1000;
+const RUNS_PER_BLOCK = 10;
+
+const DEFAULT_PARAMETER_SET = {
+  a: '0.1',
+  b: '0.5',
+  k: '1.0',
+  alpha: '1.0',
+  beta: '0.5',
+  decay: '0.95',
+  flickVelocityThreshold: '0.2',
+  flickDistanceThreshold: '12',
+};
 
 function ScrollList({ participantId }) {
   const [targetId, setTargetId] = useState(Math.floor(Math.random() * NUM_ITEMS));
@@ -25,6 +37,7 @@ function ScrollList({ participantId }) {
   const [multiplierTarget, setMultiplierTarget] = useState(null);
   const [runCount, setRunCount] = useState(0);
   const [roundCompleted, setRoundCompleted] = useState(false);
+  const [parameterSetMessage, setParameterSetMessage] = useState('');
 
   const timerInterval = useRef(null);
   const scrollListRef = useRef(null);
@@ -46,6 +59,68 @@ function ScrollList({ participantId }) {
   const DEFAULT_DECAY = 0.95;
   const MIN_VELOCITY = 0.02;
   const ANDROID_MAX_LAUNCH_VELOCITY = 40;
+
+  const toInputString = (value, fallback) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? String(parsed) : fallback;
+  };
+
+  const applyNextParameterSet = (rawParameterSet) => {
+    if (!rawParameterSet || typeof rawParameterSet !== 'object') return false;
+
+    const parameterSet = rawParameterSet.parameters && typeof rawParameterSet.parameters === 'object'
+      ? rawParameterSet.parameters
+      : rawParameterSet;
+
+    setAInput(toInputString(parameterSet.a, DEFAULT_PARAMETER_SET.a));
+    setBInput(toInputString(parameterSet.b, DEFAULT_PARAMETER_SET.b));
+    setKInput(toInputString(parameterSet.k, DEFAULT_PARAMETER_SET.k));
+    setAlphaInput(toInputString(parameterSet.alpha, DEFAULT_PARAMETER_SET.alpha));
+    setBetaInput(toInputString(parameterSet.beta, DEFAULT_PARAMETER_SET.beta));
+    setDecayInput(toInputString(parameterSet.decay, DEFAULT_PARAMETER_SET.decay));
+    setFlickVelocityThresholdInput(
+      toInputString(parameterSet.flickVelocityThreshold, DEFAULT_PARAMETER_SET.flickVelocityThreshold)
+    );
+    setFlickDistanceThresholdInput(
+      toInputString(parameterSet.flickDistanceThreshold, DEFAULT_PARAMETER_SET.flickDistanceThreshold)
+    );
+    return true;
+  };
+
+  useEffect(() => {
+    const loadNextParameterSet = async () => {
+      if (!participantId) return;
+
+      try {
+        const resp = await fetch(outputs.data.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
+          body: JSON.stringify({
+            query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id nextParameterSet } } }`,
+            variables: { filter: { id: { eq: participantId } } },
+          }),
+        });
+        const json = await resp.json();
+        const nextParameterSet = json.data?.listParticipants?.items?.[0]?.nextParameterSet;
+        const applied = applyNextParameterSet(nextParameterSet);
+
+        if (applied) {
+          const generatedFromAttemptCount = nextParameterSet?.generatedFromAttemptCount;
+          setParameterSetMessage(
+            generatedFromAttemptCount != null
+              ? `Naechster Parametersatz geladen (Stand nach ${generatedFromAttemptCount} Versuchen).`
+              : 'Naechster Parametersatz geladen.'
+          );
+        }
+      } catch (error) {
+        console.error('Error loading next parameter set', error);
+      }
+    };
+
+    if (!isSearching && multiplierTarget === null) {
+      loadNextParameterSet();
+    }
+  }, [participantId, isSearching, multiplierTarget]);
 
   useEffect(() => {
     if (isSearching) {
@@ -299,7 +374,7 @@ function ScrollList({ participantId }) {
       return;
     }
 
-    if (!isSearching && runCount < 11) {
+    if (!isSearching && runCount < RUNS_PER_BLOCK) {
       const mult = canStartNewBlock ? parsedA : multiplierTarget;
       if (canStartNewBlock) {
         setMultiplierTarget(mult);
@@ -314,7 +389,7 @@ function ScrollList({ participantId }) {
       beginTrialMetrics(translateY);
     }
 
-    if (isSearching || (!isSearching && runCount < 11 && !(canStartNewBlock && !(parsedA >= 0)))) {
+    if (isSearching || (!isSearching && runCount < RUNS_PER_BLOCK && !(canStartNewBlock && !(parsedA >= 0)))) {
       touchStatsRef.current = {
         active: true,
         startTime: now,
@@ -462,6 +537,7 @@ function ScrollList({ participantId }) {
             parseFloat(flickVelocityThresholdInput) >= 0 ? parseFloat(flickVelocityThresholdInput) : 0.2,
           distancePx: parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 12,
         },
+        decayFactor: parseFloat(decayInput) >= 0.7 ? parseFloat(decayInput) : DEFAULT_DECAY,
         paperParams: {
           a: parseFloat(aInput) >= 0 ? parseFloat(aInput) : 0.1,
           b: parseFloat(bInput) >= 0 ? parseFloat(bInput) : 0.5,
@@ -472,7 +548,7 @@ function ScrollList({ participantId }) {
       });
 
       const nextRunCount = runCount + 1;
-      const runBlockFinished = nextRunCount >= 11;
+  const runBlockFinished = nextRunCount >= RUNS_PER_BLOCK;
 
       setIsSearching(false);
       setRoundCompleted(true);
@@ -488,7 +564,6 @@ function ScrollList({ participantId }) {
 
       if (runBlockFinished) {
         setMultiplierTarget(null);
-        setAInput('0.1');
         setRunCount(0);
       }
     }
@@ -513,7 +588,7 @@ function ScrollList({ participantId }) {
                   step="0.01"
                   value={aInput}
                   onChange={(event) => setAInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
                 />
               </div>
 
@@ -526,7 +601,7 @@ function ScrollList({ participantId }) {
                   step="0.01"
                   value={bInput}
                   onChange={(event) => setBInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
                 />
               </div>
 
@@ -539,7 +614,7 @@ function ScrollList({ participantId }) {
                   step="0.01"
                   value={kInput}
                   onChange={(event) => setKInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
                 />
               </div>
 
@@ -552,7 +627,7 @@ function ScrollList({ participantId }) {
                   step="0.01"
                   value={alphaInput}
                   onChange={(event) => setAlphaInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
                 />
               </div>
 
@@ -565,7 +640,7 @@ function ScrollList({ participantId }) {
                   step="0.01"
                   value={betaInput}
                   onChange={(event) => setBetaInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
                 />
               </div>
 
@@ -579,7 +654,7 @@ function ScrollList({ participantId }) {
                   step="0.001"
                   value={decayInput}
                   onChange={(event) => setDecayInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
                 />
               </div>
 
@@ -592,7 +667,7 @@ function ScrollList({ participantId }) {
                   step="0.01"
                   value={flickVelocityThresholdInput}
                   onChange={(event) => setFlickVelocityThresholdInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
                 />
               </div>
 
@@ -605,10 +680,15 @@ function ScrollList({ participantId }) {
                   step="1"
                   value={flickDistanceThresholdInput}
                   onChange={(event) => setFlickDistanceThresholdInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < 11)}
+                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
                 />
               </div>
             </div>
+            {parameterSetMessage && (
+              <div style={{ marginTop: 8, fontSize: 12, color: '#4c5967', textAlign: 'left' }}>
+                {parameterSetMessage}
+              </div>
+            )}
           </div>
 
           <div className="countdown-display">
@@ -616,9 +696,9 @@ function ScrollList({ participantId }) {
             <div className="target-number">{targetId + 1}</div>
             <div style={{ marginTop: 6, fontSize: 13, color: '#555' }}>
               {isSearching
-                ? `Durchlauf ${runCount + 1} von 11 laeuft.`
+                ? `Durchlauf ${runCount + 1} von ${RUNS_PER_BLOCK} laeuft.`
                 : runCount > 0
-                  ? `${runCount} von 11 Durchlaeufen abgeschlossen.`
+                  ? `${runCount} von ${RUNS_PER_BLOCK} Durchlaeufen abgeschlossen.`
                   : 'Bereit fuer den ersten Durchlauf.'}
             </div>
           </div>
@@ -630,7 +710,7 @@ function ScrollList({ participantId }) {
           {roundCompleted && !isSearching && (
             <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
               {multiplierTarget === null
-                ? '11 Durchlaeufe abgeschlossen. Bitte neuen Flick-Multiplier eingeben.'
+                ? `${RUNS_PER_BLOCK} Durchlaeufe abgeschlossen. Naechster Parametersatz kann geladen werden.`
                 : 'Ziel gefunden! Scrollen startet den naechsten Durchlauf.'}
             </div>
           )}
