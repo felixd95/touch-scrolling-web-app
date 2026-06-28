@@ -18,8 +18,23 @@ const DEFAULT_PARAMETER_SET = Object.freeze({
   flickDistanceThreshold: 12,
 });
 
+const parseAttempts = (attemptsRaw: unknown) => {
+  if (Array.isArray(attemptsRaw)) return attemptsRaw;
+
+  if (typeof attemptsRaw === 'string') {
+    try {
+      const parsed = JSON.parse(attemptsRaw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  return [];
+};
+
 const buildNextParameterSet = (participant: Record<string, unknown>) => {
-  const attempts = Array.isArray(participant.attempts) ? participant.attempts : [];
+  const attempts = parseAttempts(participant.attempts);
   const generatedFromAttemptCount = Math.floor(attempts.length / RUNS_PER_BLOCK) * RUNS_PER_BLOCK;
   const completedBlockCount = Math.floor(attempts.length / RUNS_PER_BLOCK);
   const incrementMultiplier = completedBlockCount * 0.1;

@@ -123,7 +123,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "4db6887fa61701abd9f09990a8ba3cd2049c4a74f3bb2ad7814ed1a2723ccbc7.zip"
+     "S3Key": "f5f40d5e64fb2f0bd09bae6cf326124f1ecba7fda38229c681472897821ceaa0.zip"
     },
     "Environment": {
      "Variables": {
@@ -163,7 +163,7 @@
    "DeletionPolicy": "Delete",
    "Metadata": {
     "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/next-parameter-set-monitor-lambda/Resource",
-    "aws:asset:path": "asset.4db6887fa61701abd9f09990a8ba3cd2049c4a74f3bb2ad7814ed1a2723ccbc7",
+    "aws:asset:path": "asset.f5f40d5e64fb2f0bd09bae6cf326124f1ecba7fda38229c681472897821ceaa0",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }

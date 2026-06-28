@@ -37,7 +37,6 @@ function ScrollList({ participantId }) {
   const [multiplierTarget, setMultiplierTarget] = useState(null);
   const [runCount, setRunCount] = useState(0);
   const [roundCompleted, setRoundCompleted] = useState(false);
-  const [parameterSetMessage, setParameterSetMessage] = useState('');
 
   const timerInterval = useRef(null);
   const scrollListRef = useRef(null);
@@ -102,16 +101,7 @@ function ScrollList({ participantId }) {
         });
         const json = await resp.json();
         const nextParameterSet = json.data?.listParticipants?.items?.[0]?.nextParameterSet;
-        const applied = applyNextParameterSet(nextParameterSet);
-
-        if (applied) {
-          const generatedFromAttemptCount = nextParameterSet?.generatedFromAttemptCount;
-          setParameterSetMessage(
-            generatedFromAttemptCount != null
-              ? `Naechster Parametersatz geladen (Stand nach ${generatedFromAttemptCount} Versuchen).`
-              : 'Naechster Parametersatz geladen.'
-          );
-        }
+        applyNextParameterSet(nextParameterSet);
       } catch (error) {
         console.error('Error loading next parameter set', error);
       }
@@ -576,121 +566,6 @@ function ScrollList({ participantId }) {
     <div className="scroll-list-wrapper">
       <div className="timer-panel">
         <div className="timer-content">
-          <div className="multiplier-input">
-            <h4 style={{ margin: 0, textAlign: 'left', fontSize: 16 }}>Parameterwahl</h4>
-            <div style={{ display: 'grid', gap: 10 }}>
-              <div>
-                <label htmlFor="paramA">a (base)</label>
-                <input
-                  id="paramA"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={aInput}
-                  onChange={(event) => setAInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="paramB">b (linear)</label>
-                <input
-                  id="paramB"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={bInput}
-                  onChange={(event) => setBInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="paramK">k (log weight)</label>
-                <input
-                  id="paramK"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={kInput}
-                  onChange={(event) => setKInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="paramAlpha">α (approach speed)</label>
-                <input
-                  id="paramAlpha"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={alphaInput}
-                  onChange={(event) => setAlphaInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="paramBeta">β (residual)</label>
-                <input
-                  id="paramBeta"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={betaInput}
-                  onChange={(event) => setBetaInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="decay">Flick stop speed (decay)</label>
-                <input
-                  id="decay"
-                  type="number"
-                  min="0.7"
-                  max="0.999"
-                  step="0.001"
-                  value={decayInput}
-                  onChange={(event) => setDecayInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="flickVelocityThreshold">Flick threshold speed (px/ms)</label>
-                <input
-                  id="flickVelocityThreshold"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={flickVelocityThresholdInput}
-                  onChange={(event) => setFlickVelocityThresholdInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="flickDistanceThreshold">Flick threshold distance (px)</label>
-                <input
-                  id="flickDistanceThreshold"
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={flickDistanceThresholdInput}
-                  onChange={(event) => setFlickDistanceThresholdInput(event.target.value)}
-                  disabled={isSearching || (multiplierTarget !== null && runCount < RUNS_PER_BLOCK)}
-                />
-              </div>
-            </div>
-            {parameterSetMessage && (
-              <div style={{ marginTop: 8, fontSize: 12, color: '#4c5967', textAlign: 'left' }}>
-                {parameterSetMessage}
-              </div>
-            )}
-          </div>
-
           <div className="countdown-display">
             <h3>Find:</h3>
             <div className="target-number">{targetId + 1}</div>
