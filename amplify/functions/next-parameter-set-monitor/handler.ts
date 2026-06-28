@@ -33,10 +33,37 @@ const parseAttempts = (attemptsRaw: unknown) => {
   return [];
 };
 
-const buildNextParameterSet = (participant: Record<string, unknown>) => {
-  const attempts = parseAttempts(participant.attempts);
-  const generatedFromAttemptCount = Math.floor(attempts.length / RUNS_PER_BLOCK) * RUNS_PER_BLOCK;
-  const completedBlockCount = Math.floor(attempts.length / RUNS_PER_BLOCK);
+const getAttemptsCount = (recordNewImage: Record<string, unknown> | undefined, participant: Record<string, unknown>) => {
+  const rawAttempts = recordNewImage?.attempts as { L?: unknown[] } | undefined;
+  if (rawAttempts && Array.isArray(rawAttempts.L)) {
+    return rawAttempts.L.length;
+  }
+
+  const parsedAttempts = parseAttempts(participant.attempts);
+  if (parsedAttempts.length > 0) {
+    return parsedAttempts.length;
+  }
+
+  if (participant.attempts && typeof participant.attempts === 'object') {
+    const attemptsObject = participant.attempts as Record<string, unknown>;
+
+    if (Array.isArray((attemptsObject as { L?: unknown[] }).L)) {
+      return ((attemptsObject as { L?: unknown[] }).L || []).length;
+    }
+
+    const keys = Object.keys(attemptsObject);
+    const looksLikeIndexedObject = keys.length > 0 && keys.every((key) => /^\d+$/.test(key));
+    if (looksLikeIndexedObject) {
+      return keys.length;
+    }
+  }
+
+  return 0;
+};
+
+const buildNextParameterSet = (attemptCount: number) => {
+  const generatedFromAttemptCount = Math.floor(attemptCount / RUNS_PER_BLOCK) * RUNS_PER_BLOCK;
+  const completedBlockCount = Math.floor(attemptCount / RUNS_PER_BLOCK);
   const incrementMultiplier = completedBlockCount * 0.1;
   const withIncrement = (defaultValue: number) => defaultValue + defaultValue * incrementMultiplier;
 
@@ -78,7 +105,13 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         ? participant.nextParameterSet as Record<string, unknown>
         : null;
 
-    const nextParameterSet = buildNextParameterSet(participant);
+    const attemptCount = getAttemptsCount(record.dynamodb.NewImage as Record<string, unknown>, participant);
+    const nextParameterSet = buildNextParameterSet(attemptCount);
+
+    console.log(
+      `next-parameter-set-monitor participantId=${participantId} attemptCount=${attemptCount} generatedFromAttemptCount=${nextParameterSet.generatedFromAttemptCount}`
+    );
+
     if (
       currentNextParameterSet?.status === 'ready' &&
       Number(currentNextParameterSet.generatedFromAttemptCount) === nextParameterSet.generatedFromAttemptCount

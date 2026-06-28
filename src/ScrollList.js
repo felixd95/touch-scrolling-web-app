@@ -585,7 +585,7 @@ function ScrollList({ participantId }) {
           {roundCompleted && !isSearching && (
             <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
               {multiplierTarget === null
-                ? `${RUNS_PER_BLOCK} Durchlaeufe abgeschlossen. Naechster Parametersatz kann geladen werden.`
+                ? `${RUNS_PER_BLOCK} Durchlaeufe abgeschlossen. Neuer Block kann gestartet werden.`
                 : 'Ziel gefunden! Scrollen startet den naechsten Durchlauf.'}
             </div>
           )}
