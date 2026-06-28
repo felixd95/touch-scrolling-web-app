@@ -89,6 +89,41 @@ function ParticipantsList({ onBack }) {
     return Number(value).toFixed(digits);
   };
 
+  const normalizeNextParameterSet = (raw) => {
+    if (!raw) return null;
+
+    let parsed = raw;
+    if (typeof parsed === 'string') {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    if (!parsed || typeof parsed !== 'object') return null;
+
+    const source = parsed.parameters && typeof parsed.parameters === 'object'
+      ? parsed.parameters
+      : parsed;
+
+    return {
+      ...parsed,
+      a: Number(source.a ?? DEFAULT_NEXT_PARAMETER_SET.a),
+      b: Number(source.b ?? DEFAULT_NEXT_PARAMETER_SET.b),
+      k: Number(source.k ?? DEFAULT_NEXT_PARAMETER_SET.k),
+      alpha: Number(source.alpha ?? DEFAULT_NEXT_PARAMETER_SET.alpha),
+      beta: Number(source.beta ?? DEFAULT_NEXT_PARAMETER_SET.beta),
+      decay: Number(source.decay ?? DEFAULT_NEXT_PARAMETER_SET.decay),
+      flickVelocityThreshold: Number(
+        source.flickVelocityThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickVelocityThreshold
+      ),
+      flickDistanceThreshold: Number(
+        source.flickDistanceThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickDistanceThreshold
+      ),
+    };
+  };
+
   const buildRunGroups = (attempts) => {
     if (!Array.isArray(attempts) || attempts.length === 0) return [];
 
@@ -237,7 +272,7 @@ function ParticipantsList({ onBack }) {
         birthDate: p.birthDate,
         privateSmartphone: p.privateSmartphone,
         screenTimePerDay: p.screenTimePerDay,
-        nextParameterSet: p.nextParameterSet ?? null,
+        nextParameterSet: normalizeNextParameterSet(p.nextParameterSet),
         attempts: attemptsArr,
       };
     });
@@ -275,7 +310,10 @@ function ParticipantsList({ onBack }) {
         });
         const json = await resp.json();
         if (!mounted) return;
-        const itemsWithAttempts = json.data?.listParticipants?.items || [];
+        const itemsWithAttempts = (json.data?.listParticipants?.items || []).map((participant) => ({
+          ...participant,
+          nextParameterSet: normalizeNextParameterSet(participant.nextParameterSet),
+        }));
         setItems(itemsWithAttempts);
         // collect all attempts from participants (remote attempts stored in participant.attempts or localStorage fallback)
         const allAttempts = [];
