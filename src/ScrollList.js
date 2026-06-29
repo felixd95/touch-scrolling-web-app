@@ -6,13 +6,13 @@ const NUM_ITEMS = 100;
 const RUNS_PER_BLOCK = 10;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
-const ANDROID_MIN_FLING_VELOCITY_DP = 20;
+const ANDROID_MIN_FLING_VELOCITY_DP = 8;
 
 const DEFAULT_PARAMETER_SET = {
   x1: '0.1',
   x2: '0.5',
   decay: '0.95',
-  flickDistanceThreshold: '12',
+  flickDistanceThreshold: '6',
 };
 
 function ScrollList({ participantId }) {
@@ -26,7 +26,7 @@ function ScrollList({ participantId }) {
   const [x1Input, setX1Input] = useState('0.1');
   const [x2Input, setX2Input] = useState('0.5');
   const [decayInput, setDecayInput] = useState('0.95');
-  const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('12');
+  const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('6');
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
   const [multiplierTarget, setMultiplierTarget] = useState(null);
@@ -531,7 +531,7 @@ function ScrollList({ participantId }) {
       ? Math.max(0.7, Math.min(0.999, parsedDecay))
       : DEFAULT_DECAY;
     const flickDistanceThreshold =
-      parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 12;
+      parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 6;
 
     pushTouchSample(endNow, lastTouchY == null ? 0 : lastTouchY);
     const fingerVelocityPxMs = getRegressionVelocityPxMs();
@@ -640,7 +640,7 @@ function ScrollList({ participantId }) {
         startDistanceItems: trial?.startDistanceItems ?? null,
         flickThresholds: {
           velocityPxMs: flingThresholdPxMs,
-          distancePx: parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 12,
+          distancePx: parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 6,
         },
         decayFactor: decay,
         fingerVelocityPxMs,
