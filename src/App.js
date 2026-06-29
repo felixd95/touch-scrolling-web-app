@@ -12,9 +12,7 @@ const RUNS_PER_BLOCK = 10;
 const DEFAULT_NEXT_PARAMETER_SET = {
   a: 0.1,
   b: 0.5,
-  k: 1.0,
-  alpha: 1.0,
-  beta: 0.5,
+  gamma: 1.0,
   decay: 0.95,
   flickVelocityThreshold: 0.2,
   flickDistanceThreshold: 12,
@@ -111,9 +109,7 @@ function ParticipantsList({ onBack }) {
       ...parsed,
       a: Number(source.a ?? DEFAULT_NEXT_PARAMETER_SET.a),
       b: Number(source.b ?? DEFAULT_NEXT_PARAMETER_SET.b),
-      k: Number(source.k ?? DEFAULT_NEXT_PARAMETER_SET.k),
-      alpha: Number(source.alpha ?? DEFAULT_NEXT_PARAMETER_SET.alpha),
-      beta: Number(source.beta ?? DEFAULT_NEXT_PARAMETER_SET.beta),
+      gamma: Number(source.gamma ?? source.k ?? DEFAULT_NEXT_PARAMETER_SET.gamma),
       decay: Number(source.decay ?? DEFAULT_NEXT_PARAMETER_SET.decay),
       flickVelocityThreshold: Number(
         source.flickVelocityThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickVelocityThreshold
@@ -423,7 +419,7 @@ function ParticipantsList({ onBack }) {
               <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
               {selectedParticipant.nextParameterSet && (
                 <div style={{ marginBottom: 10, fontSize: 13, color: '#4c5967' }}>
-                  Naechster Parametersatz: a={formatMetric(selectedParticipant.nextParameterSet.a)}, b={formatMetric(selectedParticipant.nextParameterSet.b)}, k={formatMetric(selectedParticipant.nextParameterSet.k)}, alpha={formatMetric(selectedParticipant.nextParameterSet.alpha)}, beta={formatMetric(selectedParticipant.nextParameterSet.beta)}, decay={formatMetric(selectedParticipant.nextParameterSet.decay, 3)}
+                  Naechster Parametersatz: a={formatMetric(selectedParticipant.nextParameterSet.a)}, b={formatMetric(selectedParticipant.nextParameterSet.b)}, gamma={formatMetric(selectedParticipant.nextParameterSet.gamma)}, decay={formatMetric(selectedParticipant.nextParameterSet.decay, 3)}
                 </div>
               )}
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -465,9 +461,7 @@ function ParticipantsList({ onBack }) {
                         <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Distanz</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>a</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>b</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>k</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>α</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>β</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>gamma</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Flicks</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Switchbacks</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Overshoot</th>
@@ -488,9 +482,7 @@ function ParticipantsList({ onBack }) {
                           <td style={{ padding: 6 }}>{attempt?.scrollDistance ?? '-'}</td>
                           <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.a ?? 0.1, 2)}</td>
                           <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.b ?? 0.5, 2)}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.k ?? 1.0, 2)}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.alpha ?? 1.0, 2)}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.beta ?? 0.5, 2)}</td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.gamma ?? attempt?.paperParams?.k ?? 1.0, 2)}</td>
                           <td style={{ padding: 6 }}>{attempt?.flickCount ?? attempt?.clutchCount ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.switchbackCount ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.overshoot?.didOvershoot ? 'Ja' : 'Nein'}</td>

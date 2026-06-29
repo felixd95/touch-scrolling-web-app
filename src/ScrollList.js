@@ -8,9 +8,7 @@ const RUNS_PER_BLOCK = 10;
 const DEFAULT_PARAMETER_SET = {
   a: '0.1',
   b: '0.5',
-  k: '1.0',
-  alpha: '1.0',
-  beta: '0.5',
+  gamma: '1.0',
   decay: '0.95',
   flickVelocityThreshold: '0.2',
   flickDistanceThreshold: '12',
@@ -26,9 +24,7 @@ function ScrollList({ participantId }) {
   const [containerHeight, setContainerHeight] = useState(0);
   const [aInput, setAInput] = useState('0.1');
   const [bInput, setBInput] = useState('0.5');
-  const [kInput, setKInput] = useState('1.0');
-  const [alphaInput, setAlphaInput] = useState('1.0');
-  const [betaInput, setBetaInput] = useState('0.5');
+  const [gammaInput, setGammaInput] = useState('1.0');
   const [decayInput, setDecayInput] = useState('0.95');
   const [flickVelocityThresholdInput, setFlickVelocityThresholdInput] = useState('0.2');
   const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('12');
@@ -87,12 +83,11 @@ function ScrollList({ participantId }) {
     const parameterSet = normalizedParameterSet.parameters && typeof normalizedParameterSet.parameters === 'object'
       ? normalizedParameterSet.parameters
       : normalizedParameterSet;
+    const rawGamma = parameterSet.gamma ?? parameterSet.k;
 
     setAInput(toInputString(parameterSet.a, DEFAULT_PARAMETER_SET.a));
     setBInput(toInputString(parameterSet.b, DEFAULT_PARAMETER_SET.b));
-    setKInput(toInputString(parameterSet.k, DEFAULT_PARAMETER_SET.k));
-    setAlphaInput(toInputString(parameterSet.alpha, DEFAULT_PARAMETER_SET.alpha));
-    setBetaInput(toInputString(parameterSet.beta, DEFAULT_PARAMETER_SET.beta));
+    setGammaInput(toInputString(rawGamma, DEFAULT_PARAMETER_SET.gamma));
     setDecayInput(toInputString(parameterSet.decay, DEFAULT_PARAMETER_SET.decay));
     setFlickVelocityThresholdInput(
       toInputString(parameterSet.flickVelocityThreshold, DEFAULT_PARAMETER_SET.flickVelocityThreshold)
@@ -283,6 +278,15 @@ function ScrollList({ participantId }) {
   };
 
   const clamp01 = (value) => Math.max(0, Math.min(1, value));
+
+  const searchTransfer = (distanceToTarget, windowSize, params) => {
+    const { a, b, gamma } = params;
+    const S = Math.max(windowSize, 1e-6);
+    const A = Math.max(distanceToTarget, 0);
+    const baseMotion = a + b * Math.log2(S);
+    const clutchFactor = 1 + gamma * (A / S);
+    return Math.max(0, baseMotion * clutchFactor);
+  };
 
   const getTargetPositionRatio = () => {
     if (NUM_ITEMS <= 1) return 0;
@@ -488,9 +492,7 @@ function ScrollList({ participantId }) {
 
     const a = activeMultiplier != null ? activeMultiplier : (parseFloat(aInput) >= 0 ? parseFloat(aInput) : 0.1);
     const b = parseFloat(bInput) >= 0 ? parseFloat(bInput) : 0.5;
-    const k = parseFloat(kInput) >= 0 ? parseFloat(kInput) : 1.0;
-    const alpha = parseFloat(alphaInput) >= 0 ? parseFloat(alphaInput) : 1.0;
-    const beta = parseFloat(betaInput) >= 0 ? parseFloat(betaInput) : 0.5;
+    const gamma = parseFloat(gammaInput) >= 0 ? parseFloat(gammaInput) : 1.0;
     const flickVelocityThreshold =
       parseFloat(flickVelocityThresholdInput) >= 0 ? parseFloat(flickVelocityThresholdInput) : 0.2;
     const flickDistanceThreshold =
@@ -503,7 +505,16 @@ function ScrollList({ participantId }) {
 
     let launchVelocity = 0;
     if (isFlick) {
-      launchVelocity = velocityRef.current * (a + b * alpha) + residualVelocityRef.current * beta;
+      const signedDistanceToTarget = getSignedDistanceToTargetPx(translateY);
+      const distanceToTarget = Math.abs(signedDistanceToTarget == null ? 0 : signedDistanceToTarget);
+      const windowSize = containerHeight > 0 ? containerHeight : 1;
+      const transferGain = searchTransfer(distanceToTarget, windowSize, {
+        a,
+        b,
+        gamma,
+      });
+
+      launchVelocity = velocityRef.current * transferGain;
       launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
     }
 
@@ -598,9 +609,7 @@ function ScrollList({ participantId }) {
         paperParams: {
           a: parseFloat(aInput) >= 0 ? parseFloat(aInput) : 0.1,
           b: parseFloat(bInput) >= 0 ? parseFloat(bInput) : 0.5,
-          k: parseFloat(kInput) >= 0 ? parseFloat(kInput) : 1.0,
-          alpha: parseFloat(alphaInput) >= 0 ? parseFloat(alphaInput) : 1.0,
-          beta: parseFloat(betaInput) >= 0 ? parseFloat(betaInput) : 0.5,
+          gamma: parseFloat(gammaInput) >= 0 ? parseFloat(gammaInput) : 1.0,
         },
       });
 
