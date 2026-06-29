@@ -608,6 +608,14 @@ function ScrollList({ participantId }) {
       const totalTime = endTime - startTime;
       const scrollDistance = Math.abs(translateY - startTranslateY);
       const timestamp = new Date().toISOString();
+      const x1 = activeMultiplier != null ? activeMultiplier : (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 0.1);
+      const x2 = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 0.5;
+      const parsedDecay = parseFloat(decayInput);
+      const decay = Number.isFinite(parsedDecay)
+        ? Math.max(0.7, Math.min(0.999, parsedDecay))
+        : DEFAULT_DECAY;
+      const fingerVelocityPxMs = getRegressionVelocityPxMs();
+      const flingThresholdPxMs = getMinFlingVelocityPxMs();
       const multiplierUsed = activeMultiplier || (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 0.1);
       const targetNumber = targetId + 1;
       const trial = trialMetricsRef.current;
