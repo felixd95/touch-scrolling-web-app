@@ -4,7 +4,7 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...defineBackend in @aws-amplify\\backend...",
-        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:8:17)",
+        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:5:17)",
         "...node internals, @aws-amplify/sandbox, @aws-cdk\\toolkit-lib..."
       ]
     },
@@ -33,7 +33,7 @@
         "...<anonymous> in @aws-amplify\\backend-output-storage...",
         "Array.forEach (:)",
         "...@aws-amplify\\backend-output-storage, defineBackend in @aws-amplify\\backend...",
-        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:8:17)",
+        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:5:17)",
         "...node internals, @aws-amplify/sandbox, @aws-cdk\\toolkit-lib..."
       ]
     }
@@ -49,7 +49,7 @@
         "...<anonymous> in @aws-amplify\\backend-output-storage...",
         "Array.forEach (:)",
         "...@aws-amplify\\backend-output-storage, defineBackend in @aws-amplify\\backend...",
-        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:8:17)",
+        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:5:17)",
         "...node internals, @aws-amplify/sandbox, @aws-cdk\\toolkit-lib..."
       ]
     }
@@ -61,8 +61,23 @@
         "...<anonymous> in @aws-amplify\\backend...",
         "Array.forEach (:)",
         "...defineBackend in @aws-amplify\\backend...",
-        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:8:17)",
+        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:5:17)",
         "...node internals..."
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/definedFunctions": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "definedFunctions"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify\\backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify\\backend-output-storage, @aws-amplify\\backend-function, <anonymous> in @aws-amplify\\backend...",
+        "Array.map (:)"
       ]
     }
   ],
@@ -167,33 +182,6 @@
         "...<anonymous> in @aws-amplify\\backend-output-storage...",
         "Array.forEach (:)",
         "...@aws-amplify\\backend-output-storage, @aws-amplify\\graphql-api-construct, @aws-amplify\\backend-data, <anonymous> in @aws-amplify\\backend...",
-        "Array.forEach (:)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function": [
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...<anonymous> in @aws-amplify\\backend...",
-        "Array.forEach (:)",
-        "...defineBackend in @aws-amplify\\backend...",
-        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:8:17)",
-        "...node internals..."
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/definedFunctions": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "definedFunctions"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...<anonymous> in @aws-amplify\\backend-output-storage...",
-        "Array.forEach (:)",
-        "...@aws-amplify\\backend-output-storage, @aws-amplify\\backend-function, <anonymous> in @aws-amplify\\backend...",
         "Array.forEach (:)"
       ]
     }
@@ -318,6 +306,19 @@
       "data": 2
     }
   ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifytouchscrollingwebappFelixsandbox441d1a9be7datanextparametersetmonitorlambdaD10BD4B2Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifytouchscrollingwebappFelixsandbox441d1a9be7datanextparametersetmonitorlambdaD10BD4B2Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
   "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId": [
     {
       "type": "aws:cdk:logicalId",
@@ -370,32 +371,6 @@
       ]
     }
   ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
   "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data.NestedStack/data.NestedStackResource": [
     {
       "type": "aws:cdk:logicalId",
@@ -407,62 +382,7 @@
         "...aws-cdk-lib, <anonymous> in @aws-amplify\\backend...",
         "Array.forEach (:)",
         "...defineBackend in @aws-amplify\\backend...",
-        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:8:17)",
-        "...node internals..."
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/reference-to-amplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88Outputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutE491B376"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/reference-to-amplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88Outputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOut468AA5B7"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/amplifytouchscrollingwebappFelixsandbox441d1a9be7functionnextparametersetmonitorlambda3A2B7459Ref": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "amplifytouchscrollingwebappFelixsandbox441d1a9be7functionnextparametersetmonitorlambda3A2B7459Ref"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function.NestedStack/function.NestedStackResource": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "function1351588B"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, <anonymous> in @aws-amplify\\backend...",
-        "Array.forEach (:)",
-        "...defineBackend in @aws-amplify\\backend...",
-        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:8:17)",
+        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:5:17)",
         "...node internals..."
       ]
     }
@@ -490,6 +410,22 @@
       "data": [
         "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
         "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/next-parameter-set-monitor-lambda/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "nextparametersetmonitorlambda4230F64A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new NodejsFunction in aws-cdk-lib...",
+        "ProvidedFunctionGenerator.defineFunction.resourceGroupName (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\functions\\next-parameter-set-monitor\\resource.ts:11:10)",
+        "...@aws-amplify\\backend-function, <anonymous> in @aws-amplify\\backend...",
+        "Array.map (:)",
+        "...@aws-amplify\\backend-data..."
       ]
     }
   ],
@@ -524,6 +460,15 @@
         "...<anonymous> in @aws-amplify\\graphql-api-construct...",
         "Map.forEach (:)",
         "...@aws-amplify\\graphql-api-construct..."
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...@aws-amplify\\graphql-api-construct, @aws-amplify\\backend-data, @aws-amplify\\backend...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
       ]
     }
   ],
@@ -672,45 +617,17 @@
       ]
     }
   ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/next-parameter-set-monitor-lambda/Resource": [
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/next-parameter-set-monitor-lambda/ServiceRole/Resource": [
     {
       "type": "aws:cdk:logicalId",
-      "data": "nextparametersetmonitorlambda4230F64A"
+      "data": "nextparametersetmonitorlambdaServiceRole7DD0C579"
     },
     {
       "type": "aws:cdk:creationStack",
       "data": [
         "...new NodejsFunction in aws-cdk-lib...",
-        "ProvidedFunctionGenerator.functionProvider (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\functions\\next-parameter-set-monitor\\resource.ts:11:10)",
-        "...@aws-amplify\\backend-function, <anonymous> in @aws-amplify\\backend...",
-        "Array.forEach (:)",
-        "...@aws-amplify\\backend..."
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/CDKMetadata/Default": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "CDKMetadata"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/CDKMetadata/Condition": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "CDKMetadataAvailable"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+        "ProvidedFunctionGenerator.defineFunction.resourceGroupName (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\functions\\next-parameter-set-monitor\\resource.ts:11:10)",
+        "...@aws-amplify\\backend-function, @aws-amplify\\backend..."
       ]
     }
   ],
@@ -1119,6 +1036,19 @@
       "data": "Subscription.onDeleteParticipant"
     }
   ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
   "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/reference-to-amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource1A22B41BOutputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataAmplifyTableManagerTableManagerCustomProviderframeworkonEventEA8AFCB5Arn": [
     {
       "type": "aws:cdk:logicalId",
@@ -1149,32 +1079,6 @@
     {
       "type": "aws:cdk:logicalId",
       "data": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/Participant/amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn"
     },
     {
       "type": "aws:cdk:creationStack",
@@ -1575,6 +1479,98 @@
       ]
     }
   ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/HasEnvironmentParameter": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HasEnvironmentParameter"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...@aws-amplify\\graphql-api-construct, @aws-amplify\\backend-data, <anonymous> in @aws-amplify\\backend...",
+        "Array.forEach (:)",
+        "...@aws-amplify\\backend..."
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/FnTriggerNextParameterSetLambdaDataSource": [
+    {
+      "type": "graphqltransformer:resourceName",
+      "data": "FnTriggerNextParameterSetLambdaDataSource"
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/mutationTriggerNextParameterSetResolver": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MutationtriggerNextParameterSetResolver"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Array.forEach (:)",
+        "...<anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Map.forEach (:)",
+        "...@aws-amplify\\graphql-api-construct..."
+      ]
+    },
+    {
+      "type": "graphqltransformer:resourceName",
+      "data": "Mutation.triggerNextParameterSet"
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/reference-to-amplifytouchscrollingwebappFelixsandbox441d1a9be7datanextparametersetmonitorlambdaD10BD4B2Arn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7datanextparametersetmonitorlambdaD10BD4B2Arn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/reference-to-amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPI46D7205EApiId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/reference-to-amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataGraphQLAPINONEDSC86E9E7FName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify\\backend, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack.NestedStack/FunctionDirectiveStack.NestedStackResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyDataFunctionDirectiveStackNestedStackFunctionDirectiveStackNestedStackResource1246A302"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify\\graphql-api-construct, @aws-amplify\\backend-data, @aws-amplify\\backend...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
   "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiB/ServiceRole/Resource": [
     {
       "type": "aws:cdk:logicalId",
@@ -1646,31 +1642,16 @@
       ]
     }
   ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/next-parameter-set-monitor-lambda/ServiceRole/Resource": [
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/next-parameter-set-monitor-lambda/ServiceRole/DefaultPolicy/Resource": [
     {
       "type": "aws:cdk:logicalId",
-      "data": "nextparametersetmonitorlambdaServiceRole7DD0C579"
+      "data": "nextparametersetmonitorlambdaServiceRoleDefaultPolicy80B2D659"
     },
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "...new NodejsFunction in aws-cdk-lib...",
-        "ProvidedFunctionGenerator.functionProvider (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\functions\\next-parameter-set-monitor\\resource.ts:11:10)",
-        "...@aws-amplify\\backend-function, @aws-amplify\\backend..."
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/next-parameter-set-monitor-lambda/DynamoDBEventSource:amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantCustomTableParticipantTableBF1545FC/Resource": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "nextparametersetmonitorlambdaDynamoDBEventSourceamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantCustomTableParticipantTableBF1545FC8F4ED67D"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...NodejsFunction.addEventSource in aws-cdk-lib...",
-        "<anonymous> (c:\\Users\\Felix\\Desktop\\Master\\Thesis\\touch-scrolling-web-app\\amplify\\backend.ts:21:50)",
-        "...node internals, @aws-amplify/sandbox, @aws-cdk\\toolkit-lib..."
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
       ]
     }
   ],
@@ -1682,8 +1663,9 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "...aws-cdk-lib, @aws-amplify\\graphql-api-construct...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+        "...aws-cdk-lib, <anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Map.forEach (:)",
+        "...@aws-amplify\\graphql-api-construct..."
       ]
     },
     {
@@ -2769,6 +2751,89 @@
       ]
     }
   ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/FnTriggerNextParameterSetLambdaDataSource/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "FnTriggerNextParameterSetLambdaDataSource"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Array.forEach (:)",
+        "...<anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Map.forEach (:)"
+      ]
+    },
+    {
+      "type": "graphqltransformer:resourceName",
+      "data": "FnTriggerNextParameterSetLambdaDataSource"
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/InvokeFnTriggerNextParameterSetLambdaDataSource/InvokeFnTriggerNextParameterSetLambdaDataSource.AppSyncFunction": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "InvokeFnTriggerNextParameterSetLambdaDataSourceInvokeFnTriggerNextParameterSetLambdaDataSourceAppSyncFunctionE16C99D7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Array.forEach (:)",
+        "...<anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Map.forEach (:)",
+        "...@aws-amplify\\graphql-api-construct..."
+      ]
+    },
+    {
+      "type": "graphqltransformer:resourceName",
+      "data": "InvokeFnTriggerNextParameterSetLambdaDataSource"
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/MutationTriggerNextParameterSetAuthFN/MutationTriggerNextParameterSetAuthFN.AppSyncFunction": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MutationTriggerNextParameterSetAuthFNMutationTriggerNextParameterSetAuthFNAppSyncFunction04444EAD"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Map.forEach (:)",
+        "...@aws-amplify\\graphql-api-construct..."
+      ]
+    },
+    {
+      "type": "graphqltransformer:resourceName",
+      "data": "MutationTriggerNextParameterSetAuthFN"
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/CDKMetadata/Condition": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadataAvailable"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
   "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/AmplifyCodegenAssets/AmplifyCodegenAssetsBucket/Resource": [
     {
       "type": "aws:cdk:logicalId",
@@ -2792,19 +2857,6 @@
     {
       "type": "aws:cdk:logicalId",
       "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiBServiceRoleDefaultPolicyFF1C635B"
-    },
-    {
-      "type": "aws:cdk:creationStack",
-      "data": [
-        "...aws-cdk-lib...",
-        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
-      ]
-    }
-  ],
-  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/next-parameter-set-monitor-lambda/ServiceRole/DefaultPolicy/Resource": [
-    {
-      "type": "aws:cdk:logicalId",
-      "data": "nextparametersetmonitorlambdaServiceRoleDefaultPolicy80B2D659"
     },
     {
       "type": "aws:cdk:creationStack",
@@ -2907,6 +2959,19 @@
       "data": "Result"
     }
   ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/FnTriggerNextParameterSetLambdaDataSource/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "FnTriggerNextParameterSetLambdaDataSourceServiceRole90423246"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify\\graphql-api-construct...",
+        "Array.forEach (:)"
+      ]
+    }
+  ],
   "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/AmplifyCodegenAssets/AmplifyCodegenAssetsBucket/Policy/Resource": [
     {
       "type": "aws:cdk:logicalId",
@@ -2974,6 +3039,19 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...aws-cdk-lib, @aws-amplify\\graphql-api-construct...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/amplifyData/FunctionDirectiveStack/FnTriggerNextParameterSetLambdaDataSource/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "FnTriggerNextParameterSetLambdaDataSourceServiceRoleDefaultPolicyA90267D5"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
         "(no user code in 10 frames, use --stack-trace-limit to capture more)"
       ]
     }

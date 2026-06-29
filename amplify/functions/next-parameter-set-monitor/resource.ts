@@ -14,5 +14,10 @@ export const nextParameterSetMonitor = defineFunction((scope) => {
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.seconds(30),
     memorySize: 512,
+    bundling: {
+      format: 'esm',
+    },
   });
+}, {
+  resourceGroupName: 'data',
 });

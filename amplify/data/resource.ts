@@ -1,6 +1,10 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import { nextParameterSetMonitor } from '../functions/next-parameter-set-monitor/resource';
 
 const schema = a.schema({
+  TriggerNextParameterSetResult: a.customType({
+    nextParameterSet: a.string().required(),
+  }),
   Participant: a
     .model({
       firstName: a.string().required(),
@@ -23,6 +27,15 @@ const schema = a.schema({
       multiplierUsed: a.string().required(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
+  triggerNextParameterSet: a
+    .mutation()
+    .arguments({
+      participantId: a.id().required(),
+      attemptCount: a.integer().required(),
+    })
+    .returns(a.ref('TriggerNextParameterSetResult'))
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(nextParameterSetMonitor)),
 });
 
 export type Schema = ClientSchema<typeof schema>;

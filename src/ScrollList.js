@@ -37,6 +37,8 @@ function ScrollList({ participantId }) {
   const [multiplierTarget, setMultiplierTarget] = useState(null);
   const [runCount, setRunCount] = useState(0);
   const [roundCompleted, setRoundCompleted] = useState(false);
+  const [awaitingNextParameterSet, setAwaitingNextParameterSet] = useState(false);
+  const [parameterSyncError, setParameterSyncError] = useState('');
 
   const timerInterval = useRef(null);
   const scrollListRef = useRef(null);
@@ -64,12 +66,27 @@ function ScrollList({ participantId }) {
     return Number.isFinite(parsed) ? String(parsed) : fallback;
   };
 
-  const applyNextParameterSet = (rawParameterSet) => {
-    if (!rawParameterSet || typeof rawParameterSet !== 'object') return false;
+  const normalizeParameterSet = (rawParameterSet) => {
+    if (!rawParameterSet) return null;
 
-    const parameterSet = rawParameterSet.parameters && typeof rawParameterSet.parameters === 'object'
-      ? rawParameterSet.parameters
-      : rawParameterSet;
+    if (typeof rawParameterSet === 'string') {
+      try {
+        return JSON.parse(rawParameterSet);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    return typeof rawParameterSet === 'object' ? rawParameterSet : null;
+  };
+
+  const applyNextParameterSet = (rawParameterSet) => {
+    const normalizedParameterSet = normalizeParameterSet(rawParameterSet);
+    if (!normalizedParameterSet) return false;
+
+    const parameterSet = normalizedParameterSet.parameters && typeof normalizedParameterSet.parameters === 'object'
+      ? normalizedParameterSet.parameters
+      : normalizedParameterSet;
 
     setAInput(toInputString(parameterSet.a, DEFAULT_PARAMETER_SET.a));
     setBInput(toInputString(parameterSet.b, DEFAULT_PARAMETER_SET.b));
@@ -86,21 +103,62 @@ function ScrollList({ participantId }) {
     return true;
   };
 
+  const loadParticipantState = async () => {
+    if (!participantId) return null;
+
+    const resp = await fetch(outputs.data.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
+      body: JSON.stringify({
+        query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts nextParameterSet } } }`,
+        variables: { filter: { id: { eq: participantId } } },
+      }),
+    });
+
+    const json = await resp.json();
+    return json.data?.listParticipants?.items?.[0] || null;
+  };
+
+  const getAttemptCount = (attemptsRaw) => {
+    if (Array.isArray(attemptsRaw)) return attemptsRaw.length;
+
+    if (typeof attemptsRaw === 'string') {
+      try {
+        const parsed = JSON.parse(attemptsRaw);
+        return Array.isArray(parsed) ? parsed.length : 0;
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    return 0;
+  };
+
+  const triggerNextParameterSetUpdate = async (attemptCount) => {
+    const resp = await fetch(outputs.data.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
+      body: JSON.stringify({
+        query: `mutation TriggerNextParameterSet($participantId: ID!, $attemptCount: Int!) { triggerNextParameterSet(participantId: $participantId, attemptCount: $attemptCount) { nextParameterSet } }`,
+        variables: { participantId, attemptCount },
+      }),
+    });
+
+    const json = await resp.json();
+    if (json.errors?.length) {
+      throw new Error(json.errors[0]?.message || 'Failed to trigger next parameter set');
+    }
+
+    return normalizeParameterSet(json.data?.triggerNextParameterSet?.nextParameterSet);
+  };
+
   useEffect(() => {
     const loadNextParameterSet = async () => {
       if (!participantId) return;
 
       try {
-        const resp = await fetch(outputs.data.url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
-          body: JSON.stringify({
-            query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id nextParameterSet } } }`,
-            variables: { filter: { id: { eq: participantId } } },
-          }),
-        });
-        const json = await resp.json();
-        const nextParameterSet = json.data?.listParticipants?.items?.[0]?.nextParameterSet;
+        const participant = await loadParticipantState();
+        const nextParameterSet = participant?.nextParameterSet;
         applyNextParameterSet(nextParameterSet);
       } catch (error) {
         console.error('Error loading next parameter set', error);
@@ -146,7 +204,7 @@ function ScrollList({ participantId }) {
 
     if (!result.participantId) {
       fallbackSave();
-      return;
+      return { attemptsCount: 0, savedRemotely: false };
     }
 
     try {
@@ -179,10 +237,14 @@ function ScrollList({ participantId }) {
       if (updJson.errors) {
         console.warn('Update failed, falling back to localStorage', updJson.errors);
         fallbackSave();
+        return { attemptsCount: arr.length, savedRemotely: false };
       }
+
+      return { attemptsCount: arr.length, savedRemotely: true };
     } catch (err) {
       console.error('Error saving result', err);
       fallbackSave();
+      return { attemptsCount: 0, savedRemotely: false };
     }
   };
 
@@ -360,6 +422,10 @@ function ScrollList({ participantId }) {
     const parsedA = parseFloat(aInput);
     const canStartNewBlock = multiplierTarget === null;
 
+    if (awaitingNextParameterSet) {
+      return;
+    }
+
     if (canStartNewBlock && !(parsedA >= 0)) {
       return;
     }
@@ -375,6 +441,7 @@ function ScrollList({ participantId }) {
       setStartTranslateY(translateY);
       setIsSearching(true);
       setRoundCompleted(false);
+      setParameterSyncError('');
       residualVelocityRef.current = 0;
       beginTrialMetrics(translateY);
     }
@@ -492,7 +559,7 @@ function ScrollList({ participantId }) {
     return `${totalSeconds}.${String(milliseconds).padStart(3, '0')}s`;
   };
 
-  const handleButtonClick = (id) => {
+  const handleButtonClick = async (id) => {
     if (id === targetId && isSearching) {
       stopMomentum();
 
@@ -504,7 +571,7 @@ function ScrollList({ participantId }) {
       const targetNumber = targetId + 1;
       const trial = trialMetricsRef.current;
 
-      saveResult({
+      const saveOutcome = await saveResult({
         participantId,
         timeMs: totalTime,
         scrollDistance,
@@ -538,8 +605,7 @@ function ScrollList({ participantId }) {
       });
 
       const nextRunCount = runCount + 1;
-  const runBlockFinished = nextRunCount >= RUNS_PER_BLOCK;
-
+      const runBlockFinished = nextRunCount >= RUNS_PER_BLOCK;
       setIsSearching(false);
       setRoundCompleted(true);
       setActiveMultiplier(null);
@@ -553,8 +619,26 @@ function ScrollList({ participantId }) {
       touchStatsRef.current.active = false;
 
       if (runBlockFinished) {
+        setAwaitingNextParameterSet(true);
+        setParameterSyncError('');
         setMultiplierTarget(null);
         setRunCount(0);
+
+        let receivedUpdatedParameters = false;
+        if (saveOutcome?.savedRemotely) {
+          try {
+            const nextParameterSet = await triggerNextParameterSetUpdate(saveOutcome.attemptsCount);
+            receivedUpdatedParameters = applyNextParameterSet(nextParameterSet);
+          } catch (error) {
+            console.error('Error triggering next parameter set update', error);
+          }
+        }
+
+        setAwaitingNextParameterSet(false);
+
+        if (!receivedUpdatedParameters) {
+          setParameterSyncError('Neue Parameter wurden noch nicht vom Backend bereitgestellt. Bitte kurz warten und erneut versuchen.');
+        }
       }
     }
   };
@@ -572,6 +656,8 @@ function ScrollList({ participantId }) {
             <div style={{ marginTop: 6, fontSize: 13, color: '#555' }}>
               {isSearching
                 ? `Durchlauf ${runCount + 1} von ${RUNS_PER_BLOCK} laeuft.`
+                : awaitingNextParameterSet
+                  ? 'Warte auf neuen Parametersatz aus dem Backend.'
                 : runCount > 0
                   ? `${runCount} von ${RUNS_PER_BLOCK} Durchlaeufen abgeschlossen.`
                   : 'Bereit fuer den ersten Durchlauf.'}
@@ -584,9 +670,17 @@ function ScrollList({ participantId }) {
 
           {roundCompleted && !isSearching && (
             <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
-              {multiplierTarget === null
+              {awaitingNextParameterSet
+                ? 'Block abgeschlossen. Neuer Parametersatz wird geladen.'
+                : multiplierTarget === null
                 ? `${RUNS_PER_BLOCK} Durchlaeufe abgeschlossen. Neuer Block kann gestartet werden.`
                 : 'Ziel gefunden! Scrollen startet den naechsten Durchlauf.'}
+            </div>
+          )}
+
+          {parameterSyncError && !isSearching && (
+            <div style={{ marginTop: 12, color: '#b04a00', fontWeight: 'bold' }}>
+              {parameterSyncError}
             </div>
           )}
         </div>

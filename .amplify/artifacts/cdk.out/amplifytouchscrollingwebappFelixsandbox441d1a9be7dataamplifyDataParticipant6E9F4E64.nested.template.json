@@ -1850,14 +1850,6 @@
      "TableArn"
     ]
    }
-  },
-  "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn": {
-   "Value": {
-    "Fn::GetAtt": [
-     "ParticipantTable",
-     "TableStreamArn"
-    ]
-   }
   }
  }
 }

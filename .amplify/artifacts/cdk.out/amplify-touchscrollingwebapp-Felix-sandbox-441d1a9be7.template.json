@@ -8,6 +8,12 @@
     "region"
    ]
   },
+  "AWS::Amplify::Function": {
+   "version": "1",
+   "stackOutputs": [
+    "definedFunctions"
+   ]
+  },
   "AWS::Amplify::GraphQL": {
    "version": "1",
    "stackOutputs": [
@@ -19,12 +25,6 @@
     "awsAppsyncApiKey",
     "awsAppsyncAdditionalAuthenticationTypes"
    ]
-  },
-  "AWS::Amplify::Function": {
-   "version": "1",
-   "stackOutputs": [
-    "definedFunctions"
-   ]
   }
  },
  "Outputs": {
@@ -34,6 +34,23 @@
   "region": {
    "Value": {
     "Ref": "AWS::Region"
+   }
+  },
+  "definedFunctions": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "[\"",
+      {
+       "Fn::GetAtt": [
+        "data7552DF31",
+        "Outputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7datanextparametersetmonitorlambdaD10BD4B2Ref"
+       ]
+      },
+      "\"]"
+     ]
+    ]
    }
   },
   "awsAppsyncApiId": {
@@ -107,23 +124,6 @@
   },
   "awsAppsyncAdditionalAuthenticationTypes": {
    "Value": "AWS_IAM"
-  },
-  "definedFunctions": {
-   "Value": {
-    "Fn::Join": [
-     "",
-     [
-      "[\"",
-      {
-       "Fn::GetAtt": [
-        "function1351588B",
-        "Outputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7functionnextparametersetmonitorlambda3A2B7459Ref"
-       ]
-      },
-      "\"]"
-     ]
-    ]
-   }
   }
  },
  "Resources": {
@@ -156,7 +156,7 @@
        {
         "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
        },
-       "/18ed9e685c380f9c6a46db69d0583d26de55a7e07822fba1ab5de95ce9edc4e1.json"
+       "/68c26945a549b1a5d0fa07d2c48ca40d298f95053911f0332dfddd1db962a6e8.json"
       ]
      ]
     }
@@ -166,62 +166,6 @@
    "Metadata": {
     "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data.NestedStack/data.NestedStackResource",
     "aws:asset:path": "amplifytouchscrollingwebappFelixsandbox441d1a9be7dataA70B1B35.nested.template.json",
-    "aws:asset:property": "TemplateURL"
-   }
-  },
-  "function1351588B": {
-   "Type": "AWS::CloudFormation::Stack",
-   "Properties": {
-    "Parameters": {
-     "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutE491B376": {
-      "Fn::GetAtt": [
-       "data7552DF31",
-       "Outputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableArn"
-      ]
-     },
-     "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOut468AA5B7": {
-      "Fn::GetAtt": [
-       "data7552DF31",
-       "Outputs.amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantParticipantTable69C2870ETableStreamArn"
-      ]
-     }
-    },
-    "Tags": [
-     {
-      "Key": "amplify:deployment-type",
-      "Value": "sandbox"
-     },
-     {
-      "Key": "created-by",
-      "Value": "amplify"
-     }
-    ],
-    "TemplateURL": {
-     "Fn::Join": [
-      "",
-      [
-       "https://s3.",
-       {
-        "Ref": "AWS::Region"
-       },
-       ".",
-       {
-        "Ref": "AWS::URLSuffix"
-       },
-       "/",
-       {
-        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
-       },
-       "/dfd19ac798c17d44e51a37f1e2c2fcdb83113edf5e3f94564a0b4a02b42fbc4c.json"
-      ]
-     ]
-    }
-   },
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete",
-   "Metadata": {
-    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function.NestedStack/function.NestedStackResource",
-    "aws:asset:path": "amplifytouchscrollingwebappFelixsandbox441d1a9be7function1D35234E.nested.template.json",
     "aws:asset:property": "TemplateURL"
    }
   },

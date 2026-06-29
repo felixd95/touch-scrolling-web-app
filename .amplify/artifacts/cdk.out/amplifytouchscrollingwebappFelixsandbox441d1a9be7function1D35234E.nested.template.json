@@ -83,22 +83,6 @@
          "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutE491B376"
         }
        ]
-      },
-      {
-       "Action": "dynamodb:ListStreams",
-       "Effect": "Allow",
-       "Resource": "*"
-      },
-      {
-       "Action": [
-        "dynamodb:DescribeStream",
-        "dynamodb:GetRecords",
-        "dynamodb:GetShardIterator"
-       ],
-       "Effect": "Allow",
-       "Resource": {
-        "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOut468AA5B7"
-       }
       }
      ],
      "Version": "2012-10-17"
@@ -123,10 +107,33 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "3f40a021d92092b4335d0947cdd0e2897cd6ae24319e9877a5c2247b01105649.zip"
+     "S3Key": "122f24bd7d2bc3d8c78e0f14ec76bc037431a453700a9bb76ebef4f07a8bffb3.zip"
     },
     "Environment": {
      "Variables": {
+      "PARTICIPANT_TABLE_NAME": {
+       "Fn::Select": [
+        1,
+        {
+         "Fn::Split": [
+          "/",
+          {
+           "Fn::Select": [
+            5,
+            {
+             "Fn::Split": [
+              ":",
+              {
+               "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutE491B376"
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
       "AMPLIFY_SSM_ENV_CONFIG": "{}"
      }
     },
@@ -163,44 +170,15 @@
    "DeletionPolicy": "Delete",
    "Metadata": {
     "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/next-parameter-set-monitor-lambda/Resource",
-    "aws:asset:path": "asset.3f40a021d92092b4335d0947cdd0e2897cd6ae24319e9877a5c2247b01105649",
+    "aws:asset:path": "asset.122f24bd7d2bc3d8c78e0f14ec76bc037431a453700a9bb76ebef4f07a8bffb3",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
-   }
-  },
-  "nextparametersetmonitorlambdaDynamoDBEventSourceamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantCustomTableParticipantTableBF1545FC8F4ED67D": {
-   "Type": "AWS::Lambda::EventSourceMapping",
-   "Properties": {
-    "BatchSize": 10,
-    "EventSourceArn": {
-     "Ref": "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOut468AA5B7"
-    },
-    "FunctionName": {
-     "Ref": "nextparametersetmonitorlambda4230F64A"
-    },
-    "MaximumRetryAttempts": 2,
-    "StartingPosition": "LATEST",
-    "Tags": [
-     {
-      "Key": "amplify:deployment-type",
-      "Value": "sandbox"
-     },
-     {
-      "Key": "created-by",
-      "Value": "amplify"
-     }
-    ]
-   },
-   "UpdateReplacePolicy": "Delete",
-   "DeletionPolicy": "Delete",
-   "Metadata": {
-    "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/next-parameter-set-monitor-lambda/DynamoDBEventSource:amplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantCustomTableParticipantTableBF1545FC/Resource"
    }
   },
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/2WPzw6CMAyHn8X7qARjokcxepMYeAAytkrGn43QgTEL7+4GiRdPX39t+qVNIDmeIN7xN0VCtlGnKnAZkkVZWC5a5gel63hfSV5qI7EhyFbcJy2sMpop3oPLTYfs+tIrn6ZT4hPiVi2MDiUnQktwCfAZ0km0aFNOyDY9OL/ws95m1LYw0yjwwYdB6Tr4/rvLwlalv7YOkYUjoaH9nMRw9p81pFQ0TtqqHiHf+AUm6AkF9gAAAA=="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/zWO3QqCQBCFn6X7dRIjqMsMupSwB5Bxd5LR/YFmLUJ891alq28O53DmFFAcT5Dv8COZNkNmuYWpIolkHhH1oJLRTBZda7DxwVAvUK24jV5HDl4xOpjqYEldn37lPVjW30Vu16zk0KAIRYHLgqShHPVAsUQhtdVDyv9LZ7Xm0oSOfTer5TP0sn8XOZzT3F6Ys9foIzuCeuMPbrBWscsAAAA="
    },
    "Metadata": {
     "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/function/CDKMetadata/Default"
@@ -474,19 +452,24 @@
    ]
   }
  },
- "Parameters": {
-  "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutE491B376": {
-   "Type": "String"
-  },
-  "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOut468AA5B7": {
-   "Type": "String"
-  }
- },
  "Outputs": {
+  "amplifytouchscrollingwebappFelixsandbox441d1a9be7functionnextparametersetmonitorlambda3A2B7459Arn": {
+   "Value": {
+    "Fn::GetAtt": [
+     "nextparametersetmonitorlambda4230F64A",
+     "Arn"
+    ]
+   }
+  },
   "amplifytouchscrollingwebappFelixsandbox441d1a9be7functionnextparametersetmonitorlambda3A2B7459Ref": {
    "Value": {
     "Ref": "nextparametersetmonitorlambda4230F64A"
    }
+  }
+ },
+ "Parameters": {
+  "referencetoamplifytouchscrollingwebappFelixsandbox441d1a9be7dataNestedStackdataNestedStackResourceDE46BC88OutputsamplifytouchscrollingwebappFelixsandbox441d1a9be7dataamplifyDataParticipantNestedStackParticipantNestedStackResourceF40B3C2FOutE491B376": {
+   "Type": "String"
   }
  }
 }

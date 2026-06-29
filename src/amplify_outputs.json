@@ -220,7 +220,44 @@
         }
       },
       "enums": {},
-      "nonModels": {}
+      "nonModels": {
+        "TriggerNextParameterSetResult": {
+          "name": "TriggerNextParameterSetResult",
+          "fields": {
+            "nextParameterSet": {
+              "name": "nextParameterSet",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            }
+          }
+        }
+      },
+      "mutations": {
+        "triggerNextParameterSet": {
+          "name": "triggerNextParameterSet",
+          "isArray": false,
+          "type": {
+            "nonModel": "TriggerNextParameterSetResult"
+          },
+          "isRequired": false,
+          "arguments": {
+            "participantId": {
+              "name": "participantId",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true
+            },
+            "attemptCount": {
+              "name": "attemptCount",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": true
+            }
+          }
+        }
+      }
     }
   },
   "version": "1.4"
