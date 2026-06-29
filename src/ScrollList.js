@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './ScrollList.css';
 import outputs from './amplify_outputs.json';
 
-const NUM_ITEMS = 1000;
+const NUM_ITEMS = 100;
 const RUNS_PER_BLOCK = 10;
 
 const DEFAULT_PARAMETER_SET = {
