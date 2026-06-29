@@ -10,11 +10,9 @@ Amplify.configure(outputs);
 const client = generateClient();
 const RUNS_PER_BLOCK = 10;
 const DEFAULT_NEXT_PARAMETER_SET = {
-  a: 0.1,
-  b: 0.5,
-  gamma: 1.0,
+  x1: 0.1,
+  x2: 0.5,
   decay: 0.95,
-  flickVelocityThreshold: 0.2,
   flickDistanceThreshold: 12,
   blockSize: RUNS_PER_BLOCK,
   status: 'ready',
@@ -107,13 +105,9 @@ function ParticipantsList({ onBack }) {
 
     return {
       ...parsed,
-      a: Number(source.a ?? DEFAULT_NEXT_PARAMETER_SET.a),
-      b: Number(source.b ?? DEFAULT_NEXT_PARAMETER_SET.b),
-      gamma: Number(source.gamma ?? source.k ?? DEFAULT_NEXT_PARAMETER_SET.gamma),
+      x1: Number(source.x1 ?? source.a ?? DEFAULT_NEXT_PARAMETER_SET.x1),
+      x2: Number(source.x2 ?? source.b ?? DEFAULT_NEXT_PARAMETER_SET.x2),
       decay: Number(source.decay ?? DEFAULT_NEXT_PARAMETER_SET.decay),
-      flickVelocityThreshold: Number(
-        source.flickVelocityThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickVelocityThreshold
-      ),
       flickDistanceThreshold: Number(
         source.flickDistanceThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickDistanceThreshold
       ),
@@ -419,7 +413,7 @@ function ParticipantsList({ onBack }) {
               <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
               {selectedParticipant.nextParameterSet && (
                 <div style={{ marginBottom: 10, fontSize: 13, color: '#4c5967' }}>
-                  Naechster Parametersatz: a={formatMetric(selectedParticipant.nextParameterSet.a)}, b={formatMetric(selectedParticipant.nextParameterSet.b)}, gamma={formatMetric(selectedParticipant.nextParameterSet.gamma)}, decay={formatMetric(selectedParticipant.nextParameterSet.decay, 3)}
+                  Naechster Parametersatz: x1={formatMetric(selectedParticipant.nextParameterSet.x1)}, x2={formatMetric(selectedParticipant.nextParameterSet.x2)}, decay={formatMetric(selectedParticipant.nextParameterSet.decay, 3)}
                 </div>
               )}
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -459,9 +453,8 @@ function ParticipantsList({ onBack }) {
                         <th style={{ textAlign: 'left', padding: 6 }}>Target</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Zeit (ms)</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Distanz</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>a</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>b</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>gamma</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>x1</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>x2</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Flicks</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Switchbacks</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Overshoot</th>
@@ -480,9 +473,8 @@ function ParticipantsList({ onBack }) {
                           <td style={{ padding: 6 }}>{attempt?.targetNumber ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.timeMs ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.scrollDistance ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.a ?? 0.1, 2)}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.b ?? 0.5, 2)}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.gamma ?? attempt?.paperParams?.k ?? 1.0, 2)}</td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.x1 ?? attempt?.paperParams?.a ?? 0.1, 2)}</td>
+                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.x2 ?? attempt?.paperParams?.b ?? 0.5, 2)}</td>
                           <td style={{ padding: 6 }}>{attempt?.flickCount ?? attempt?.clutchCount ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.switchbackCount ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.overshoot?.didOvershoot ? 'Ja' : 'Nein'}</td>
