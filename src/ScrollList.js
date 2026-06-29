@@ -52,7 +52,6 @@ function ScrollList({ participantId }) {
   });
   const trialMetricsRef = useRef(null);
 
-  const DRAG_GAIN = 1.0;
   const DEFAULT_DECAY = 0.95;
   const MIN_VELOCITY = 0.02;
   const ANDROID_MAX_LAUNCH_VELOCITY = 40;
@@ -281,11 +280,9 @@ function ScrollList({ participantId }) {
 
   const searchTransfer = (distanceToTarget, windowSize, params) => {
     const { a, b, gamma } = params;
-    const S = Math.max(windowSize, 1e-6);
-    const A = Math.max(distanceToTarget, 0);
-    const baseMotion = a + b * Math.log2(S);
-    const clutchFactor = 1 + gamma * (A / S);
-    return Math.max(0, baseMotion * clutchFactor);
+    const baseMotion = a + b * Math.log2(windowSize);
+    const clutchFactor = 1 + gamma * (distanceToTarget / windowSize);
+    return baseMotion * clutchFactor;
   };
 
   const getTargetPositionRatio = () => {
@@ -368,7 +365,7 @@ function ScrollList({ participantId }) {
 
   const applyDrag = (deltaY) => {
     setTranslateY((current) => {
-      const next = clampTranslate(current + deltaY * DRAG_GAIN);
+      const next = clampTranslate(current + deltaY);
       observeTargetMetrics(next);
       return next;
     });
