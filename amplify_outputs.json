@@ -55,6 +55,13 @@
               "isRequired": true,
               "attributes": []
             },
+            "scrollHandPreference": {
+              "name": "scrollHandPreference",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
             "screenTimePerDay": {
               "name": "screenTimePerDay",
               "isArray": false,

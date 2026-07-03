@@ -15,7 +15,7 @@ const DEFAULT_PARAMETER_SET = {
   flickDistanceThreshold: '6',
 };
 
-function ScrollList({ participantId }) {
+function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [targetId, setTargetId] = useState(Math.floor(Math.random() * NUM_ITEMS));
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(null);
@@ -706,9 +706,10 @@ function ScrollList({ participantId }) {
   const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
   const currentFlingThresholdPxMs = getMinFlingVelocityPxMs();
+  const wrapperClassName = `scroll-list-wrapper ${scrollHandPreference === 'left' ? 'left-hand' : 'right-hand'}`;
 
   return (
-    <div className="scroll-list-wrapper">
+    <div className={wrapperClassName}>
       <div className="timer-panel">
         <div className="timer-content">
           <div className="countdown-display">

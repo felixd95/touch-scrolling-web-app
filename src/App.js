@@ -9,6 +9,7 @@ Amplify.configure(outputs);
 
 const client = generateClient();
 const RUNS_PER_BLOCK = 10;
+const HAND_PREFERENCE_STORAGE_KEY = 'participantHandPreferences';
 const DEFAULT_NEXT_PARAMETER_SET = {
   x1: 0.1,
   x2: 0.5,
@@ -18,6 +19,29 @@ const DEFAULT_NEXT_PARAMETER_SET = {
   status: 'ready',
   source: 'participant-create-default',
   generatedFromAttemptCount: 0,
+};
+
+const normalizeHandPreference = (value) => (value === 'left' ? 'left' : 'right');
+
+const getStoredHandPreference = (participantId) => {
+  if (!participantId) return 'right';
+  try {
+    const map = JSON.parse(localStorage.getItem(HAND_PREFERENCE_STORAGE_KEY) || '{}');
+    return map[participantId] === 'left' ? 'left' : 'right';
+  } catch (error) {
+    return 'right';
+  }
+};
+
+const setStoredHandPreference = (participantId, handPreference) => {
+  if (!participantId) return;
+  try {
+    const map = JSON.parse(localStorage.getItem(HAND_PREFERENCE_STORAGE_KEY) || '{}');
+    map[participantId] = handPreference === 'left' ? 'left' : 'right';
+    localStorage.setItem(HAND_PREFERENCE_STORAGE_KEY, JSON.stringify(map));
+  } catch (error) {
+    // ignore local storage write errors
+  }
 };
 
 function LoginForm({ onSuccess }) {
@@ -38,7 +62,7 @@ function LoginForm({ onSuccess }) {
           'x-api-key': outputs.data.api_key,
         },
         body: JSON.stringify({
-          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id email } } }`,
+          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id email scrollHandPreference } } }`,
           variables: { filter: { email: { eq: email } } },
         }),
       });
@@ -46,7 +70,7 @@ function LoginForm({ onSuccess }) {
       const json = await resp.json();
       const items = json.data?.listParticipants?.items || [];
       if (items.length > 0) {
-        onSuccess(items[0].id);
+        onSuccess(items[0].id, normalizeHandPreference(items[0].scrollHandPreference));
       } else {
         setError('E-Mail nicht gefunden');
       }
@@ -262,6 +286,7 @@ function ParticipantsList({ onBack }) {
         birthDate: p.birthDate,
         privateSmartphone: p.privateSmartphone,
         screenTimePerDay: p.screenTimePerDay,
+        scrollHandPreference: normalizeHandPreference(p.scrollHandPreference),
         nextParameterSet: normalizeNextParameterSet(p.nextParameterSet),
         attempts: attemptsArr,
       };
@@ -295,7 +320,7 @@ function ParticipantsList({ onBack }) {
             'x-api-key': outputs.data.api_key,
           },
           body: JSON.stringify({
-            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay attempts nextParameterSet } } }`,
+            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone scrollHandPreference screenTimePerDay attempts nextParameterSet } } }`,
           }),
         });
         const json = await resp.json();
@@ -364,6 +389,7 @@ function ParticipantsList({ onBack }) {
                 <th style={{ textAlign: 'left', padding: 6 }}>E-Mail</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Geburtstag</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Device</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Hand</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>ScreenTime</th>
               </tr>
             </thead>
@@ -387,6 +413,7 @@ function ParticipantsList({ onBack }) {
                         <td style={{ padding: 6 }}>{p.email}</td>
                         <td style={{ padding: 6 }}>{p.birthDate}</td>
                         <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
+                        <td style={{ padding: 6 }}>{normalizeHandPreference(p.scrollHandPreference) === 'left' ? 'Left' : 'Right'}</td>
                         <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
                         <td style={{ padding: 6 }}>
                           <button
@@ -528,11 +555,13 @@ function App() {
     birthDate: '',
     privateSmartphone: '',
     screenTimePerDay: '',
+    scrollHandPreference: 'right',
   });
 
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [participantId, setParticipantId] = useState(null);
+  const [scrollHandPreference, setScrollHandPreference] = useState('right');
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -567,6 +596,8 @@ function App() {
         return;
       }
 
+      const selectedHandPreference = normalizeHandPreference(formData.scrollHandPreference);
+
       // create participant
       const createResp = await fetch(outputs.data.url, {
         method: 'POST',
@@ -584,6 +615,7 @@ function App() {
               birthDate: formData.birthDate,
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
+              scrollHandPreference: selectedHandPreference,
               nextParameterSet: DEFAULT_NEXT_PARAMETER_SET,
             },
           },
@@ -604,9 +636,14 @@ function App() {
           birthDate: '',
           privateSmartphone: '',
           screenTimePerDay: '',
+          scrollHandPreference: 'right',
         });
         const newId = createJson.data?.createParticipant?.id;
-        if (newId) setParticipantId(newId);
+        if (newId) {
+          setParticipantId(newId);
+          setScrollHandPreference(selectedHandPreference);
+          setStoredHandPreference(newId, selectedHandPreference);
+        }
         setCurrentPage('scrolllist');
       }
     } catch (error) {
@@ -637,7 +674,17 @@ function App() {
       ) : currentPage === 'login' ? (
         <div className="card">
           <h2>Login</h2>
-          <LoginForm onSuccess={(id) => { setParticipantId(id); setCurrentPage('scrolllist'); }} />
+          <LoginForm
+            onSuccess={(id, backendHandPreference) => {
+              setParticipantId(id);
+              const resolvedHandPreference = normalizeHandPreference(
+                backendHandPreference || getStoredHandPreference(id)
+              );
+              setScrollHandPreference(resolvedHandPreference);
+              setStoredHandPreference(id, resolvedHandPreference);
+              setCurrentPage('scrolllist');
+            }}
+          />
           <div style={{ marginTop: 12 }}>
             <button className="nav-button" onClick={() => setCurrentPage('landing')}>Zurück</button>
           </div>
@@ -717,6 +764,19 @@ function App() {
               </select>
             </label>
 
+            <label>
+              Scroll hand
+              <select
+                name="scrollHandPreference"
+                value={formData.scrollHandPreference}
+                onChange={handleChange}
+                required
+              >
+                <option value="right">Right hand</option>
+                <option value="left">Left hand</option>
+              </select>
+            </label>
+
               <button type="submit" disabled={loading}>
                 {loading ? 'Saving...' : 'Start study'}
               </button>
@@ -728,7 +788,7 @@ function App() {
         currentPage === 'list' ? (
           <ParticipantsList onBack={() => setCurrentPage('landing')} />
           ) : (
-          <ScrollList participantId={participantId} />
+          <ScrollList participantId={participantId} scrollHandPreference={scrollHandPreference} />
         )
       )}
     </main>

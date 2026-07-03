@@ -12,6 +12,7 @@ const schema = a.schema({
       email: a.email().required(),
       birthDate: a.date().required(),
       privateSmartphone: a.string().required(),
+      scrollHandPreference: a.string(),
       screenTimePerDay: a.string().required(),
       attempts: a.json().array(),
       nextParameterSet: a.json(),

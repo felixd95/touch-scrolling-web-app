@@ -5,6 +5,10 @@
   gap: 0;
 }
 
+.scroll-list-wrapper.left-hand {
+  flex-direction: row-reverse;
+}
+
 .timer-panel {
   width: 20%;
   background-color: #f8f9fa;
@@ -15,6 +19,11 @@
   padding: 20px;
 }
 
+.scroll-list-wrapper.left-hand .timer-panel {
+  border-right: none;
+  border-left: 1px solid #ddd;
+}
+
 .distance-feedback {
   width: 14px;
   border-right: 1px solid #ddd;
@@ -23,6 +32,11 @@
   justify-content: center;
   align-items: stretch;
   padding: 10px 0;
+}
+
+.scroll-list-wrapper.left-hand .distance-feedback {
+  border-right: none;
+  border-left: 1px solid #ddd;
 }
 
 .distance-track {
