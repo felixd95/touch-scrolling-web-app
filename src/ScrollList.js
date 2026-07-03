@@ -2,11 +2,23 @@ import { useState, useEffect, useRef } from 'react';
 import './ScrollList.css';
 import outputs from './amplify_outputs.json';
 
-const NUM_ITEMS = 100;
+const NUM_ITEMS = 330;
 const RUNS_PER_BLOCK = 10;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
 const FLING_THRESHOLD_PX_MS = 0.05;
+const FIXED_TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
+
+const createShuffledTargetNumbers = () => {
+  const shuffled = [...FIXED_TARGET_NUMBERS];
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+};
 
 const DEFAULT_PARAMETER_SET = {
   x1: '1',
@@ -16,7 +28,9 @@ const DEFAULT_PARAMETER_SET = {
 };
 
 function ScrollList({ participantId, scrollHandPreference = 'right' }) {
-  const [targetId, setTargetId] = useState(Math.floor(Math.random() * NUM_ITEMS));
+  const [targetSequence, setTargetSequence] = useState(() => createShuffledTargetNumbers());
+  const [targetIndex, setTargetIndex] = useState(0);
+  const [practiceRunCompleted, setPracticeRunCompleted] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -36,6 +50,11 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [liveInstantVelocityPxMs, setLiveInstantVelocityPxMs] = useState(0);
   const [liveRegressionVelocityPxMs, setLiveRegressionVelocityPxMs] = useState(0);
+
+  const targetNumber = practiceRunCompleted
+    ? (targetSequence[targetIndex] ?? targetSequence[0] ?? FIXED_TARGET_NUMBERS[0])
+    : 180;
+  const targetId = targetNumber - 1;
 
   const timerInterval = useRef(null);
   const scrollListRef = useRef(null);
@@ -616,6 +635,25 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     if (id === targetId && isSearching) {
       stopMomentum();
 
+      if (!practiceRunCompleted) {
+        setPracticeRunCompleted(true);
+        setTargetSequence(createShuffledTargetNumbers());
+        setTargetIndex(0);
+        setIsSearching(false);
+        setRoundCompleted(false);
+        setActiveMultiplier(null);
+        setMultiplierTarget(null);
+        setRunCount(0);
+        setTranslateY(0);
+        setStartTime(null);
+        setElapsedTime(null);
+        residualVelocityRef.current = 0;
+        trialMetricsRef.current = null;
+        touchStatsRef.current.active = false;
+        setParameterSyncError('');
+        return;
+      }
+
       const endTime = Date.now();
       const totalTime = endTime - startTime;
       const scrollDistance = Math.abs(translateY - startTranslateY);
@@ -629,7 +667,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       const fingerVelocityPxMs = getRegressionVelocityPxMs();
       const flingThresholdPxMs = getMinFlingVelocityPxMs();
       const multiplierUsed = activeMultiplier || (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 0.1);
-      const targetNumber = targetId + 1;
       const trial = trialMetricsRef.current;
 
       const saveOutcome = await saveResult({
@@ -670,7 +707,12 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       setRoundCompleted(true);
       setActiveMultiplier(null);
       setRunCount(nextRunCount);
-      setTargetId(Math.floor(Math.random() * NUM_ITEMS));
+      if (runBlockFinished) {
+        setTargetSequence(createShuffledTargetNumbers());
+        setTargetIndex(0);
+      } else {
+        setTargetIndex(nextRunCount);
+      }
       setTranslateY(0);
       setStartTime(null);
       setElapsedTime(null);
@@ -714,7 +756,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         <div className="timer-content">
           <div className="countdown-display">
             <h3>Find:</h3>
-            <div className="target-number">{targetId + 1}</div>
+            <div className="target-number">{targetNumber}</div>
             <div style={{ marginTop: 6, fontSize: 13, color: '#555' }}>
               {isSearching
                 ? `Durchlauf ${runCount + 1} von ${RUNS_PER_BLOCK} laeuft.`
