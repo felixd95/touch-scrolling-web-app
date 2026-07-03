@@ -9,9 +9,9 @@ const ANDROID_MAX_SAMPLES = 20;
 const ANDROID_MIN_FLING_VELOCITY_DP = 8;
 
 const DEFAULT_PARAMETER_SET = {
-  x1: '0.1',
-  x2: '0.5',
-  decay: '0.95',
+  x1: '1',
+  x2: '1',
+  decay: '0.999',
   flickDistanceThreshold: '6',
 };
 
@@ -23,9 +23,9 @@ function ScrollList({ participantId }) {
   const [translateY, setTranslateY] = useState(0);
   const [lastTouchY, setLastTouchY] = useState(null);
   const [containerHeight, setContainerHeight] = useState(0);
-  const [x1Input, setX1Input] = useState('0.1');
-  const [x2Input, setX2Input] = useState('0.5');
-  const [decayInput, setDecayInput] = useState('0.95');
+  const [x1Input, setX1Input] = useState('1');
+  const [x2Input, setX2Input] = useState('1');
+  const [decayInput, setDecayInput] = useState('0.999');
   const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('6');
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
@@ -54,7 +54,7 @@ function ScrollList({ participantId }) {
   });
   const trialMetricsRef = useRef(null);
 
-  const DEFAULT_DECAY = 0.95;
+  const DEFAULT_DECAY = 0.999;
   const MIN_VELOCITY = 0.02;
   const ANDROID_MAX_LAUNCH_VELOCITY = 40;
 
@@ -538,25 +538,24 @@ function ScrollList({ participantId }) {
     const decay = Number.isFinite(parsedDecay)
       ? Math.max(0.7, Math.min(0.999, parsedDecay))
       : DEFAULT_DECAY;
-    const flickDistanceThreshold =
-      parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 6;
 
     pushTouchSample(endNow, lastTouchY == null ? 0 : lastTouchY);
     const fingerVelocityPxMs = getRegressionVelocityPxMs();
-    const flingThresholdPxMs = getMinFlingVelocityPxMs();
     setLiveInstantVelocityPxMs(0);
     setLiveRegressionVelocityPxMs(fingerVelocityPxMs);
 
-    const hasFlickVelocity = Math.abs(fingerVelocityPxMs) >= flingThresholdPxMs;
-    const isFlick = hasFlickVelocity;
+    const flickMultiplier =
+      activeMultiplier != null
+        ? activeMultiplier
+        : (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 1);
+    const residualFactor = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 1;
+    const regressionMagnitudePxMs = Math.abs(fingerVelocityPxMs);
 
-    let launchVelocity = 0;
-    if (isFlick) {
-      launchVelocity = fingerVelocityPxMs;
-      launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
-    }
+    let launchVelocity =
+      regressionMagnitudePxMs * flickMultiplier + residualVelocityRef.current * residualFactor;
+    launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
 
-    if (touchStatsRef.current.active && trialMetricsRef.current && isFlick) {
+    if (touchStatsRef.current.active && trialMetricsRef.current) {
       const gestureDurationMs = Math.max(endNow - touchStatsRef.current.startTime, 1);
       const netDistancePx = translateY - touchStatsRef.current.startTranslateY;
       let direction = 'none';
@@ -594,7 +593,7 @@ function ScrollList({ participantId }) {
 
     velocityRef.current = launchVelocity;
     residualVelocityRef.current = launchVelocity;
-    if (isFlick) {
+    if (Math.abs(launchVelocity) >= MIN_VELOCITY) {
       startMomentum(decay);
     }
 
