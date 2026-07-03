@@ -6,7 +6,7 @@ const NUM_ITEMS = 100;
 const RUNS_PER_BLOCK = 10;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
-const ANDROID_MIN_FLING_VELOCITY_DP = 8;
+const FLING_THRESHOLD_PX_MS = 0.05;
 
 const DEFAULT_PARAMETER_SET = {
   x1: '1',
@@ -278,8 +278,7 @@ function ScrollList({ participantId }) {
   const clamp01 = (value) => Math.max(0, Math.min(1, value));
 
   const getMinFlingVelocityPxMs = () => {
-    const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-    return (ANDROID_MIN_FLING_VELOCITY_DP * dpr) / 1000;
+    return FLING_THRESHOLD_PX_MS;
   };
 
   const pushTouchSample = (timeMs, yPx) => {
@@ -550,9 +549,15 @@ function ScrollList({ participantId }) {
         : (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 1);
     const residualFactor = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 1;
     const regressionMagnitudePxMs = Math.abs(fingerVelocityPxMs);
+    const regressionDirection = Math.sign(fingerVelocityPxMs) || Math.sign(velocityRef.current) || 1;
+    const signedRegressionVelocityPxMs = regressionMagnitudePxMs * regressionDirection;
+    let residualContributionPxMs = residualVelocityRef.current * residualFactor;
+    if (Math.sign(residualContributionPxMs) !== 0 && Math.sign(residualContributionPxMs) !== regressionDirection) {
+      residualContributionPxMs = 0;
+    }
 
     let launchVelocity =
-      regressionMagnitudePxMs * flickMultiplier + residualVelocityRef.current * residualFactor;
+      signedRegressionVelocityPxMs * flickMultiplier + residualContributionPxMs;
     launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
 
     if (touchStatsRef.current.active && trialMetricsRef.current) {
