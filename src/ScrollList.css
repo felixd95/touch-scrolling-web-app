@@ -3,6 +3,7 @@
   height: 100dvh;
   display: flex;
   gap: 0;
+  position: relative;
 }
 
 .scroll-list-wrapper.left-hand {
@@ -257,4 +258,52 @@
 
 .list-item:disabled:hover {
   background-color: #f0f0f0;
+}
+
+.block-confirm-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 22, 35, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px;
+}
+
+.block-confirm-dialog {
+  width: min(520px, 100%);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  padding: 24px;
+  text-align: center;
+}
+
+.block-confirm-dialog h3 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  color: #1f2937;
+}
+
+.block-confirm-dialog p {
+  margin: 0 0 8px 0;
+  color: #374151;
+  font-size: 16px;
+}
+
+.block-confirm-button {
+  margin-top: 18px;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #0b7a4b;
+  cursor: pointer;
+}
+
+.block-confirm-button:hover {
+  background: #09663e;
 }

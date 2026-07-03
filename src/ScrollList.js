@@ -47,6 +47,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [runCount, setRunCount] = useState(0);
   const [roundCompleted, setRoundCompleted] = useState(false);
   const [awaitingNextParameterSet, setAwaitingNextParameterSet] = useState(false);
+  const [awaitingBlockStartConfirmation, setAwaitingBlockStartConfirmation] = useState(false);
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [liveInstantVelocityPxMs, setLiveInstantVelocityPxMs] = useState(0);
   const [liveRegressionVelocityPxMs, setLiveRegressionVelocityPxMs] = useState(0);
@@ -74,7 +75,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const trialMetricsRef = useRef(null);
 
   const DEFAULT_DECAY = 0.999;
-  const MIN_VELOCITY = 0.02;
+  const MIN_VELOCITY = 0.01;
+  const BASE_FRAME_MS = 16.6667;
   const ANDROID_MAX_LAUNCH_VELOCITY = 40;
 
   const toInputString = (value, fallback) => {
@@ -437,9 +439,15 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const startMomentum = (decay) => {
     let velocity = velocityRef.current;
     if (Math.abs(velocity) < MIN_VELOCITY) return;
+    let lastFrameTime = performance.now();
 
-    const step = () => {
-      velocity = computeNextVelocity(velocity, decay);
+    const step = (now) => {
+      const dtMs = Math.max(1, now - lastFrameTime);
+      lastFrameTime = now;
+
+      // Normalize decay to 60Hz so behavior stays stable across refresh rates.
+      const normalizedDecay = Math.pow(decay, dtMs / BASE_FRAME_MS);
+      velocity = computeNextVelocity(velocity, normalizedDecay);
 
       if (Math.abs(velocity) < MIN_VELOCITY) {
         animationRef.current = null;
@@ -447,7 +455,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       }
 
       setTranslateY((current) => {
-        const next = clampTranslate(current + velocity * 16);
+        const next = clampTranslate(current + velocity * dtMs);
         if (next === current) {
           velocity = 0;
         }
@@ -486,6 +494,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     const canStartNewBlock = multiplierTarget === null;
 
     if (awaitingNextParameterSet) {
+      return;
+    }
+
+    if (awaitingBlockStartConfirmation) {
       return;
     }
 
@@ -722,6 +734,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
       if (runBlockFinished) {
         setAwaitingNextParameterSet(true);
+        setAwaitingBlockStartConfirmation(false);
         setParameterSyncError('');
         setMultiplierTarget(null);
         setRunCount(0);
@@ -738,11 +751,19 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
         setAwaitingNextParameterSet(false);
 
-        if (!receivedUpdatedParameters) {
+        if (receivedUpdatedParameters) {
+          setAwaitingBlockStartConfirmation(true);
+        } else {
           setParameterSyncError('Neue Parameter wurden noch nicht vom Backend bereitgestellt. Bitte kurz warten und erneut versuchen.');
         }
       }
     }
+  };
+
+  const handleConfirmNextBlockStart = () => {
+    setAwaitingBlockStartConfirmation(false);
+    setRoundCompleted(false);
+    setParameterSyncError('');
   };
 
   const targetPositionRatio = getTargetPositionRatio();
@@ -762,6 +783,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
                 ? `Durchlauf ${runCount + 1} von ${RUNS_PER_BLOCK} laeuft.`
                 : awaitingNextParameterSet
                   ? 'Warte auf neuen Parametersatz aus dem Backend.'
+                : awaitingBlockStartConfirmation
+                  ? 'Neuer Parametersatz ist bereit. Bitte den naechsten Block bestaetigen.'
                 : runCount > 0
                   ? `${runCount} von ${RUNS_PER_BLOCK} Durchlaeufen abgeschlossen.`
                   : 'Bereit fuer den ersten Durchlauf.'}
@@ -776,6 +799,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
             <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
               {awaitingNextParameterSet
                 ? 'Block abgeschlossen. Neuer Parametersatz wird geladen.'
+                : awaitingBlockStartConfirmation
+                ? 'Neuer Parametersatz geladen. Bitte den Start des naechsten Blocks bestaetigen.'
                 : multiplierTarget === null
                 ? `${RUNS_PER_BLOCK} Durchlaeufe abgeschlossen. Neuer Block kann gestartet werden.`
                 : 'Ziel gefunden! Scrollen startet den naechsten Durchlauf.'}
@@ -844,6 +869,19 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           </div>
         </div>
       </div>
+
+      {awaitingBlockStartConfirmation && (
+        <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="next-block-dialog-title">
+          <div className="block-confirm-dialog">
+            <h3 id="next-block-dialog-title">Neuer Block bereit</h3>
+            <p>Die naechsten Parameter wurden geladen.</p>
+            <p>Bitte bestaetigen, um den naechsten 10er-Block zu starten.</p>
+            <button type="button" className="block-confirm-button" onClick={handleConfirmNextBlockStart}>
+              Naechsten Block starten
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
