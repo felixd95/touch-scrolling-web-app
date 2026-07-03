@@ -44,13 +44,14 @@ const setStoredHandPreference = (participantId, handPreference) => {
   }
 };
 
-function LoginForm({ onSuccess }) {
+function LoginForm({ onSuccess, onUserInteraction }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const checkEmail = async (e) => {
     e && e.preventDefault();
+    onUserInteraction && onUserInteraction();
     setError('');
     if (!email) return setError('Bitte E-Mail eingeben');
     setLoading(true);
@@ -555,13 +556,52 @@ function App() {
     birthDate: '',
     privateSmartphone: '',
     screenTimePerDay: '',
-    scrollHandPreference: 'right',
+    scrollHandPreference: '',
   });
 
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [participantId, setParticipantId] = useState(null);
   const [scrollHandPreference, setScrollHandPreference] = useState('right');
+  const [isFullscreen, setIsFullscreen] = useState(
+    typeof document !== 'undefined' && Boolean(document.fullscreenElement)
+  );
+
+  const ensureFullscreen = () => {
+    if (typeof document === 'undefined') return;
+    if (document.fullscreenElement) return;
+
+    const root = document.documentElement;
+    const requestFullscreen =
+      root.requestFullscreen ||
+      root.webkitRequestFullscreen ||
+      root.msRequestFullscreen;
+
+    if (!requestFullscreen) return;
+
+    try {
+      const result = requestFullscreen.call(root);
+      if (result && typeof result.catch === 'function') {
+        result.catch(() => {});
+      }
+    } catch (error) {
+      // ignore fullscreen request errors (browser policy)
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -572,6 +612,7 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    ensureFullscreen();
     setLoading(true);
     setStatus('');
     try {
@@ -592,6 +633,12 @@ function App() {
       const items = json.data?.listParticipants?.items || [];
       if (items.length > 0) {
         setStatus('E-Mail ist bereits vergeben. Bitte andere E-Mail verwenden.');
+        setLoading(false);
+        return;
+      }
+
+      if (!formData.scrollHandPreference) {
+        setStatus('Bitte waehlen, mit welcher Hand gescrollt wird.');
         setLoading(false);
         return;
       }
@@ -636,7 +683,7 @@ function App() {
           birthDate: '',
           privateSmartphone: '',
           screenTimePerDay: '',
-          scrollHandPreference: 'right',
+          scrollHandPreference: '',
         });
         const newId = createJson.data?.createParticipant?.id;
         if (newId) {
@@ -660,13 +707,13 @@ function App() {
         <div className="card">
           <h1>Willkommen</h1>
           <div style={{ display: 'grid', gap: 12 }}>
-            <button className="nav-button" onClick={() => setCurrentPage('login')}>
+            <button className="nav-button" onClick={() => { ensureFullscreen(); setCurrentPage('login'); }}>
               Ich habe mich bereits registriert
             </button>
-            <button className="nav-button" onClick={() => setCurrentPage('form')}>
+            <button className="nav-button" onClick={() => { ensureFullscreen(); setCurrentPage('form'); }}>
               Ich möchte mich registrieren
             </button>
-            <button className="nav-button" onClick={() => setCurrentPage('list')}>
+            <button className="nav-button" onClick={() => { ensureFullscreen(); setCurrentPage('list'); }}>
               Teilnehmer anzeigen
             </button>
           </div>
@@ -675,6 +722,7 @@ function App() {
         <div className="card">
           <h2>Login</h2>
           <LoginForm
+            onUserInteraction={ensureFullscreen}
             onSuccess={(id, backendHandPreference) => {
               setParticipantId(id);
               const resolvedHandPreference = normalizeHandPreference(
@@ -772,6 +820,7 @@ function App() {
                 onChange={handleChange}
                 required
               >
+                <option value="" disabled>Bitte auswählen</option>
                 <option value="right">Right hand</option>
                 <option value="left">Left hand</option>
               </select>
@@ -790,6 +839,11 @@ function App() {
           ) : (
           <ScrollList participantId={participantId} scrollHandPreference={scrollHandPreference} />
         )
+      )}
+      {!isFullscreen && (
+        <button className="fullscreen-button" onClick={ensureFullscreen}>
+          Vollbild aktivieren
+        </button>
       )}
     </main>
   );
