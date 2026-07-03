@@ -34,6 +34,8 @@ function ScrollList({ participantId }) {
   const [roundCompleted, setRoundCompleted] = useState(false);
   const [awaitingNextParameterSet, setAwaitingNextParameterSet] = useState(false);
   const [parameterSyncError, setParameterSyncError] = useState('');
+  const [liveInstantVelocityPxMs, setLiveInstantVelocityPxMs] = useState(0);
+  const [liveRegressionVelocityPxMs, setLiveRegressionVelocityPxMs] = useState(0);
 
   const timerInterval = useRef(null);
   const scrollListRef = useRef(null);
@@ -324,6 +326,10 @@ function ScrollList({ participantId }) {
     return decayValue * x1 * currentVelocity + fingerVelocity * x2;
   };
 
+  const formatVelocity = (value) => {
+    return Number.isFinite(value) ? value.toFixed(4) : '0.0000';
+  };
+
   const getTargetPositionRatio = () => {
     if (NUM_ITEMS <= 1) return 0;
     return clamp01(targetId / (NUM_ITEMS - 1));
@@ -454,6 +460,8 @@ function ScrollList({ participantId }) {
     lastMoveTimeRef.current = now;
     velocityRef.current = 0;
     touchSamplesRef.current = [];
+    setLiveInstantVelocityPxMs(0);
+    setLiveRegressionVelocityPxMs(0);
     pushTouchSample(now, touchY);
 
     const parsedX1 = parseFloat(x1Input);
@@ -510,6 +518,8 @@ function ScrollList({ participantId }) {
     const instantVelocity = deltaY / dt;
     velocityRef.current = 0.8 * velocityRef.current + 0.2 * instantVelocity;
     pushTouchSample(now, touchY);
+    setLiveInstantVelocityPxMs(instantVelocity);
+    setLiveRegressionVelocityPxMs(getRegressionVelocityPxMs());
 
     if (touchStatsRef.current.active) {
       const absSpeed = Math.abs(instantVelocity);
@@ -536,6 +546,8 @@ function ScrollList({ participantId }) {
     pushTouchSample(endNow, lastTouchY == null ? 0 : lastTouchY);
     const fingerVelocityPxMs = getRegressionVelocityPxMs();
     const flingThresholdPxMs = getMinFlingVelocityPxMs();
+    setLiveInstantVelocityPxMs(0);
+    setLiveRegressionVelocityPxMs(fingerVelocityPxMs);
 
     const gestureDistancePx = touchStatsRef.current.active ? touchStatsRef.current.pathDistancePx : 0;
     const hasFlickVelocity = Math.abs(fingerVelocityPxMs) >= flingThresholdPxMs;
@@ -693,6 +705,7 @@ function ScrollList({ participantId }) {
 
   const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
+  const currentFlingThresholdPxMs = getMinFlingVelocityPxMs();
 
   return (
     <div className="scroll-list-wrapper">
@@ -731,6 +744,14 @@ function ScrollList({ participantId }) {
               {parameterSyncError}
             </div>
           )}
+
+          <div style={{ marginTop: 8, fontSize: 12, color: '#4c5967', lineHeight: 1.5 }}>
+            <div>Touch-Geschwindigkeit (instant): {formatVelocity(liveInstantVelocityPxMs)} px/ms</div>
+            <div>Touch-Geschwindigkeit (Regression): {formatVelocity(liveRegressionVelocityPxMs)} px/ms</div>
+            <div>
+              Vergleich: |Regression|={formatVelocity(Math.abs(liveRegressionVelocityPxMs))} vs Threshold={formatVelocity(currentFlingThresholdPxMs)} px/ms
+            </div>
+          </div>
         </div>
       </div>
 
