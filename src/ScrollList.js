@@ -322,8 +322,8 @@ function ScrollList({ participantId }) {
     return numerator / denominator;
   };
 
-  const computeNextVelocity = (currentVelocity, fingerVelocity, decayValue, x1, x2) => {
-    return decayValue * x1 * currentVelocity + fingerVelocity * x2;
+  const computeNextVelocity = (currentVelocity, decayValue) => {
+    return decayValue * currentVelocity;
   };
 
   const formatVelocity = (value) => {
@@ -416,12 +416,12 @@ function ScrollList({ participantId }) {
     });
   };
 
-  const startMomentum = (x1, x2, decay) => {
+  const startMomentum = (decay) => {
     let velocity = velocityRef.current;
     if (Math.abs(velocity) < MIN_VELOCITY) return;
 
     const step = () => {
-      velocity = computeNextVelocity(velocity, 0, decay, x1, x2);
+      velocity = computeNextVelocity(velocity, decay);
 
       if (Math.abs(velocity) < MIN_VELOCITY) {
         animationRef.current = null;
@@ -534,8 +534,6 @@ function ScrollList({ participantId }) {
   const handleTouchEnd = () => {
     const endNow = performance.now();
 
-    const x1 = activeMultiplier != null ? activeMultiplier : (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 0.1);
-    const x2 = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 0.5;
     const parsedDecay = parseFloat(decayInput);
     const decay = Number.isFinite(parsedDecay)
       ? Math.max(0.7, Math.min(0.999, parsedDecay))
@@ -549,14 +547,12 @@ function ScrollList({ participantId }) {
     setLiveInstantVelocityPxMs(0);
     setLiveRegressionVelocityPxMs(fingerVelocityPxMs);
 
-    const gestureDistancePx = touchStatsRef.current.active ? touchStatsRef.current.pathDistancePx : 0;
     const hasFlickVelocity = Math.abs(fingerVelocityPxMs) >= flingThresholdPxMs;
-    const hasFlickDistance = gestureDistancePx >= flickDistanceThreshold;
-    const isFlick = hasFlickVelocity && hasFlickDistance;
+    const isFlick = hasFlickVelocity;
 
     let launchVelocity = 0;
     if (isFlick) {
-      launchVelocity = computeNextVelocity(residualVelocityRef.current, fingerVelocityPxMs, decay, x1, x2);
+      launchVelocity = fingerVelocityPxMs;
       launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
     }
 
@@ -599,7 +595,7 @@ function ScrollList({ participantId }) {
     velocityRef.current = launchVelocity;
     residualVelocityRef.current = launchVelocity;
     if (isFlick) {
-      startMomentum(x1, x2, decay);
+      startMomentum(decay);
     }
 
     touchStatsRef.current.active = false;
