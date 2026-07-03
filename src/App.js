@@ -563,45 +563,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [participantId, setParticipantId] = useState(null);
   const [scrollHandPreference, setScrollHandPreference] = useState('right');
-  const [isFullscreen, setIsFullscreen] = useState(
-    typeof document !== 'undefined' && Boolean(document.fullscreenElement)
-  );
-
-  const ensureFullscreen = () => {
-    if (typeof document === 'undefined') return;
-    if (document.fullscreenElement) return;
-
-    const root = document.documentElement;
-    const requestFullscreen =
-      root.requestFullscreen ||
-      root.webkitRequestFullscreen ||
-      root.msRequestFullscreen;
-
-    if (!requestFullscreen) return;
-
-    try {
-      const result = requestFullscreen.call(root);
-      if (result && typeof result.catch === 'function') {
-        result.catch(() => {});
-      }
-    } catch (error) {
-      // ignore fullscreen request errors (browser policy)
-    }
-  };
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-    };
-  }, []);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -612,7 +573,6 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    ensureFullscreen();
     setLoading(true);
     setStatus('');
     try {
@@ -663,7 +623,7 @@ function App() {
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
               scrollHandPreference: selectedHandPreference,
-              nextParameterSet: DEFAULT_NEXT_PARAMETER_SET,
+              nextParameterSet: JSON.stringify(DEFAULT_NEXT_PARAMETER_SET),
             },
           },
         }),
@@ -707,13 +667,13 @@ function App() {
         <div className="card">
           <h1>Willkommen</h1>
           <div style={{ display: 'grid', gap: 12 }}>
-            <button className="nav-button" onClick={() => { ensureFullscreen(); setCurrentPage('login'); }}>
+            <button className="nav-button" onClick={() => setCurrentPage('login')}>
               Ich habe mich bereits registriert
             </button>
-            <button className="nav-button" onClick={() => { ensureFullscreen(); setCurrentPage('form'); }}>
+            <button className="nav-button" onClick={() => setCurrentPage('form')}>
               Ich möchte mich registrieren
             </button>
-            <button className="nav-button" onClick={() => { ensureFullscreen(); setCurrentPage('list'); }}>
+            <button className="nav-button" onClick={() => setCurrentPage('list')}>
               Teilnehmer anzeigen
             </button>
           </div>
@@ -722,7 +682,6 @@ function App() {
         <div className="card">
           <h2>Login</h2>
           <LoginForm
-            onUserInteraction={ensureFullscreen}
             onSuccess={(id, backendHandPreference) => {
               setParticipantId(id);
               const resolvedHandPreference = normalizeHandPreference(
@@ -839,11 +798,6 @@ function App() {
           ) : (
           <ScrollList participantId={participantId} scrollHandPreference={scrollHandPreference} />
         )
-      )}
-      {!isFullscreen && (
-        <button className="fullscreen-button" onClick={ensureFullscreen}>
-          Vollbild aktivieren
-        </button>
       )}
     </main>
   );
