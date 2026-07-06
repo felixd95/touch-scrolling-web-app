@@ -871,13 +871,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       </div>
 
       {awaitingBlockStartConfirmation && (
-        <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="next-block-dialog-title">
+        <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-label="Neuer Block bereit">
           <div className="block-confirm-dialog">
-            <h3 id="next-block-dialog-title">Neuer Block bereit</h3>
-            <p>Die naechsten Parameter wurden geladen.</p>
-            <p>Bitte bestaetigen, um den naechsten 10er-Block zu starten.</p>
             <button type="button" className="block-confirm-button" onClick={handleConfirmNextBlockStart}>
-              Naechsten Block starten
+              Nächsten Durchlauf starten
             </button>
           </div>
         </div>

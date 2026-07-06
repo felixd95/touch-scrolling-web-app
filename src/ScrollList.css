@@ -13,13 +13,13 @@
 .safe-area-progress {
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(260px, 72vw);
+  left: 0;
+  right: 0;
+  width: 100%;
   z-index: 40;
   pointer-events: none;
   display: flex;
-  justify-content: center;
+  justify-content: stretch;
   padding-top: max(2px, env(safe-area-inset-top));
 }
 
@@ -28,7 +28,7 @@
   display: flex;
   gap: 4px;
   background: rgba(20, 28, 40, 0.35);
-  border-radius: 999px;
+  border-radius: 0;
   padding: 4px 8px;
   backdrop-filter: blur(4px);
 }
@@ -344,7 +344,7 @@
 
 @media (max-width: 640px) {
   .safe-area-progress {
-    width: min(220px, 82vw);
+    width: 100%;
   }
 
   .safe-area-progress-track {
