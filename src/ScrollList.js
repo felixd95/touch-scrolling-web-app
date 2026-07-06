@@ -793,9 +793,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           <div style={{ marginTop: 8, fontSize: 12, color: '#4c5967', lineHeight: 1.5 }}>
             <div>Speed: {formatVelocity(liveInstantVelocityPxMs)} px/ms</div>
             <div>Regression: {formatVelocity(liveRegressionVelocityPxMs)} px/ms</div>
-            <div>
-              Vergleich: |Regression|={formatVelocity(Math.abs(liveRegressionVelocityPxMs))} vs Threshold={formatVelocity(currentFlingThresholdPxMs)} px/ms
-            </div>
+            <div>Threshold={formatVelocity(currentFlingThresholdPxMs)} px/ms</div>
           </div>
         </div>
       </div>
