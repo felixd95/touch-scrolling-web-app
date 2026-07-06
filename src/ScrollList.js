@@ -759,10 +759,24 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
   const currentFlingThresholdPxMs = getMinFlingVelocityPxMs();
+  const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
+    ? RUNS_PER_BLOCK
+    : Math.min(runCount, RUNS_PER_BLOCK);
   const wrapperClassName = `scroll-list-wrapper ${scrollHandPreference === 'left' ? 'left-hand' : 'right-hand'}`;
 
   return (
     <div className={wrapperClassName}>
+      <div className="safe-area-progress" aria-label={`Fortschritt ${completedRunsForProgress} von ${RUNS_PER_BLOCK}`}>
+        <div className="safe-area-progress-track" role="img" aria-hidden="true">
+          {Array.from({ length: RUNS_PER_BLOCK }, (_, index) => (
+            <span
+              key={`progress-pill-${index}`}
+              className={`safe-area-progress-pill ${index < completedRunsForProgress ? 'is-complete' : ''}`}
+            />
+          ))}
+        </div>
+      </div>
+
       <div className="timer-panel">
         <div className="timer-content">
           <div className="countdown-display">
