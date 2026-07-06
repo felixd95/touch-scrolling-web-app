@@ -23,7 +23,7 @@ const createShuffledTargetNumbers = () => {
 const DEFAULT_PARAMETER_SET = {
   x1: '1',
   x2: '1',
-  decay: '0.999',
+  decay: '0.98',
   flickDistanceThreshold: '6',
 };
 
@@ -32,14 +32,13 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [targetIndex, setTargetIndex] = useState(0);
   const [practiceRunCompleted, setPracticeRunCompleted] = useState(false);
   const [startTime, setStartTime] = useState(null);
-  const [elapsedTime, setElapsedTime] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [translateY, setTranslateY] = useState(0);
   const [lastTouchY, setLastTouchY] = useState(null);
   const [containerHeight, setContainerHeight] = useState(0);
   const [x1Input, setX1Input] = useState('1');
   const [x2Input, setX2Input] = useState('1');
-  const [decayInput, setDecayInput] = useState('0.999');
+  const [decayInput, setDecayInput] = useState('0.98');
   const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('6');
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
@@ -57,7 +56,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     : 180;
   const targetId = targetNumber - 1;
 
-  const timerInterval = useRef(null);
   const scrollListRef = useRef(null);
   const scrollListInnerRef = useRef(null);
   const animationRef = useRef(null);
@@ -74,7 +72,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   });
   const trialMetricsRef = useRef(null);
 
-  const DEFAULT_DECAY = 0.999;
+  const DEFAULT_DECAY = 0.98;
   const MIN_VELOCITY = 0.01;
   const BASE_FRAME_MS = 16.6667;
   const ANDROID_MAX_LAUNCH_VELOCITY = 40;
@@ -185,19 +183,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   }, [participantId, isSearching, multiplierTarget]);
 
   useEffect(() => {
-    if (isSearching) {
-      timerInterval.current = setInterval(() => {
-        setElapsedTime(Date.now() - startTime);
-      }, 10);
-    } else if (timerInterval.current) {
-      clearInterval(timerInterval.current);
-    }
-
     return () => {
-      if (timerInterval.current) clearInterval(timerInterval.current);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isSearching, startTime]);
+  }, []);
 
   const saveResult = async (result) => {
     const fallbackSave = () => {
@@ -580,6 +569,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         : (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 1);
     const residualFactor = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 1;
     const regressionMagnitudePxMs = Math.abs(fingerVelocityPxMs);
+    const flingVelocityThresholdPxMs = getMinFlingVelocityPxMs();
+    const meetsFlingThreshold = regressionMagnitudePxMs >= flingVelocityThresholdPxMs;
     const regressionDirection = Math.sign(fingerVelocityPxMs) || Math.sign(velocityRef.current) || 1;
     const signedRegressionVelocityPxMs = regressionMagnitudePxMs * regressionDirection;
     let residualContributionPxMs = residualVelocityRef.current * residualFactor;
@@ -587,8 +578,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       residualContributionPxMs = 0;
     }
 
-    let launchVelocity =
-      signedRegressionVelocityPxMs * flickMultiplier + residualContributionPxMs;
+    let launchVelocity = 0;
+    if (meetsFlingThreshold) {
+      launchVelocity = signedRegressionVelocityPxMs * flickMultiplier + residualContributionPxMs;
+    }
     launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
 
     if (touchStatsRef.current.active && trialMetricsRef.current) {
@@ -629,18 +622,12 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     velocityRef.current = launchVelocity;
     residualVelocityRef.current = launchVelocity;
-    if (Math.abs(launchVelocity) >= MIN_VELOCITY) {
+    if (meetsFlingThreshold && Math.abs(launchVelocity) >= MIN_VELOCITY) {
       startMomentum(decay);
     }
 
     touchStatsRef.current.active = false;
     setLastTouchY(null);
-  };
-
-  const formatTime = (ms) => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const milliseconds = ms % 1000;
-    return `${totalSeconds}.${String(milliseconds).padStart(3, '0')}s`;
   };
 
   const handleButtonClick = async (id) => {
@@ -658,7 +645,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         setRunCount(0);
         setTranslateY(0);
         setStartTime(null);
-        setElapsedTime(null);
         residualVelocityRef.current = 0;
         trialMetricsRef.current = null;
         touchStatsRef.current.active = false;
@@ -727,7 +713,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       }
       setTranslateY(0);
       setStartTime(null);
-      setElapsedTime(null);
       residualVelocityRef.current = 0;
       trialMetricsRef.current = null;
       touchStatsRef.current.active = false;
@@ -790,10 +775,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
                   : 'Bereit fuer den ersten Durchlauf.'}
             </div>
           </div>
-
-          {isSearching && (
-            <div className="timer">Time: {formatTime(elapsedTime || 0)}</div>
-          )}
 
           {roundCompleted && !isSearching && (
             <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
