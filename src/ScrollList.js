@@ -6,7 +6,7 @@ const NUM_ITEMS = 330;
 const RUNS_PER_BLOCK = 10;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
-const FLING_THRESHOLD_PX_MS = 0.05;
+const FLING_THRESHOLD_PX_MS = 1;
 const FIXED_TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
 
 const createShuffledTargetNumbers = () => {
@@ -75,6 +75,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const DEFAULT_DECAY = 0.98;
   const MIN_VELOCITY = 0.01;
   const BASE_FRAME_MS = 16.6667;
+  const MAX_EFFECTIVE_DECAY = 0.98;
   const ANDROID_MAX_LAUNCH_VELOCITY = 40;
 
   const toInputString = (value, fallback) => {
@@ -426,6 +427,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   };
 
   const startMomentum = (decay) => {
+    const safeDecay = Number.isFinite(decay)
+      ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, decay))
+      : DEFAULT_DECAY;
+
     let velocity = velocityRef.current;
     if (Math.abs(velocity) < MIN_VELOCITY) return;
     let lastFrameTime = performance.now();
@@ -435,7 +440,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       lastFrameTime = now;
 
       // Normalize decay to 60Hz so behavior stays stable across refresh rates.
-      const normalizedDecay = Math.pow(decay, dtMs / BASE_FRAME_MS);
+      const normalizedDecay = Math.pow(safeDecay, dtMs / BASE_FRAME_MS);
       velocity = computeNextVelocity(velocity, normalizedDecay);
 
       if (Math.abs(velocity) < MIN_VELOCITY) {
@@ -555,7 +560,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     const parsedDecay = parseFloat(decayInput);
     const decay = Number.isFinite(parsedDecay)
-      ? Math.max(0.7, Math.min(0.999, parsedDecay))
+      ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, parsedDecay))
       : DEFAULT_DECAY;
 
     pushTouchSample(endNow, lastTouchY == null ? 0 : lastTouchY);
@@ -660,7 +665,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       const x2 = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 0.5;
       const parsedDecay = parseFloat(decayInput);
       const decay = Number.isFinite(parsedDecay)
-        ? Math.max(0.7, Math.min(0.999, parsedDecay))
+        ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, parsedDecay))
         : DEFAULT_DECAY;
       const fingerVelocityPxMs = getRegressionVelocityPxMs();
       const flingThresholdPxMs = getMinFlingVelocityPxMs();
