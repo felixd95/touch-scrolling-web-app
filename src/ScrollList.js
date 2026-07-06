@@ -782,30 +782,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           <div className="countdown-display">
             <h3>Find:</h3>
             <div className="target-number">{targetNumber}</div>
-            <div style={{ marginTop: 6, fontSize: 13, color: '#555' }}>
-              {isSearching
-                ? `Durchlauf ${runCount + 1} von ${RUNS_PER_BLOCK} laeuft.`
-                : awaitingNextParameterSet
-                  ? 'Warte auf neuen Parametersatz aus dem Backend.'
-                : awaitingBlockStartConfirmation
-                  ? 'Neuer Parametersatz ist bereit. Bitte den naechsten Block bestaetigen.'
-                : runCount > 0
-                  ? `${runCount} von ${RUNS_PER_BLOCK} Durchlaeufen abgeschlossen.`
-                  : 'Bereit fuer den ersten Durchlauf.'}
-            </div>
           </div>
-
-          {roundCompleted && !isSearching && (
-            <div style={{ marginTop: 12, color: '#0a6', fontWeight: 'bold' }}>
-              {awaitingNextParameterSet
-                ? 'Block abgeschlossen. Neuer Parametersatz wird geladen.'
-                : awaitingBlockStartConfirmation
-                ? 'Neuer Parametersatz geladen. Bitte den Start des naechsten Blocks bestaetigen.'
-                : multiplierTarget === null
-                ? `${RUNS_PER_BLOCK} Durchlaeufe abgeschlossen. Neuer Block kann gestartet werden.`
-                : 'Ziel gefunden! Scrollen startet den naechsten Durchlauf.'}
-            </div>
-          )}
 
           {parameterSyncError && !isSearching && (
             <div style={{ marginTop: 12, color: '#b04a00', fontWeight: 'bold' }}>
@@ -814,8 +791,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           )}
 
           <div style={{ marginTop: 8, fontSize: 12, color: '#4c5967', lineHeight: 1.5 }}>
-            <div>Touch-Geschwindigkeit (instant): {formatVelocity(liveInstantVelocityPxMs)} px/ms</div>
-            <div>Touch-Geschwindigkeit (Regression): {formatVelocity(liveRegressionVelocityPxMs)} px/ms</div>
+            <div>Speed: {formatVelocity(liveInstantVelocityPxMs)} px/ms</div>
+            <div>Regression: {formatVelocity(liveRegressionVelocityPxMs)} px/ms</div>
             <div>
               Vergleich: |Regression|={formatVelocity(Math.abs(liveRegressionVelocityPxMs))} vs Threshold={formatVelocity(currentFlingThresholdPxMs)} px/ms
             </div>
@@ -871,8 +848,9 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       </div>
 
       {awaitingBlockStartConfirmation && (
-        <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-label="Neuer Block bereit">
+        <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="next-block-dialog-title">
           <div className="block-confirm-dialog">
+            <span id="next-block-dialog-title" className="sr-only">Neuer Block bereit</span>
             <button type="button" className="block-confirm-button" onClick={handleConfirmNextBlockStart}>
               Nächsten Durchlauf starten
             </button>
