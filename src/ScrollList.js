@@ -7,7 +7,68 @@ const RUNS_PER_BLOCK = 10;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
 const FLING_THRESHOLD_PX_MS = 1;
+const ANDROID_SCROLL_FRICTION = 0.015;
+const ANDROID_GRAVITY_EARTH = 9.80665;
+const ANDROID_DECELERATION_RATE = Math.log(0.78) / Math.log(0.9);
+const ANDROID_INFLEXION = 0.35;
+const ANDROID_START_TENSION = 0.5;
+const ANDROID_END_TENSION = 1.0;
+const ANDROID_P1 = ANDROID_START_TENSION * ANDROID_INFLEXION;
+const ANDROID_P2 = 1.0 - ANDROID_END_TENSION * (1.0 - ANDROID_INFLEXION);
+const ANDROID_SPLINE_SAMPLES = 100;
+const OVER_SCROLL_DISTANCE_PX = 120;
+const OVERSCROLL_RESISTANCE = 0.35;
+const EDGE_BALLISTIC_DECEL_PX_S2 = 2000;
+const MIN_BALLISTIC_DURATION_MS = 120;
+const MIN_SPRINGBACK_DURATION_MS = 180;
+const MAX_SPRINGBACK_DURATION_MS = 480;
 const FIXED_TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
+
+const buildAndroidSplineTable = () => {
+  const position = new Array(ANDROID_SPLINE_SAMPLES + 1).fill(0);
+  const time = new Array(ANDROID_SPLINE_SAMPLES + 1).fill(0);
+
+  let xMin = 0;
+  let yMin = 0;
+
+  for (let i = 0; i < ANDROID_SPLINE_SAMPLES; i += 1) {
+    const alpha = i / ANDROID_SPLINE_SAMPLES;
+
+    let xMax = 1;
+    let x = 0;
+    let tx = 0;
+    let coef = 0;
+    while (true) {
+      x = xMin + (xMax - xMin) / 2;
+      coef = 3 * x * (1 - x);
+      tx = coef * ((1 - x) * ANDROID_P1 + x * ANDROID_P2) + x * x * x;
+      if (Math.abs(tx - alpha) < 1e-5) break;
+      if (tx > alpha) xMax = x;
+      else xMin = x;
+    }
+    position[i] = coef * ((1 - x) * ANDROID_START_TENSION + x) + x * x * x;
+
+    let yMax = 1;
+    let y = 0;
+    let dy = 0;
+    while (true) {
+      y = yMin + (yMax - yMin) / 2;
+      coef = 3 * y * (1 - y);
+      dy = coef * ((1 - y) * ANDROID_START_TENSION + y) + y * y * y;
+      if (Math.abs(dy - alpha) < 1e-5) break;
+      if (dy > alpha) yMax = y;
+      else yMin = y;
+    }
+    time[i] = coef * ((1 - y) * ANDROID_P1 + y * ANDROID_P2) + y * y * y;
+  }
+
+  position[ANDROID_SPLINE_SAMPLES] = 1;
+  time[ANDROID_SPLINE_SAMPLES] = 1;
+
+  return { position, time };
+};
+
+const ANDROID_SPLINE_TABLE = buildAndroidSplineTable();
 
 const createShuffledTargetNumbers = () => {
   const shuffled = [...FIXED_TARGET_NUMBERS];
@@ -59,6 +120,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const scrollListRef = useRef(null);
   const scrollListInnerRef = useRef(null);
   const animationRef = useRef(null);
+  const translateYRef = useRef(0);
   const velocityRef = useRef(0);
   const lastMoveTimeRef = useRef(0);
   const residualVelocityRef = useRef(0);
@@ -73,10 +135,38 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const trialMetricsRef = useRef(null);
 
   const DEFAULT_DECAY = 0.98;
-  const MIN_VELOCITY = 0.01;
-  const BASE_FRAME_MS = 16.6667;
   const MAX_EFFECTIVE_DECAY = 0.98;
   const ANDROID_MAX_LAUNCH_VELOCITY = 40;
+
+  const getAndroidPhysicalCoeff = () => {
+    const dpr = typeof window !== 'undefined' && Number.isFinite(window.devicePixelRatio)
+      ? window.devicePixelRatio
+      : 1;
+    const ppi = dpr * 160;
+    return ANDROID_GRAVITY_EARTH * 39.37 * ppi * 0.84;
+  };
+
+  const getAndroidSplineDeceleration = (velocityPxPerSec) => {
+    const physicalCoeff = getAndroidPhysicalCoeff();
+    return Math.log(
+      (ANDROID_INFLEXION * Math.abs(velocityPxPerSec)) / (ANDROID_SCROLL_FRICTION * physicalCoeff)
+    );
+  };
+
+  const getAndroidSplineFlingDistancePx = (velocityPxPerSec) => {
+    if (!Number.isFinite(velocityPxPerSec) || velocityPxPerSec === 0) return 0;
+    const physicalCoeff = getAndroidPhysicalCoeff();
+    const deceleration = getAndroidSplineDeceleration(velocityPxPerSec);
+    const decelMinusOne = ANDROID_DECELERATION_RATE - 1;
+    return ANDROID_SCROLL_FRICTION * physicalCoeff * Math.exp((ANDROID_DECELERATION_RATE / decelMinusOne) * deceleration);
+  };
+
+  const getAndroidSplineFlingDurationMs = (velocityPxPerSec) => {
+    if (!Number.isFinite(velocityPxPerSec) || velocityPxPerSec === 0) return 0;
+    const deceleration = getAndroidSplineDeceleration(velocityPxPerSec);
+    const decelMinusOne = ANDROID_DECELERATION_RATE - 1;
+    return 1000 * Math.exp(deceleration / decelMinusOne);
+  };
 
   const toInputString = (value, fallback) => {
     const parsed = Number(value);
@@ -182,6 +272,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       loadNextParameterSet();
     }
   }, [participantId, isSearching, multiplierTarget]);
+
+  useEffect(() => {
+    translateYRef.current = translateY;
+  }, [translateY]);
 
   useEffect(() => {
     return () => {
@@ -332,10 +426,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     return numerator / denominator;
   };
 
-  const computeNextVelocity = (currentVelocity, decayValue) => {
-    return decayValue * currentVelocity;
-  };
-
   const formatVelocity = (value) => {
     return Number.isFinite(value) ? value.toFixed(4) : '0.0000';
   };
@@ -402,11 +492,127 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     observeTargetMetrics(translateValue);
   };
 
-  const clampTranslate = (value) => {
+  const getScrollBounds = () => {
     const contentHeight = getContentHeight();
-    if (!contentHeight) return Math.min(0, value);
+    const maxTranslate = 0;
+    if (!contentHeight) {
+      return { minTranslate: 0, maxTranslate };
+    }
+
     const minTranslate = Math.min(0, containerHeight - contentHeight - 20);
-    return Math.max(minTranslate, Math.min(0, value));
+    return { minTranslate, maxTranslate };
+  };
+
+  const clampTranslate = (value) => {
+    const { minTranslate, maxTranslate } = getScrollBounds();
+    return Math.max(minTranslate, Math.min(maxTranslate, value));
+  };
+
+  const applyOverscrollResistance = (value) => {
+    const { minTranslate, maxTranslate } = getScrollBounds();
+
+    if (value > maxTranslate) {
+      const overflow = value - maxTranslate;
+      return Math.min(maxTranslate + overflow * OVERSCROLL_RESISTANCE, maxTranslate + OVER_SCROLL_DISTANCE_PX);
+    }
+
+    if (value < minTranslate) {
+      const overflow = minTranslate - value;
+      return Math.max(minTranslate - overflow * OVERSCROLL_RESISTANCE, minTranslate - OVER_SCROLL_DISTANCE_PX);
+    }
+
+    return value;
+  };
+
+  const startSpringback = (startValue, targetValue, initialVelocityPxMs = 0) => {
+    const delta = targetValue - startValue;
+    if (Math.abs(delta) < 0.5) {
+      const clamped = clampTranslate(startValue);
+      setTranslateY(clamped);
+      translateYRef.current = clamped;
+      velocityRef.current = 0;
+      return;
+    }
+
+    const accelPxMs2 = EDGE_BALLISTIC_DECEL_PX_S2 / 1_000_000;
+    const baseDuration = Math.sqrt((2 * Math.abs(delta)) / accelPxMs2);
+    const velocityContribution = Math.abs(initialVelocityPxMs) * 100;
+    const durationMs = Math.max(
+      MIN_SPRINGBACK_DURATION_MS,
+      Math.min(MAX_SPRINGBACK_DURATION_MS, baseDuration + velocityContribution)
+    );
+    const startedAt = performance.now();
+
+    const step = (now) => {
+      const t = Math.max(0, Math.min(1, (now - startedAt) / durationMs));
+      const ease = 3 * t * t - 2 * t * t * t;
+      const next = startValue + delta * ease;
+
+      setTranslateY(next);
+      translateYRef.current = next;
+      observeTargetMetrics(next);
+
+      const deriv = (6 * t - 6 * t * t) / durationMs;
+      velocityRef.current = delta * deriv;
+
+      if (t >= 1) {
+        animationRef.current = null;
+        velocityRef.current = 0;
+        const clamped = clampTranslate(targetValue);
+        setTranslateY(clamped);
+        translateYRef.current = clamped;
+        observeTargetMetrics(clamped);
+        return;
+      }
+
+      animationRef.current = requestAnimationFrame(step);
+    };
+
+    animationRef.current = requestAnimationFrame(step);
+  };
+
+  const startBallisticPhase = (startValue, initialVelocityPxMs, edgeValue) => {
+    if (!Number.isFinite(initialVelocityPxMs) || Math.abs(initialVelocityPxMs) < 1e-4) {
+      startSpringback(startValue, edgeValue);
+      return;
+    }
+
+    const baseDecelPxMs2 = EDGE_BALLISTIC_DECEL_PX_S2 / 1_000_000;
+    const direction = Math.sign(initialVelocityPxMs);
+    const speed = Math.abs(initialVelocityPxMs);
+
+    let decelMagnitude = baseDecelPxMs2;
+    let overshootDistance = (speed * speed) / (2 * decelMagnitude);
+    if (overshootDistance > OVER_SCROLL_DISTANCE_PX) {
+      overshootDistance = OVER_SCROLL_DISTANCE_PX;
+      decelMagnitude = (speed * speed) / (2 * overshootDistance);
+    }
+
+    const decel = -direction * decelMagnitude;
+    const durationMs = Math.max(MIN_BALLISTIC_DURATION_MS, speed / decelMagnitude);
+    const startedAt = performance.now();
+
+    const step = (now) => {
+      const elapsedMs = now - startedAt;
+      const clampedElapsed = Math.min(durationMs, elapsedMs);
+      const next = startValue + initialVelocityPxMs * clampedElapsed + 0.5 * decel * clampedElapsed * clampedElapsed;
+      const nextVelocity = initialVelocityPxMs + decel * clampedElapsed;
+
+      setTranslateY(next);
+      translateYRef.current = next;
+      observeTargetMetrics(next);
+      velocityRef.current = nextVelocity;
+
+      if (elapsedMs >= durationMs) {
+        animationRef.current = null;
+        startSpringback(next, edgeValue, nextVelocity);
+        return;
+      }
+
+      animationRef.current = requestAnimationFrame(step);
+    };
+
+    animationRef.current = requestAnimationFrame(step);
   };
 
   const stopMomentum = () => {
@@ -420,48 +626,67 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const applyDrag = (deltaY) => {
     setTranslateY((current) => {
-      const next = clampTranslate(current + deltaY);
+      const next = applyOverscrollResistance(current + deltaY);
+      translateYRef.current = next;
       observeTargetMetrics(next);
       return next;
     });
   };
 
-  const startMomentum = (decay) => {
-    const safeDecay = Number.isFinite(decay)
-      ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, decay))
-      : DEFAULT_DECAY;
+  const startMomentum = (initialVelocityPxMs) => {
+    const initialVelocityPxPerSec = initialVelocityPxMs * 1000;
+    const totalDistancePx = getAndroidSplineFlingDistancePx(initialVelocityPxPerSec);
+    const durationMs = getAndroidSplineFlingDurationMs(initialVelocityPxPerSec);
 
-    let velocity = velocityRef.current;
-    if (Math.abs(velocity) < MIN_VELOCITY) return;
-    let lastFrameTime = performance.now();
+    if (!(durationMs > 0) || !(totalDistancePx > 0)) {
+      velocityRef.current = 0;
+      return;
+    }
+
+    const flingDirection = Math.sign(initialVelocityPxMs) || 1;
+    const signedDistancePx = totalDistancePx * flingDirection;
+    const startTranslateValue = translateYRef.current;
+    const startTime = performance.now();
+    const { minTranslate, maxTranslate } = getScrollBounds();
 
     const step = (now) => {
-      const dtMs = Math.max(1, now - lastFrameTime);
-      lastFrameTime = now;
+      const elapsedMs = now - startTime;
+      const t = Math.max(0, Math.min(1, elapsedMs / durationMs));
+      const index = Math.min(ANDROID_SPLINE_SAMPLES - 1, Math.floor(ANDROID_SPLINE_SAMPLES * t));
+      const tInf = index / ANDROID_SPLINE_SAMPLES;
+      const tSup = (index + 1) / ANDROID_SPLINE_SAMPLES;
+      const dInf = ANDROID_SPLINE_TABLE.position[index];
+      const dSup = ANDROID_SPLINE_TABLE.position[index + 1];
+      const velocityCoef = (dSup - dInf) / (tSup - tInf);
+      const distanceCoef = dInf + (t - tInf) * velocityCoef;
 
-      // Normalize decay to 60Hz so behavior stays stable across refresh rates.
-      const normalizedDecay = Math.pow(safeDecay, dtMs / BASE_FRAME_MS);
-      velocity = computeNextVelocity(velocity, normalizedDecay);
+      const desiredTranslate = startTranslateValue + signedDistancePx * distanceCoef;
+      const nextTranslate = desiredTranslate;
 
-      if (Math.abs(velocity) < MIN_VELOCITY) {
+      if (nextTranslate < minTranslate || nextTranslate > maxTranslate) {
+        const edgeValue = nextTranslate > maxTranslate ? maxTranslate : minTranslate;
+        setTranslateY(edgeValue);
+        translateYRef.current = edgeValue;
+        observeTargetMetrics(edgeValue);
+
+        const velocityAtEdgePxMs = velocityCoef * signedDistancePx / durationMs;
         animationRef.current = null;
+        startBallisticPhase(edgeValue, velocityAtEdgePxMs, edgeValue);
         return;
       }
 
-      setTranslateY((current) => {
-        const next = clampTranslate(current + velocity * dtMs);
-        if (next === current) {
-          velocity = 0;
-        }
-        observeTargetMetrics(next);
-        return next;
-      });
+      setTranslateY(nextTranslate);
+      translateYRef.current = nextTranslate;
+      observeTargetMetrics(nextTranslate);
 
-      velocityRef.current = velocity;
-      if (Math.abs(velocity) < MIN_VELOCITY) {
+      velocityRef.current = (velocityCoef * signedDistancePx / durationMs);
+
+      if (t >= 1) {
         animationRef.current = null;
+        velocityRef.current = 0;
         return;
       }
+
       animationRef.current = requestAnimationFrame(step);
     };
 
@@ -558,34 +783,18 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const handleTouchEnd = () => {
     const endNow = performance.now();
 
-    const parsedDecay = parseFloat(decayInput);
-    const decay = Number.isFinite(parsedDecay)
-      ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, parsedDecay))
-      : DEFAULT_DECAY;
-
     pushTouchSample(endNow, lastTouchY == null ? 0 : lastTouchY);
     const fingerVelocityPxMs = getRegressionVelocityPxMs();
     setLiveInstantVelocityPxMs(0);
     setLiveRegressionVelocityPxMs(fingerVelocityPxMs);
 
-    const flickMultiplier =
-      activeMultiplier != null
-        ? activeMultiplier
-        : (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 1);
-    const residualFactor = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 1;
     const regressionMagnitudePxMs = Math.abs(fingerVelocityPxMs);
     const flingVelocityThresholdPxMs = getMinFlingVelocityPxMs();
     const meetsFlingThreshold = regressionMagnitudePxMs >= flingVelocityThresholdPxMs;
-    const regressionDirection = Math.sign(fingerVelocityPxMs) || Math.sign(velocityRef.current) || 1;
-    const signedRegressionVelocityPxMs = regressionMagnitudePxMs * regressionDirection;
-    let residualContributionPxMs = residualVelocityRef.current * residualFactor;
-    if (Math.sign(residualContributionPxMs) !== 0 && Math.sign(residualContributionPxMs) !== regressionDirection) {
-      residualContributionPxMs = 0;
-    }
 
     let launchVelocity = 0;
     if (meetsFlingThreshold) {
-      launchVelocity = signedRegressionVelocityPxMs * flickMultiplier + residualContributionPxMs;
+      launchVelocity = fingerVelocityPxMs;
     }
     launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
 
@@ -627,8 +836,14 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     velocityRef.current = launchVelocity;
     residualVelocityRef.current = launchVelocity;
-    if (meetsFlingThreshold && Math.abs(launchVelocity) >= MIN_VELOCITY) {
-      startMomentum(decay);
+    if (meetsFlingThreshold && Math.abs(launchVelocity) > 0) {
+      startMomentum(launchVelocity);
+    } else {
+      const currentTranslate = translateYRef.current;
+      const clampedTranslate = clampTranslate(currentTranslate);
+      if (Math.abs(currentTranslate - clampedTranslate) > 0.5) {
+        startSpringback(currentTranslate, clampedTranslate, launchVelocity);
+      }
     }
 
     touchStatsRef.current.active = false;
@@ -793,7 +1008,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           <div style={{ marginTop: 8, fontSize: 12, color: '#4c5967', lineHeight: 1.5 }}>
             <div>Speed: {formatVelocity(liveInstantVelocityPxMs)} px/ms</div>
             <div>Regression: {formatVelocity(liveRegressionVelocityPxMs)} px/ms</div>
-            <div>Threshold={formatVelocity(currentFlingThresholdPxMs)} px/ms</div>
+            <div>Threshold={formatVelocity(currentFlingThresholdPxMs)} px/msy</div>
           </div>
         </div>
       </div>
