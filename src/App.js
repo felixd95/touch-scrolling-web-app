@@ -13,7 +13,6 @@ const HAND_PREFERENCE_STORAGE_KEY = 'participantHandPreferences';
 const DEFAULT_NEXT_PARAMETER_SET = {
   x1: 0.1,
   x2: 0.5,
-  decay: 0.95,
   flickDistanceThreshold: 12,
   blockSize: RUNS_PER_BLOCK,
   status: 'ready',
@@ -132,7 +131,6 @@ function ParticipantsList({ onBack }) {
       ...parsed,
       x1: Number(source.x1 ?? source.a ?? DEFAULT_NEXT_PARAMETER_SET.x1),
       x2: Number(source.x2 ?? source.b ?? DEFAULT_NEXT_PARAMETER_SET.x2),
-      decay: Number(source.decay ?? DEFAULT_NEXT_PARAMETER_SET.decay),
       flickDistanceThreshold: Number(
         source.flickDistanceThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickDistanceThreshold
       ),
@@ -441,7 +439,7 @@ function ParticipantsList({ onBack }) {
               <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
               {selectedParticipant.nextParameterSet && (
                 <div style={{ marginBottom: 10, fontSize: 13, color: '#4c5967' }}>
-                  Naechster Parametersatz: x1={formatMetric(selectedParticipant.nextParameterSet.x1)}, x2={formatMetric(selectedParticipant.nextParameterSet.x2)}, decay={formatMetric(selectedParticipant.nextParameterSet.decay, 3)}
+                  Naechster Parametersatz: x1={formatMetric(selectedParticipant.nextParameterSet.x1)}, x2={formatMetric(selectedParticipant.nextParameterSet.x2)}
                 </div>
               )}
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>

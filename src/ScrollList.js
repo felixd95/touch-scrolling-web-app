@@ -42,7 +42,6 @@ const createShuffledTargetNumbers = () => {
 const DEFAULT_PARAMETER_SET = {
   x1: '1',
   x2: '1',
-  decay: '0.98',
   flickDistanceThreshold: '6',
 };
 
@@ -57,7 +56,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [containerHeight, setContainerHeight] = useState(0);
   const [x1Input, setX1Input] = useState('1');
   const [x2Input, setX2Input] = useState('1');
-  const [decayInput, setDecayInput] = useState('0.98');
   const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('6');
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
@@ -92,9 +90,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   });
   const trialMetricsRef = useRef(null);
 
-  const DEFAULT_DECAY = 0.98;
-  const MAX_EFFECTIVE_DECAY = 0.98;
-
   const toInputString = (value, fallback) => {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? String(parsed) : fallback;
@@ -126,7 +121,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     setX1Input(toInputString(rawX1, DEFAULT_PARAMETER_SET.x1));
     setX2Input(toInputString(rawX2, DEFAULT_PARAMETER_SET.x2));
-    setDecayInput(toInputString(parameterSet.decay, DEFAULT_PARAMETER_SET.decay));
     setFlickDistanceThresholdInput(
       toInputString(parameterSet.flickDistanceThreshold, DEFAULT_PARAMETER_SET.flickDistanceThreshold)
     );
@@ -784,10 +778,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       const timestamp = new Date().toISOString();
       const x1 = activeMultiplier != null ? activeMultiplier : (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 0.1);
       const x2 = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 0.5;
-      const parsedDecay = parseFloat(decayInput);
-      const decay = Number.isFinite(parsedDecay)
-        ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, parsedDecay))
-        : DEFAULT_DECAY;
       const fingerVelocityPxMs = getRegressionVelocityPxMs();
       const flingThresholdPxMs = getMinFlingVelocityPxMs();
       const multiplierUsed = activeMultiplier || (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 0.1);
@@ -815,7 +805,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           velocityPxMs: flingThresholdPxMs,
           distancePx: parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 6,
         },
-        decayFactor: decay,
         fingerVelocityPxMs,
         paperParams: {
           a: x1,
