@@ -8,12 +8,23 @@ const ANDROID_P1 = ANDROID_START_TENSION * ANDROID_INFLEXION;
 const ANDROID_P2 = 1.0 - ANDROID_END_TENSION * (1.0 - ANDROID_INFLEXION);
 
 export const ANDROID_SPLINE_SAMPLES = 100;
-export const OVER_SCROLL_DISTANCE_PX = 120;
 export const OVERSCROLL_RESISTANCE = 0.35;
 export const EDGE_BALLISTIC_DECEL_PX_S2 = 2000;
 export const MIN_BALLISTIC_DURATION_MS = 120;
 export const MIN_SPRINGBACK_DURATION_MS = 180;
 export const MAX_SPRINGBACK_DURATION_MS = 480;
+// Android ViewConfiguration overfling default is a density-scaled distance.
+export const ANDROID_OVERFLING_DISTANCE_DP = 6;
+
+const getDevicePixelRatio = () => {
+  if (typeof window === 'undefined') return 1;
+  return Number.isFinite(window.devicePixelRatio) ? window.devicePixelRatio : 1;
+};
+
+export const getAndroidOverflingDistancePx = (devicePixelRatio = getDevicePixelRatio()) => {
+  const safeDpr = Number.isFinite(devicePixelRatio) ? devicePixelRatio : 1;
+  return Math.max(1, ANDROID_OVERFLING_DISTANCE_DP * safeDpr);
+};
 
 const buildAndroidSplineTable = () => {
   const position = new Array(ANDROID_SPLINE_SAMPLES + 1).fill(0);
@@ -99,15 +110,23 @@ export const clampTranslate = (value, bounds) => {
   return Math.max(bounds.minTranslate, Math.min(bounds.maxTranslate, value));
 };
 
-export const applyOverscrollResistance = (value, bounds) => {
+export const applyOverscrollResistance = (
+  value,
+  bounds,
+  maxOverscrollDistancePx = getAndroidOverflingDistancePx()
+) => {
+  const distanceLimit = Number.isFinite(maxOverscrollDistancePx)
+    ? Math.max(1, maxOverscrollDistancePx)
+    : getAndroidOverflingDistancePx();
+
   if (value > bounds.maxTranslate) {
     const overflow = value - bounds.maxTranslate;
-    return Math.min(bounds.maxTranslate + overflow * OVERSCROLL_RESISTANCE, bounds.maxTranslate + OVER_SCROLL_DISTANCE_PX);
+    return Math.min(bounds.maxTranslate + overflow * OVERSCROLL_RESISTANCE, bounds.maxTranslate + distanceLimit);
   }
 
   if (value < bounds.minTranslate) {
     const overflow = bounds.minTranslate - value;
-    return Math.max(bounds.minTranslate - overflow * OVERSCROLL_RESISTANCE, bounds.minTranslate - OVER_SCROLL_DISTANCE_PX);
+    return Math.max(bounds.minTranslate - overflow * OVERSCROLL_RESISTANCE, bounds.minTranslate - distanceLimit);
   }
 
   return value;
@@ -123,14 +142,20 @@ export const getSpringbackDurationMs = (deltaPx, initialVelocityPxMs) => {
   );
 };
 
-export const getBallisticProfile = (initialVelocityPxMs) => {
+export const getBallisticProfile = (
+  initialVelocityPxMs,
+  maxOverDistancePx = getAndroidOverflingDistancePx()
+) => {
   const baseDecelPxMs2 = EDGE_BALLISTIC_DECEL_PX_S2 / 1_000_000;
   const speed = Math.abs(initialVelocityPxMs);
+  const overDistanceLimit = Number.isFinite(maxOverDistancePx)
+    ? Math.max(1, maxOverDistancePx)
+    : getAndroidOverflingDistancePx();
 
   let decelMagnitude = baseDecelPxMs2;
   let overshootDistance = (speed * speed) / (2 * decelMagnitude);
-  if (overshootDistance > OVER_SCROLL_DISTANCE_PX) {
-    overshootDistance = OVER_SCROLL_DISTANCE_PX;
+  if (overshootDistance > overDistanceLimit) {
+    overshootDistance = overDistanceLimit;
     decelMagnitude = (speed * speed) / (2 * overshootDistance);
   }
 

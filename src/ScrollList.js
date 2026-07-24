@@ -16,6 +16,7 @@ import {
   getScrollBounds as getOverScrollerBounds,
   clampTranslate as clampTranslateFromBounds,
   applyOverscrollResistance as applyOverscrollResistanceToBounds,
+  getAndroidOverflingDistancePx,
   getSpringbackDurationMs,
   getBallisticProfile,
 } from './scrollPhysics/overScrollerPhysics';
@@ -425,7 +426,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const applyOverscrollResistance = (value) => {
     const bounds = getScrollBounds();
-    return applyOverscrollResistanceToBounds(value, bounds);
+    const overflingDistancePx = getAndroidOverflingDistancePx(
+      typeof window !== 'undefined' ? window.devicePixelRatio : 1
+    );
+    return applyOverscrollResistanceToBounds(value, bounds, overflingDistancePx);
   };
 
   const startSpringback = (startValue, targetValue, initialVelocityPxMs = 0) => {
@@ -476,7 +480,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     }
 
     const direction = Math.sign(initialVelocityPxMs);
-    const { decelMagnitude, durationMs } = getBallisticProfile(initialVelocityPxMs);
+    const overflingDistancePx = getAndroidOverflingDistancePx(
+      typeof window !== 'undefined' ? window.devicePixelRatio : 1
+    );
+    const { decelMagnitude, durationMs } = getBallisticProfile(initialVelocityPxMs, overflingDistancePx);
 
     const decel = -direction * decelMagnitude;
     const startedAt = performance.now();
