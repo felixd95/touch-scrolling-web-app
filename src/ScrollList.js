@@ -16,6 +16,7 @@ import {
   getScrollBounds as getOverScrollerBounds,
   clampTranslate as clampTranslateFromBounds,
   applyOverscrollResistance as applyOverscrollResistanceToBounds,
+  getAndroidOverscrollDistancePx,
   getAndroidOverflingDistancePx,
   getSpringbackDurationMs,
   getBallisticProfile,
@@ -426,10 +427,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const applyOverscrollResistance = (value) => {
     const bounds = getScrollBounds();
-    const overflingDistancePx = getAndroidOverflingDistancePx(
+    const overscrollDistancePx = getAndroidOverscrollDistancePx(
       typeof window !== 'undefined' ? window.devicePixelRatio : 1
     );
-    return applyOverscrollResistanceToBounds(value, bounds, overflingDistancePx);
+    return applyOverscrollResistanceToBounds(value, bounds, overscrollDistancePx);
   };
 
   const startSpringback = (startValue, targetValue, initialVelocityPxMs = 0) => {
@@ -473,16 +474,18 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     animationRef.current = requestAnimationFrame(step);
   };
 
-  const startBallisticPhase = (startValue, initialVelocityPxMs, edgeValue) => {
+  const startBallisticPhase = (startValue, initialVelocityPxMs, edgeValue, overflingDistancePx = 0) => {
     if (!Number.isFinite(initialVelocityPxMs) || Math.abs(initialVelocityPxMs) < 1e-4) {
       startSpringback(startValue, edgeValue);
       return;
     }
 
+    if (!(overflingDistancePx > 0)) {
+      startSpringback(startValue, edgeValue, initialVelocityPxMs);
+      return;
+    }
+
     const direction = Math.sign(initialVelocityPxMs);
-    const overflingDistancePx = getAndroidOverflingDistancePx(
-      typeof window !== 'undefined' ? window.devicePixelRatio : 1
-    );
     const { decelMagnitude, durationMs } = getBallisticProfile(initialVelocityPxMs, overflingDistancePx);
 
     const decel = -direction * decelMagnitude;
@@ -529,7 +532,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     });
   };
 
-  const startMomentum = (initialVelocityPxMs) => {
+  const startMomentum = (initialVelocityPxMs, overflingDistancePx = 0) => {
     const initialVelocityPxPerSec = initialVelocityPxMs * 1000;
     const physicalCoeff = getAndroidPhysicalCoeff(
       typeof window !== 'undefined' ? window.devicePixelRatio : 1
@@ -570,7 +573,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
         const velocityAtEdgePxMs = velocityCoef * signedDistancePx / durationMs;
         animationRef.current = null;
-        startBallisticPhase(edgeValue, velocityAtEdgePxMs, edgeValue);
+        startBallisticPhase(edgeValue, velocityAtEdgePxMs, edgeValue, overflingDistancePx);
         return;
       }
 
@@ -737,7 +740,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     velocityRef.current = launchVelocity;
     residualVelocityRef.current = launchVelocity;
     if (meetsFlingThreshold && Math.abs(launchVelocity) > 0) {
-      startMomentum(launchVelocity);
+      const overflingDistancePx = getAndroidOverflingDistancePx(
+        typeof window !== 'undefined' ? window.devicePixelRatio : 1
+      );
+      startMomentum(launchVelocity, overflingDistancePx);
     } else {
       const currentTranslate = translateYRef.current;
       const clampedTranslate = clampTranslate(currentTranslate);

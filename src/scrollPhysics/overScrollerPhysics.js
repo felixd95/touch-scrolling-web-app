@@ -13,7 +13,8 @@ export const EDGE_BALLISTIC_DECEL_PX_S2 = 2000;
 export const MIN_BALLISTIC_DURATION_MS = 120;
 export const MIN_SPRINGBACK_DURATION_MS = 180;
 export const MAX_SPRINGBACK_DURATION_MS = 480;
-// Android ViewConfiguration overfling default is a density-scaled distance.
+// Android ViewConfiguration defaults are density-scaled distances in dp.
+export const ANDROID_OVERSCROLL_DISTANCE_DP = 0;
 export const ANDROID_OVERFLING_DISTANCE_DP = 6;
 
 const getDevicePixelRatio = () => {
@@ -21,9 +22,53 @@ const getDevicePixelRatio = () => {
   return Number.isFinite(window.devicePixelRatio) ? window.devicePixelRatio : 1;
 };
 
-export const getAndroidOverflingDistancePx = (devicePixelRatio = getDevicePixelRatio()) => {
+const getViewportSize = () => {
+  if (typeof window === 'undefined') {
+    return { widthPx: 0, heightPx: 0 };
+  }
+
+  const widthPx = Number.isFinite(window.innerWidth) ? window.innerWidth : 0;
+  const heightPx = Number.isFinite(window.innerHeight) ? window.innerHeight : 0;
+  return { widthPx, heightPx };
+};
+
+const isXlargeScreen = (widthPx, heightPx, devicePixelRatio) => {
+  if (!(widthPx > 0) || !(heightPx > 0)) return false;
+  const safeDpr = Number.isFinite(devicePixelRatio) && devicePixelRatio > 0 ? devicePixelRatio : 1;
+  const minDp = Math.min(widthPx, heightPx) / safeDpr;
+  // Android xlarge buckets are typically around >= 720dp minimum dimension.
+  return minDp >= 720;
+};
+
+const getAndroidSizeAndDensity = (
+  devicePixelRatio = getDevicePixelRatio(),
+  viewport = getViewportSize()
+) => {
   const safeDpr = Number.isFinite(devicePixelRatio) ? devicePixelRatio : 1;
-  return Math.max(1, ANDROID_OVERFLING_DISTANCE_DP * safeDpr);
+  const sizeAndDensity = isXlargeScreen(viewport.widthPx, viewport.heightPx, safeDpr)
+    ? safeDpr * 1.5
+    : safeDpr;
+  return sizeAndDensity;
+};
+
+const toAndroidScaledPxInt = (dpValue, sizeAndDensity) => {
+  return Math.floor(dpValue * sizeAndDensity + 0.5);
+};
+
+export const getAndroidOverscrollDistancePx = (
+  devicePixelRatio = getDevicePixelRatio(),
+  viewport = getViewportSize()
+) => {
+  const sizeAndDensity = getAndroidSizeAndDensity(devicePixelRatio, viewport);
+  return toAndroidScaledPxInt(ANDROID_OVERSCROLL_DISTANCE_DP, sizeAndDensity);
+};
+
+export const getAndroidOverflingDistancePx = (
+  devicePixelRatio = getDevicePixelRatio(),
+  viewport = getViewportSize()
+) => {
+  const sizeAndDensity = getAndroidSizeAndDensity(devicePixelRatio, viewport);
+  return toAndroidScaledPxInt(ANDROID_OVERFLING_DISTANCE_DP, sizeAndDensity);
 };
 
 const buildAndroidSplineTable = () => {
@@ -113,11 +158,15 @@ export const clampTranslate = (value, bounds) => {
 export const applyOverscrollResistance = (
   value,
   bounds,
-  maxOverscrollDistancePx = getAndroidOverflingDistancePx()
+  maxOverscrollDistancePx = getAndroidOverscrollDistancePx()
 ) => {
   const distanceLimit = Number.isFinite(maxOverscrollDistancePx)
-    ? Math.max(1, maxOverscrollDistancePx)
-    : getAndroidOverflingDistancePx();
+    ? Math.max(0, maxOverscrollDistancePx)
+    : getAndroidOverscrollDistancePx();
+
+  if (distanceLimit <= 0) {
+    return clampTranslate(value, bounds);
+  }
 
   if (value > bounds.maxTranslate) {
     const overflow = value - bounds.maxTranslate;
@@ -149,8 +198,15 @@ export const getBallisticProfile = (
   const baseDecelPxMs2 = EDGE_BALLISTIC_DECEL_PX_S2 / 1_000_000;
   const speed = Math.abs(initialVelocityPxMs);
   const overDistanceLimit = Number.isFinite(maxOverDistancePx)
-    ? Math.max(1, maxOverDistancePx)
+    ? Math.max(0, maxOverDistancePx)
     : getAndroidOverflingDistancePx();
+
+  if (overDistanceLimit <= 0) {
+    return {
+      decelMagnitude: baseDecelPxMs2,
+      durationMs: 0,
+    };
+  }
 
   let decelMagnitude = baseDecelPxMs2;
   let overshootDistance = (speed * speed) / (2 * decelMagnitude);
