@@ -1,70 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
 import './ScrollList.css';
 import outputs from './amplify_outputs.json';
+import {
+  getMinFlingVelocityPxMs,
+  isFlingThresholdMet,
+  clampFlingVelocityPxMs,
+} from './scrollPhysics/flingThreshold';
+import {
+  FLING_PHYSICS_CONFIG,
+  ANDROID_SPLINE_SAMPLES,
+  ANDROID_SPLINE_TABLE,
+  OVER_SCROLL_DISTANCE_PX,
+  getAndroidPhysicalCoeff,
+  getAndroidSplineFlingDistancePx,
+  getAndroidSplineFlingDurationMs,
+  getScrollBounds as getOverScrollerBounds,
+  clampTranslate as clampTranslateFromBounds,
+  applyOverscrollResistance as applyOverscrollResistanceToBounds,
+} from './scrollPhysics/overScrollerPhysics';
 
 const NUM_ITEMS = 330;
 const RUNS_PER_BLOCK = 10;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
-const FLING_THRESHOLD_PX_MS = 1;
-const ANDROID_SCROLL_FRICTION = 0.015;
-const ANDROID_GRAVITY_EARTH = 9.80665;
-const ANDROID_DECELERATION_RATE = Math.log(0.78) / Math.log(0.9);
-const ANDROID_INFLEXION = 0.35;
-const ANDROID_START_TENSION = 0.5;
-const ANDROID_END_TENSION = 1.0;
-const ANDROID_P1 = ANDROID_START_TENSION * ANDROID_INFLEXION;
-const ANDROID_P2 = 1.0 - ANDROID_END_TENSION * (1.0 - ANDROID_INFLEXION);
-const ANDROID_SPLINE_SAMPLES = 100;
-const OVER_SCROLL_DISTANCE_PX = 120;
-const OVERSCROLL_RESISTANCE = 0.35;
 const FIXED_TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
-
-const buildAndroidSplineTable = () => {
-  const position = new Array(ANDROID_SPLINE_SAMPLES + 1).fill(0);
-  const time = new Array(ANDROID_SPLINE_SAMPLES + 1).fill(0);
-
-  let xMin = 0;
-  let yMin = 0;
-
-  for (let i = 0; i < ANDROID_SPLINE_SAMPLES; i += 1) {
-    const alpha = i / ANDROID_SPLINE_SAMPLES;
-
-    let xMax = 1;
-    let x = 0;
-    let tx = 0;
-    let coef = 0;
-    while (true) {
-      x = xMin + (xMax - xMin) / 2;
-      coef = 3 * x * (1 - x);
-      tx = coef * ((1 - x) * ANDROID_P1 + x * ANDROID_P2) + x * x * x;
-      if (Math.abs(tx - alpha) < 1e-5) break;
-      if (tx > alpha) xMax = x;
-      else xMin = x;
-    }
-    position[i] = coef * ((1 - x) * ANDROID_START_TENSION + x) + x * x * x;
-
-    let yMax = 1;
-    let y = 0;
-    let dy = 0;
-    while (true) {
-      y = yMin + (yMax - yMin) / 2;
-      coef = 3 * y * (1 - y);
-      dy = coef * ((1 - y) * ANDROID_START_TENSION + y) + y * y * y;
-      if (Math.abs(dy - alpha) < 1e-5) break;
-      if (dy > alpha) yMax = y;
-      else yMin = y;
-    }
-    time[i] = coef * ((1 - y) * ANDROID_P1 + y * ANDROID_P2) + y * y * y;
-  }
-
-  position[ANDROID_SPLINE_SAMPLES] = 1;
-  time[ANDROID_SPLINE_SAMPLES] = 1;
-
-  return { position, time };
-};
-
-const ANDROID_SPLINE_TABLE = buildAndroidSplineTable();
 
 const createShuffledTargetNumbers = () => {
   const shuffled = [...FIXED_TARGET_NUMBERS];
@@ -132,37 +91,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const DEFAULT_DECAY = 0.98;
   const MAX_EFFECTIVE_DECAY = 0.98;
-  const ANDROID_MAX_LAUNCH_VELOCITY = 40;
-
-  const getAndroidPhysicalCoeff = () => {
-    const dpr = typeof window !== 'undefined' && Number.isFinite(window.devicePixelRatio)
-      ? window.devicePixelRatio
-      : 1;
-    const ppi = dpr * 160;
-    return ANDROID_GRAVITY_EARTH * 39.37 * ppi * 0.84;
-  };
-
-  const getAndroidSplineDeceleration = (velocityPxPerSec) => {
-    const physicalCoeff = getAndroidPhysicalCoeff();
-    return Math.log(
-      (ANDROID_INFLEXION * Math.abs(velocityPxPerSec)) / (ANDROID_SCROLL_FRICTION * physicalCoeff)
-    );
-  };
-
-  const getAndroidSplineFlingDistancePx = (velocityPxPerSec) => {
-    if (!Number.isFinite(velocityPxPerSec) || velocityPxPerSec === 0) return 0;
-    const physicalCoeff = getAndroidPhysicalCoeff();
-    const deceleration = getAndroidSplineDeceleration(velocityPxPerSec);
-    const decelMinusOne = ANDROID_DECELERATION_RATE - 1;
-    return ANDROID_SCROLL_FRICTION * physicalCoeff * Math.exp((ANDROID_DECELERATION_RATE / decelMinusOne) * deceleration);
-  };
-
-  const getAndroidSplineFlingDurationMs = (velocityPxPerSec) => {
-    if (!Number.isFinite(velocityPxPerSec) || velocityPxPerSec === 0) return 0;
-    const deceleration = getAndroidSplineDeceleration(velocityPxPerSec);
-    const decelMinusOne = ANDROID_DECELERATION_RATE - 1;
-    return 1000 * Math.exp(deceleration / decelMinusOne);
-  };
 
   const toInputString = (value, fallback) => {
     const parsed = Number(value);
@@ -378,10 +306,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const clamp01 = (value) => Math.max(0, Math.min(1, value));
 
-  const getMinFlingVelocityPxMs = () => {
-    return FLING_THRESHOLD_PX_MS;
-  };
-
   const pushTouchSample = (timeMs, yPx) => {
     const samples = touchSamplesRef.current;
     samples.push({ timeMs, yPx });
@@ -490,34 +414,17 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const getScrollBounds = () => {
     const contentHeight = getContentHeight();
-    const maxTranslate = 0;
-    if (!contentHeight) {
-      return { minTranslate: 0, maxTranslate };
-    }
-
-    const minTranslate = Math.min(0, containerHeight - contentHeight - 20);
-    return { minTranslate, maxTranslate };
+    return getOverScrollerBounds(contentHeight, containerHeight);
   };
 
   const clampTranslate = (value) => {
-    const { minTranslate, maxTranslate } = getScrollBounds();
-    return Math.max(minTranslate, Math.min(maxTranslate, value));
+    const bounds = getScrollBounds();
+    return clampTranslateFromBounds(value, bounds);
   };
 
   const applyOverscrollResistance = (value) => {
-    const { minTranslate, maxTranslate } = getScrollBounds();
-
-    if (value > maxTranslate) {
-      const overflow = value - maxTranslate;
-      return Math.min(maxTranslate + overflow * OVERSCROLL_RESISTANCE, maxTranslate + OVER_SCROLL_DISTANCE_PX);
-    }
-
-    if (value < minTranslate) {
-      const overflow = minTranslate - value;
-      return Math.max(minTranslate - overflow * OVERSCROLL_RESISTANCE, minTranslate - OVER_SCROLL_DISTANCE_PX);
-    }
-
-    return value;
+    const bounds = getScrollBounds();
+    return applyOverscrollResistanceToBounds(value, bounds, OVER_SCROLL_DISTANCE_PX);
   };
 
   const stopMomentum = () => {
@@ -540,8 +447,11 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const startMomentum = (initialVelocityPxMs) => {
     const initialVelocityPxPerSec = initialVelocityPxMs * 1000;
-    const totalDistancePx = getAndroidSplineFlingDistancePx(initialVelocityPxPerSec);
-    const durationMs = getAndroidSplineFlingDurationMs(initialVelocityPxPerSec);
+    const physicalCoeff = getAndroidPhysicalCoeff(
+      typeof window !== 'undefined' ? window.devicePixelRatio : 1
+    );
+    const totalDistancePx = getAndroidSplineFlingDistancePx(initialVelocityPxPerSec, physicalCoeff);
+    const durationMs = getAndroidSplineFlingDurationMs(initialVelocityPxPerSec, physicalCoeff);
 
     if (!(durationMs > 0) || !(totalDistancePx > 0)) {
       velocityRef.current = 0;
@@ -693,13 +603,13 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     const regressionMagnitudePxMs = Math.abs(fingerVelocityPxMs);
     const flingVelocityThresholdPxMs = getMinFlingVelocityPxMs();
-    const meetsFlingThreshold = regressionMagnitudePxMs >= flingVelocityThresholdPxMs;
+    const meetsFlingThreshold = isFlingThresholdMet(fingerVelocityPxMs, flingVelocityThresholdPxMs);
 
     let launchVelocity = 0;
     if (meetsFlingThreshold) {
       launchVelocity = fingerVelocityPxMs;
     }
-    launchVelocity = Math.max(-ANDROID_MAX_LAUNCH_VELOCITY, Math.min(ANDROID_MAX_LAUNCH_VELOCITY, launchVelocity));
+    launchVelocity = clampFlingVelocityPxMs(launchVelocity, FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs);
 
     if (touchStatsRef.current.active && trialMetricsRef.current) {
       const gestureDurationMs = Math.max(endNow - touchStatsRef.current.startTime, 1);
