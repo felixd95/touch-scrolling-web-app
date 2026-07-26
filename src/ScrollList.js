@@ -37,8 +37,12 @@ const createShuffledTargetNumbers = () => {
 };
 
 const DEFAULT_PARAMETER_SET = {
-  x1: '1',
-  x2: '1',
+  scrollFriction: String(FLING_PHYSICS_CONFIG.scrollFriction),
+  x1: String(FLING_PHYSICS_CONFIG.x1),
+  x2: String(FLING_PHYSICS_CONFIG.x2),
+  inflexion: String(FLING_PHYSICS_CONFIG.inflexion),
+  physicalCoeffTuning: String(FLING_PHYSICS_CONFIG.physicalCoeffTuning),
+  maxLaunchVelocityPxMs: String(FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs),
   decay: '0.98',
   flickDistanceThreshold: '6',
 };
@@ -63,6 +67,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [roundCompleted, setRoundCompleted] = useState(false);
   const [awaitingNextParameterSet, setAwaitingNextParameterSet] = useState(false);
   const [awaitingBlockStartConfirmation, setAwaitingBlockStartConfirmation] = useState(false);
+  const [parametersReadyForNextBlock, setParametersReadyForNextBlock] = useState(true);
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [liveInstantVelocityPxMs, setLiveInstantVelocityPxMs] = useState(0);
   const [liveRegressionVelocityPxMs, setLiveRegressionVelocityPxMs] = useState(0);
@@ -118,6 +123,32 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     const parameterSet = normalizedParameterSet.parameters && typeof normalizedParameterSet.parameters === 'object'
       ? normalizedParameterSet.parameters
       : normalizedParameterSet;
+
+    const parsedScrollFriction = Number(parameterSet.scrollFriction);
+    const parsedX1 = Number(parameterSet.x1 ?? parameterSet.a);
+    const parsedX2 = Number(parameterSet.x2 ?? parameterSet.b);
+    const parsedInflexion = Number(parameterSet.inflexion);
+    const parsedPhysicalCoeffTuning = Number(parameterSet.physicalCoeffTuning);
+    const parsedMaxLaunchVelocityPxMs = Number(parameterSet.maxLaunchVelocityPxMs);
+
+    const hasCompletePhysicsConfig = [
+      parsedScrollFriction,
+      parsedX1,
+      parsedX2,
+      parsedInflexion,
+      parsedPhysicalCoeffTuning,
+      parsedMaxLaunchVelocityPxMs,
+    ].every((value) => Number.isFinite(value));
+
+    if (!hasCompletePhysicsConfig) return false;
+
+    FLING_PHYSICS_CONFIG.scrollFriction = parsedScrollFriction;
+    FLING_PHYSICS_CONFIG.x1 = parsedX1;
+    FLING_PHYSICS_CONFIG.x2 = parsedX2;
+    FLING_PHYSICS_CONFIG.inflexion = parsedInflexion;
+    FLING_PHYSICS_CONFIG.physicalCoeffTuning = parsedPhysicalCoeffTuning;
+    FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs = parsedMaxLaunchVelocityPxMs;
+
     const rawX1 = parameterSet.x1 ?? parameterSet.a;
     const rawX2 = parameterSet.x2 ?? parameterSet.b;
 
@@ -179,6 +210,25 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     return normalizeParameterSet(json.data?.triggerNextParameterSet?.nextParameterSet);
   };
 
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const synchronizeNextParameterSet = async (attemptCount) => {
+    const immediateParameterSet = await triggerNextParameterSetUpdate(attemptCount);
+    if (applyNextParameterSet(immediateParameterSet)) {
+      return true;
+    }
+
+    for (let retry = 0; retry < 5; retry += 1) {
+      await wait(500);
+      const participant = await loadParticipantState();
+      if (applyNextParameterSet(participant?.nextParameterSet)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   useEffect(() => {
     const loadNextParameterSet = async () => {
       if (!participantId) return;
@@ -186,7 +236,11 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       try {
         const participant = await loadParticipantState();
         const nextParameterSet = participant?.nextParameterSet;
-        applyNextParameterSet(nextParameterSet);
+        const hasAppliedParameters = applyNextParameterSet(nextParameterSet);
+        if (hasAppliedParameters) {
+          setParametersReadyForNextBlock(true);
+          setParameterSyncError('');
+        }
       } catch (error) {
         console.error('Error loading next parameter set', error);
       }
@@ -529,6 +583,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       return;
     }
 
+    if (!parametersReadyForNextBlock) {
+      return;
+    }
+
     if (awaitingBlockStartConfirmation) {
       return;
     }
@@ -756,6 +814,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       if (runBlockFinished) {
         setAwaitingNextParameterSet(true);
         setAwaitingBlockStartConfirmation(false);
+        setParametersReadyForNextBlock(false);
         setParameterSyncError('');
         setMultiplierTarget(null);
         setRunCount(0);
@@ -763,19 +822,19 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         let receivedUpdatedParameters = false;
         if (saveOutcome?.savedRemotely) {
           try {
-            const nextParameterSet = await triggerNextParameterSetUpdate(saveOutcome.attemptsCount);
-            receivedUpdatedParameters = applyNextParameterSet(nextParameterSet);
+            receivedUpdatedParameters = await synchronizeNextParameterSet(saveOutcome.attemptsCount);
           } catch (error) {
             console.error('Error triggering next parameter set update', error);
           }
         }
 
-        setAwaitingNextParameterSet(false);
-
         if (receivedUpdatedParameters) {
+          setParametersReadyForNextBlock(true);
+          setAwaitingNextParameterSet(false);
           setAwaitingBlockStartConfirmation(true);
         } else {
-          setParameterSyncError('Neue Parameter wurden noch nicht vom Backend bereitgestellt. Bitte kurz warten und erneut versuchen.');
+          setAwaitingNextParameterSet(false);
+          setParameterSyncError('Parameter-Update ausstehend: Der nächste 10er-Block bleibt gesperrt, bis neue Parameter aus dem Backend geladen wurden.');
         }
       }
     }

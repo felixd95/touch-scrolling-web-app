@@ -1,25 +1,47 @@
+// Physical earth gravity in m/s^2. Used to approximate Android's physical model.
 const ANDROID_GRAVITY_EARTH_FIXED = 9.80665;
+// Cubic Bezier control tension at the beginning of the spline curve.
 const ANDROID_START_TENSION_FIXED = 0.5;
+// Cubic Bezier control tension at the end of the spline curve.
 const ANDROID_END_TENSION_FIXED = 1.0;
 
 export const FLING_PHYSICS_CONFIG = {
+  // Dimensionless drag factor used by Android's fling equations.
+  // Higher values increase braking and shorten fling distance.
   scrollFriction: 0.015,
+  // Numerator base for deceleration rate: ln(x1) / ln(x2).
+  // Together with x2 this controls the curve steepness.
   x1: 0.78,
+  // Denominator base for deceleration rate: ln(x1) / ln(x2).
+  // Must stay > 0 and != 1 to keep the logarithm stable.
   x2: 0.9,
+  // Android inflexion factor that shifts where the spline transitions
+  // from fast initial movement to stronger deceleration.
   inflexion: 0.35,
+  // Device-physics tuning multiplier used in physical coefficient.
+  // Scales how aggressively velocity maps to distance/duration.
   physicalCoeffTuning: 0.84,
+  // Absolute launch-velocity cap in px/ms to prevent unrealistic
+  // flings from noisy touch data.
   maxLaunchVelocityPxMs: 40,
 };
 
 const getDecelerationRate = () => {
+  // Matches Android formula: DECELERATION_RATE = ln(0.78) / ln(0.9)
+  // but parameterized via x1 and x2.
   return Math.log(FLING_PHYSICS_CONFIG.x1) / Math.log(FLING_PHYSICS_CONFIG.x2);
 };
 
+// Precomputed Bezier control points derived from inflexion/tension.
+// They are used to generate the normalized position/time spline table.
 const ANDROID_P1 = ANDROID_START_TENSION_FIXED * FLING_PHYSICS_CONFIG.inflexion;
 const ANDROID_P2 = 1.0 - ANDROID_END_TENSION_FIXED * (1.0 - FLING_PHYSICS_CONFIG.inflexion);
 
+// Number of lookup samples for the spline table (0..100).
 export const ANDROID_SPLINE_SAMPLES = 100;
+// Maximum visual overscroll distance allowed beyond content bounds.
 export const OVER_SCROLL_DISTANCE_PX = 120;
+// Compression factor when dragging beyond bounds (rubber-band effect).
 export const OVERSCROLL_RESISTANCE = 0.35;
 
 const buildAndroidSplineTable = () => {
