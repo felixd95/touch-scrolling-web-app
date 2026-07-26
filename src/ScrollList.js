@@ -790,6 +790,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
   const currentFlingThresholdPxMs = getMinFlingVelocityPxMs();
+  const currentDecelerationRate = Math.log(FLING_PHYSICS_CONFIG.x1) / Math.log(FLING_PHYSICS_CONFIG.x2);
   const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
@@ -825,6 +826,13 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
             <div>Speed: {formatVelocity(liveInstantVelocityPxMs)} px/ms</div>
             <div>Regression: {formatVelocity(liveRegressionVelocityPxMs)} px/ms</div>
             <div>Threshold={formatVelocity(currentFlingThresholdPxMs)} px/msy</div>
+            <div>scrollFriction={FLING_PHYSICS_CONFIG.scrollFriction.toFixed(4)}</div>
+            <div>x1={FLING_PHYSICS_CONFIG.x1.toFixed(2)}</div>
+            <div>x2={FLING_PHYSICS_CONFIG.x2.toFixed(2)}</div>
+            <div>inflexion={FLING_PHYSICS_CONFIG.inflexion.toFixed(2)}</div>
+            <div>physicalCoeffTuning={FLING_PHYSICS_CONFIG.physicalCoeffTuning.toFixed(2)}</div>
+            <div>maxLaunchVelocity={FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs.toFixed(2)} px/ms</div>
+            <div>decelerationRate={currentDecelerationRate.toFixed(6)}</div>
           </div>
         </div>
       </div>

@@ -113,7 +113,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "06b959cab6b23a40f42f7849669841623c0532aeb329b168a80dd5bf8dd91afb.zip"
+     "S3Key": "94e59011c81338999ae5127b6292ff5ebde17c1d3271eaf49139a5d950707887.zip"
     },
     "Environment": {
      "Variables": {
@@ -179,7 +179,7 @@
    "DeletionPolicy": "Delete",
    "Metadata": {
     "aws:cdk:path": "amplify-touchscrollingwebapp-Felix-sandbox-441d1a9be7/data/next-parameter-set-monitor-lambda/Resource",
-    "aws:asset:path": "asset.06b959cab6b23a40f42f7849669841623c0532aeb329b168a80dd5bf8dd91afb",
+    "aws:asset:path": "asset.94e59011c81338999ae5127b6292ff5ebde17c1d3271eaf49139a5d950707887",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -243,7 +243,7 @@
       "ApiId"
      ]
     },
-    "Expires": 1785664062
+    "Expires": 1787653238
    },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete",

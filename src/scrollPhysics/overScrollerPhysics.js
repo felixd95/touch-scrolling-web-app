@@ -4,10 +4,15 @@ const ANDROID_END_TENSION_FIXED = 1.0;
 
 export const FLING_PHYSICS_CONFIG = {
   scrollFriction: 0.015,
-  decelerationRate: Math.log(0.78) / Math.log(0.9),
+  x1: 0.78,
+  x2: 0.9,
   inflexion: 0.35,
   physicalCoeffTuning: 0.84,
   maxLaunchVelocityPxMs: 40,
+};
+
+const getDecelerationRate = () => {
+  return Math.log(FLING_PHYSICS_CONFIG.x1) / Math.log(FLING_PHYSICS_CONFIG.x2);
 };
 
 const ANDROID_P1 = ANDROID_START_TENSION_FIXED * FLING_PHYSICS_CONFIG.inflexion;
@@ -82,9 +87,10 @@ export const getAndroidSplineFlingDistancePx = (velocityPxPerSec, physicalCoeff)
     ? physicalCoeff
     : getAndroidPhysicalCoeff(typeof window !== 'undefined' ? window.devicePixelRatio : 1);
   const deceleration = getAndroidSplineDeceleration(velocityPxPerSec, effectiveCoeff);
-  const decelMinusOne = FLING_PHYSICS_CONFIG.decelerationRate - 1;
+  const decelerationRate = getDecelerationRate();
+  const decelMinusOne = decelerationRate - 1;
   return FLING_PHYSICS_CONFIG.scrollFriction * effectiveCoeff * Math.exp(
-    (FLING_PHYSICS_CONFIG.decelerationRate / decelMinusOne) * deceleration
+    (decelerationRate / decelMinusOne) * deceleration
   );
 };
 
@@ -94,7 +100,8 @@ export const getAndroidSplineFlingDurationMs = (velocityPxPerSec, physicalCoeff)
     ? physicalCoeff
     : getAndroidPhysicalCoeff(typeof window !== 'undefined' ? window.devicePixelRatio : 1);
   const deceleration = getAndroidSplineDeceleration(velocityPxPerSec, effectiveCoeff);
-  const decelMinusOne = FLING_PHYSICS_CONFIG.decelerationRate - 1;
+  const decelerationRate = getDecelerationRate();
+  const decelMinusOne = decelerationRate - 1;
   return 1000 * Math.exp(deceleration / decelMinusOne);
 };
 
