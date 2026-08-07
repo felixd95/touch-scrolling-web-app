@@ -1,7 +1,8 @@
 locals {
   repo_full_name                 = "${var.github_owner}/${var.github_repo}"
   resource_name_prefix           = "${var.project_name}-terraform"
-  effective_bucket               = length(trimspace(var.frontend_bucket_name)) > 0 ? var.frontend_bucket_name : "${local.resource_name_prefix}-${data.aws_caller_identity.current.account_id}-${var.aws_region}-frontend"
+  bucket_name_prefix             = substr(local.resource_name_prefix, 0, 24)
+  effective_bucket               = length(trimspace(var.frontend_bucket_name)) > 0 ? var.frontend_bucket_name : format("%s-%s-%s-frontend", local.bucket_name_prefix, data.aws_caller_identity.current.account_id, var.aws_region)
   github_oidc_provider           = var.create_github_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : var.existing_github_oidc_provider_arn
   github_actions_deploy_role_arn = var.manage_github_actions_deploy_role ? aws_iam_role.github_actions_deploy[0].arn : var.existing_github_actions_deploy_role_arn
 }
