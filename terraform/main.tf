@@ -3,10 +3,15 @@ locals {
   resource_name_prefix = "${var.project_name}-terraform"
   bucket_name_prefix   = substr(local.resource_name_prefix, 0, 24)
   effective_bucket     = length(trimspace(var.frontend_bucket_name)) > 0 ? var.frontend_bucket_name : format("%s-%s-%s-frontend", local.bucket_name_prefix, data.aws_caller_identity.current.account_id, var.aws_region)
-  github_oidc_provider = var.create_github_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : var.existing_github_oidc_provider_arn
+  github_oidc_provider = var.create_github_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : (length(trimspace(var.existing_github_oidc_provider_arn)) > 0 ? var.existing_github_oidc_provider_arn : data.aws_iam_openid_connect_provider.github[0].arn)
 }
 
 data "aws_caller_identity" "current" {}
+
+data "aws_iam_openid_connect_provider" "github" {
+  count = var.create_github_oidc_provider ? 0 : 1
+  url   = "https://token.actions.githubusercontent.com"
+}
 
 data "aws_partition" "current" {}
 

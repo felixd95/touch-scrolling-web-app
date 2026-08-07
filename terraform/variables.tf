@@ -31,7 +31,7 @@ variable "github_branch" {
 variable "create_github_oidc_provider" {
   description = "Set true to create GitHub OIDC provider in this account"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "existing_github_oidc_provider_arn" {
