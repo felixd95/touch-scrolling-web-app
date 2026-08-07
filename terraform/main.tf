@@ -194,6 +194,7 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
         Sid    = "TerraformRemoteState"
         Effect = "Allow"
         Action = [
+          "s3:CreateBucket",
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",
