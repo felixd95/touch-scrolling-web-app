@@ -8,6 +8,16 @@ data "aws_caller_identity" "current" {}
 
 data "aws_partition" "current" {}
 
+resource "aws_iam_openid_connect_provider" "github" {
+  count = var.create_github_oidc_provider ? 1 : 0
+
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+
+  tags = var.tags
+}
+
 resource "aws_s3_bucket" "frontend" {
   bucket        = local.effective_bucket
   force_destroy = false
