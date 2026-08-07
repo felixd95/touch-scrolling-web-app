@@ -1,6 +1,7 @@
 locals {
   repo_full_name                 = "${var.github_owner}/${var.github_repo}"
-  effective_bucket               = length(trimspace(var.frontend_bucket_name)) > 0 ? var.frontend_bucket_name : "${var.project_name}-${data.aws_caller_identity.current.account_id}-${var.aws_region}-frontend"
+  resource_name_prefix           = "${var.project_name}-terraform"
+  effective_bucket               = length(trimspace(var.frontend_bucket_name)) > 0 ? var.frontend_bucket_name : "${local.resource_name_prefix}-${data.aws_caller_identity.current.account_id}-${var.aws_region}-frontend"
   github_oidc_provider           = var.create_github_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : var.existing_github_oidc_provider_arn
   github_actions_deploy_role_arn = var.manage_github_actions_deploy_role ? aws_iam_role.github_actions_deploy[0].arn : var.existing_github_actions_deploy_role_arn
 }
@@ -52,8 +53,8 @@ resource "aws_s3_bucket_versioning" "frontend" {
 }
 
 resource "aws_cloudfront_origin_access_control" "frontend" {
-  name                              = "${var.project_name}-oac"
-  description                       = "OAC for ${var.project_name} frontend bucket"
+  name                              = "${local.resource_name_prefix}-oac"
+  description                       = "OAC for ${local.resource_name_prefix} frontend bucket"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -142,7 +143,7 @@ resource "aws_s3_bucket_policy" "frontend" {
 resource "aws_iam_role" "github_actions_deploy" {
   count = var.manage_github_actions_deploy_role ? 1 : 0
 
-  name = "${var.project_name}-github-actions-deploy"
+  name = "${local.resource_name_prefix}-github-actions-deploy"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -171,7 +172,7 @@ resource "aws_iam_role" "github_actions_deploy" {
 resource "aws_iam_role_policy" "github_actions_deploy" {
   count = var.manage_github_actions_deploy_role ? 1 : 0
 
-  name = "${var.project_name}-github-actions-deploy-policy"
+  name = "${local.resource_name_prefix}-github-actions-deploy-policy"
   role = aws_iam_role.github_actions_deploy[0].id
 
   policy = jsonencode({
@@ -186,6 +187,23 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
           "iam:ListOpenIDConnectProviders",
           "iam:GetOpenIDConnectProvider",
           "sts:GetCallerIdentity"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "TerraformRemoteState"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+          "dynamodb:DescribeTable",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:UpdateItem"
         ]
         Resource = "*"
       },

@@ -13,13 +13,15 @@ permissions:
 env:
   AWS_REGION: eu-central-1
   TF_DIR: terraform
+  TF_STATE_BUCKET_NAME: ${{ secrets.TF_STATE_BUCKET_NAME }}
+  TF_STATE_DYNAMODB_TABLE_NAME: ${{ secrets.TF_STATE_DYNAMODB_TABLE_NAME }}
 
 jobs:
   terraform-apply:
     runs-on: ubuntu-latest
     outputs:
-      terraform_bucket_name: ${{ steps.tf_outputs.outputs.terraform_bucket_name }}
-      terraform_distribution_id: ${{ steps.tf_outputs.outputs.terraform_distribution_id }}
+      terraform_frontend_bucket_name: ${{ steps.tf_outputs.outputs.terraform_frontend_bucket_name }}
+      terraform_cloudfront_distribution_id: ${{ steps.tf_outputs.outputs.terraform_cloudfront_distribution_id }}
       terraform_appsync_graphql_url: ${{ steps.tf_outputs.outputs.terraform_appsync_graphql_url }}
       terraform_appsync_api_key: ${{ steps.tf_outputs.outputs.terraform_appsync_api_key }}
     steps:
@@ -37,73 +39,16 @@ jobs:
 
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET_NAME }}" \
+            -backend-config="key=${{ env.TF_DIR }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ env.TF_STATE_DYNAMODB_TABLE_NAME }}"
 
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform validate
-
-      - name: Import existing Terraform-managed AWS resources
-        working-directory: ${{ env.TF_DIR }}
-        run: |
-          set -euo pipefail
-
-          account_id=$(aws sts get-caller-identity --query Account --output text)
-          project_name=$(printf '%s' 'var.project_name' | terraform console)
-          bucket_name=$(printf '%s' 'local.effective_bucket' | terraform console)
-          create_oidc=$(printf '%s' 'var.create_github_oidc_provider' | terraform console)
-          manage_deploy_role=$(printf '%s' 'var.manage_github_actions_deploy_role' | terraform console)
-
-          state_list=$(terraform state list 2>/dev/null || true)
-          state_has() {
-            printf '%s\n' "$state_list" | grep -qx "$1"
-          }
-
-          try_import() {
-            addr="$1"
-            id="$2"
-            if state_has "$addr"; then
-              echo "Skipping import for $addr because it is already in state"
-              return 0
-            fi
-            if [ -z "$id" ] || [ "$id" = "None" ]; then
-              echo "Skipping import for $addr because no remote ID was found"
-              return 0
-            fi
-            echo "Importing $addr => $id"
-            terraform import "$addr" "$id"
-          }
-
-          if [ "$manage_deploy_role" = "true" ]; then
-            try_import aws_iam_role.github_actions_deploy[0] "${project_name}-github-actions-deploy"
-          fi
-
-          try_import aws_dynamodb_table.participant "${project_name}-participant"
-          try_import aws_dynamodb_table.result "${project_name}-result"
-          try_import aws_iam_role.next_parameter_set_lambda "${project_name}-next-parameter-set-lambda-role"
-          try_import aws_iam_role.appsync_ddb_role "${project_name}-appsync-ddb-role"
-          try_import aws_iam_role.appsync_lambda_role "${project_name}-appsync-lambda-role"
-
-          if [ "$create_oidc" = "true" ]; then
-            oidc_provider_arn="arn:aws:iam::${account_id}:oidc-provider/token.actions.githubusercontent.com"
-            try_import aws_iam_openid_connect_provider.github[0] "$oidc_provider_arn"
-          fi
-
-          try_import aws_s3_bucket.frontend "$bucket_name"
-
-          cloudfront_oac_id=$(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='${project_name}-oac'].Id | [0]" --output text)
-          try_import aws_cloudfront_origin_access_control.frontend "$cloudfront_oac_id"
-
-          distribution_id=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[0].DomainName=='${bucket_name}.s3.${{ env.AWS_REGION }}.amazonaws.com'].Id | [0]" --output text)
-          try_import aws_cloudfront_distribution.frontend "$distribution_id"
-
-          appsync_id=$(aws appsync list-graphql-apis --query "graphqlApis[?name=='${project_name}-api'].apiId | [0]" --output text)
-          try_import aws_appsync_graphql_api.api "$appsync_id"
-
-          if [ -n "$appsync_id" ] && [ "$appsync_id" != "None" ]; then
-            api_key_id=$(aws appsync list-api-keys --api-id "$appsync_id" --query 'apiKeys[0].id' --output text)
-            try_import aws_appsync_api_key.api_key "$appsync_id:$api_key_id"
-          fi
 
       - name: Terraform Apply
         working-directory: ${{ env.TF_DIR }}
@@ -113,8 +58,8 @@ jobs:
         id: tf_outputs
         working-directory: ${{ env.TF_DIR }}
         run: |
-          echo "terraform_bucket_name=$(terraform output -raw terraform_frontend_bucket_name)" >> "$GITHUB_OUTPUT"
-          echo "terraform_distribution_id=$(terraform output -raw terraform_cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+          echo "terraform_frontend_bucket_name=$(terraform output -raw terraform_frontend_bucket_name)" >> "$GITHUB_OUTPUT"
+          echo "terraform_cloudfront_distribution_id=$(terraform output -raw terraform_cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
           echo "terraform_appsync_graphql_url=$(terraform output -raw terraform_appsync_graphql_url)" >> "$GITHUB_OUTPUT"
           echo "terraform_appsync_api_key=$(terraform output -raw terraform_appsync_api_key)" >> "$GITHUB_OUTPUT"
 
@@ -152,8 +97,8 @@ jobs:
 
       - name: Upload frontend artifacts
         run: |
-          aws s3 sync build/ s3://${{ needs.terraform-apply.outputs.terraform_bucket_name }} --delete
+          aws s3 sync build/ s3://${{ needs.terraform-apply.outputs.terraform_frontend_bucket_name }} --delete
 
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ needs.terraform-apply.outputs.terraform_distribution_id }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id ${{ needs.terraform-apply.outputs.terraform_cloudfront_distribution_id }} --paths "/*"

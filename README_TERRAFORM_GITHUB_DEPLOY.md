@@ -27,16 +27,35 @@ Dieses Setup stellt Infrastruktur und Backend per Terraform bereit und deployed 
    - create_github_oidc_provider = false
    - existing_github_oidc_provider_arn setzen
 
-## 2) Einmaliger Bootstrap (lokal)
+## 2) Terraform Remote State
+
+GitHub Actions verwendet einen S3 Backend-Bucket mit DynamoDB Locking für Terraform State.
+Du musst den State-Bucket und die Locking-Tabelle einmalig im AWS Account anlegen, bevor du die Workflows nutzt.
+
+- Bucket Name: ein S3-Bucket für Terraform State
+- DynamoDB Table: eine Tabelle mit Partition Key `LockID`
+
+In GitHub Repository Settings > Secrets and variables > Actions:
+
+- Name: `TF_STATE_BUCKET_NAME`
+- Wert: der S3 Bucket Name
+- Name: `TF_STATE_DYNAMODB_TABLE_NAME`
+- Wert: der DynamoDB Table Name
+
+## 3) Einmaliger Bootstrap (lokal)
 
 Damit GitHub die Rolle annehmen kann, muss die Rolle einmal erstellt werden:
 
 1. Im Ordner [terraform](terraform):
-   - terraform init
+   - terraform init \
+     -backend-config="bucket=<state-bucket-name>" \
+     -backend-config="key=terraform/terraform.tfstate" \
+     -backend-config="region=eu-central-1" \
+     -backend-config="dynamodb_table=<dynamodb-table-name>"
    - terraform apply
 2. Output terraform_github_actions_role_arn merken.
 
-## 3) GitHub Secret setzen
+## 4) GitHub Secret setzen
 
 In GitHub Repository Settings > Secrets and variables > Actions:
 
@@ -52,8 +71,8 @@ Workflows:
 
 Deploy Workflow macht:
 
-1. Terraform apply
-2. Bei vorhandenem Remote-State: vorhandene AWS Ressourcen importieren
+1. Terraform init mit S3 Remote Backend
+2. Terraform apply
 3. npm ci && npm run build
 4. Upload build/ nach S3
 5. CloudFront Invalidation

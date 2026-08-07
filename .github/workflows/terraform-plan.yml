@@ -16,6 +16,8 @@ permissions:
 env:
   AWS_REGION: eu-central-1
   TF_DIR: terraform
+  TF_STATE_BUCKET_NAME: ${{ secrets.TF_STATE_BUCKET_NAME }}
+  TF_STATE_DYNAMODB_TABLE_NAME: ${{ secrets.TF_STATE_DYNAMODB_TABLE_NAME }}
 
 jobs:
   plan:
@@ -35,7 +37,12 @@ jobs:
 
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET_NAME }}" \
+            -backend-config="key=${{ env.TF_DIR }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ env.TF_STATE_DYNAMODB_TABLE_NAME }}"
 
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}

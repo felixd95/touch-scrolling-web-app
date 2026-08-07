@@ -5,7 +5,7 @@ data "archive_file" "next_parameter_set_lambda" {
 }
 
 resource "aws_dynamodb_table" "participant" {
-  name         = "${var.project_name}-participant"
+  name         = "${local.resource_name_prefix}-participant"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
 
@@ -18,7 +18,7 @@ resource "aws_dynamodb_table" "participant" {
 }
 
 resource "aws_dynamodb_table" "result" {
-  name         = "${var.project_name}-result"
+  name         = "${local.resource_name_prefix}-result"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
 
@@ -31,7 +31,7 @@ resource "aws_dynamodb_table" "result" {
 }
 
 resource "aws_iam_role" "next_parameter_set_lambda" {
-  name = "${var.project_name}-next-parameter-set-lambda-role"
+  name = "${local.resource_name_prefix}-next-parameter-set-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -55,7 +55,7 @@ resource "aws_iam_role_policy_attachment" "next_parameter_set_lambda_basic" {
 }
 
 resource "aws_iam_role_policy" "next_parameter_set_lambda" {
-  name = "${var.project_name}-next-parameter-set-policy"
+  name = "${local.resource_name_prefix}-next-parameter-set-policy"
   role = aws_iam_role.next_parameter_set_lambda.id
 
   policy = jsonencode({
@@ -81,7 +81,7 @@ resource "aws_iam_role_policy" "next_parameter_set_lambda" {
 }
 
 resource "aws_lambda_function" "next_parameter_set_monitor" {
-  function_name    = "${var.project_name}-next-parameter-set-monitor"
+  function_name    = "${local.resource_name_prefix}-next-parameter-set-monitor"
   role             = aws_iam_role.next_parameter_set_lambda.arn
   runtime          = "python3.12"
   handler          = "next_parameter_set_monitor.handler"
@@ -100,7 +100,7 @@ resource "aws_lambda_function" "next_parameter_set_monitor" {
 }
 
 resource "aws_appsync_graphql_api" "api" {
-  name                = "${var.project_name}-api"
+  name                = "${local.resource_name_prefix}-api"
   authentication_type = "API_KEY"
   schema              = file("${path.module}/graphql/schema.graphql")
 
@@ -112,7 +112,7 @@ resource "aws_appsync_api_key" "api_key" {
 }
 
 resource "aws_iam_role" "appsync_ddb_role" {
-  name = "${var.project_name}-appsync-ddb-role"
+  name = "${local.resource_name_prefix}-appsync-ddb-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -131,7 +131,7 @@ resource "aws_iam_role" "appsync_ddb_role" {
 }
 
 resource "aws_iam_role_policy" "appsync_ddb_role" {
-  name = "${var.project_name}-appsync-ddb-policy"
+  name = "${local.resource_name_prefix}-appsync-ddb-policy"
   role = aws_iam_role.appsync_ddb_role.id
 
   policy = jsonencode({
@@ -155,7 +155,7 @@ resource "aws_iam_role_policy" "appsync_ddb_role" {
 }
 
 resource "aws_iam_role" "appsync_lambda_role" {
-  name = "${var.project_name}-appsync-lambda-role"
+  name = "${local.resource_name_prefix}-appsync-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -174,7 +174,7 @@ resource "aws_iam_role" "appsync_lambda_role" {
 }
 
 resource "aws_iam_role_policy" "appsync_lambda_role" {
-  name = "${var.project_name}-appsync-lambda-policy"
+  name = "${local.resource_name_prefix}-appsync-lambda-policy"
   role = aws_iam_role.appsync_lambda_role.id
 
   policy = jsonencode({

@@ -34,6 +34,8 @@ This repository is Terraform-first. Legacy Amplify Gen2 deployment files were re
 
 Use the detailed deployment guide in [README_TERRAFORM_GITHUB_DEPLOY.md](README_TERRAFORM_GITHUB_DEPLOY.md).
 
+This project relies on a remote Terraform backend for state storage in CI.
+
 ## Notes
 
 - Frontend expects valid AppSync settings in [amplify_outputs.json](amplify_outputs.json) and [src/amplify_outputs.json](src/amplify_outputs.json).
