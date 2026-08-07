@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './ScrollList.css';
 import outputs from './amplify_outputs.json';
 import {
@@ -60,16 +60,16 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [x2Input, setX2Input] = useState('1');
   const [decayInput, setDecayInput] = useState('0.98');
   const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('6');
+  const [roundCompleted, setRoundCompleted] = useState(false);
+  const [currentParameterSet, setCurrentParameterSet] = useState(null);
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
   const [multiplierTarget, setMultiplierTarget] = useState(null);
   const [runCount, setRunCount] = useState(0);
-  const [roundCompleted, setRoundCompleted] = useState(false);
   const [awaitingNextParameterSet, setAwaitingNextParameterSet] = useState(false);
   const [awaitingBlockStartConfirmation, setAwaitingBlockStartConfirmation] = useState(false);
   const [parametersReadyForNextBlock, setParametersReadyForNextBlock] = useState(true);
   const [parameterSyncError, setParameterSyncError] = useState('');
-  const [currentParameterSet, setCurrentParameterSet] = useState(null);
   const [nextParameterSet, setNextParameterSet] = useState(null);
   const [liveInstantVelocityPxMs, setLiveInstantVelocityPxMs] = useState(0);
   const [liveRegressionVelocityPxMs, setLiveRegressionVelocityPxMs] = useState(0);
@@ -118,7 +118,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     return typeof rawParameterSet === 'object' ? rawParameterSet : null;
   };
 
-  const applyCurrentParameterSet = (rawParameterSet) => {
+  const applyCurrentParameterSet = useCallback((rawParameterSet) => {
     const normalizedParameterSet = normalizeParameterSet(rawParameterSet);
     if (!normalizedParameterSet) return false;
 
@@ -160,11 +160,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     setFlickDistanceThresholdInput(
       toInputString(parameterSet.flickDistanceThreshold, DEFAULT_PARAMETER_SET.flickDistanceThreshold)
     );
-    setCurrentParameterSet(normalizedParameterSet);
     return true;
-  };
+  }, [setX1Input, setX2Input, setDecayInput, setFlickDistanceThresholdInput]);
 
-  const loadParticipantState = async () => {
+  const loadParticipantState = useCallback(async () => {
     if (!participantId) return null;
 
     const resp = await fetch(outputs.data.url, {
@@ -178,7 +177,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     const json = await resp.json();
     return json.data?.listParticipants?.items?.[0] || null;
-  };
+  }, [participantId]);
 
   const getAttemptCount = (attemptsRaw) => {
     if (Array.isArray(attemptsRaw)) return attemptsRaw.length;
@@ -274,7 +273,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           applyCurrentParameterSet(activeSet);
         }
 
-        setCurrentParameterSet(activeSet || null);
         setNextParameterSet(pendingNext);
         setParametersReadyForNextBlock(!pendingNext);
         setParameterSyncError('');
@@ -284,7 +282,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     };
 
     loadParticipantParameters();
-  }, [participantId]);
+  }, [participantId, applyCurrentParameterSet, loadParticipantState]);
 
   useEffect(() => {
     translateYRef.current = translateY;
@@ -694,7 +692,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     setLiveInstantVelocityPxMs(0);
     setLiveRegressionVelocityPxMs(fingerVelocityPxMs);
 
-    const regressionMagnitudePxMs = Math.abs(fingerVelocityPxMs);
     const flingVelocityThresholdPxMs = getMinFlingVelocityPxMs();
     const meetsFlingThreshold = isFlingThresholdMet(fingerVelocityPxMs, flingVelocityThresholdPxMs);
 

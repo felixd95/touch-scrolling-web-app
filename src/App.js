@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
-import { generateClient } from 'aws-amplify/data';
 import outputs from './amplify_outputs.json';
 import ScrollList from './ScrollList';
 import './App.css';
 
 Amplify.configure(outputs);
-
-const client = generateClient();
 const RUNS_PER_BLOCK = 10;
 const HAND_PREFERENCE_STORAGE_KEY = 'participantHandPreferences';
 const DEFAULT_NEXT_PARAMETER_SET = {
@@ -101,7 +98,6 @@ function ParticipantsList({ onBack }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [results, setResults] = useState([]);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [selectedRunIndex, setSelectedRunIndex] = useState(0);
   const [deleteError, setDeleteError] = useState('');
