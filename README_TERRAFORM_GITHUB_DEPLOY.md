@@ -34,14 +34,14 @@ Damit GitHub die Rolle annehmen kann, muss die Rolle einmal erstellt werden:
 1. Im Ordner [terraform](terraform):
    - terraform init
    - terraform apply
-2. Output github_actions_role_arn merken.
+2. Output terraform_github_actions_role_arn merken.
 
 ## 3) GitHub Secret setzen
 
 In GitHub Repository Settings > Secrets and variables > Actions:
 
 - Name: AWS_GITHUB_DEPLOY_ROLE_ARN
-- Wert: Output github_actions_role_arn
+- Wert: Output terraform_github_actions_role_arn
 
 ## 4) Deploy Pipeline
 
@@ -61,11 +61,11 @@ Deploy Workflow macht:
 
 Wichtige Terraform Outputs:
 
-- frontend_bucket_name
-- cloudfront_distribution_id
-- cloudfront_domain_name
-- github_actions_role_arn
-- appsync_graphql_url
+- terraform_frontend_bucket_name
+- terraform_cloudfront_distribution_id
+- terraform_cloudfront_domain_name
+- terraform_github_actions_role_arn
+- terraform_appsync_graphql_url
 
 ## Hinweise
 

@@ -18,10 +18,10 @@ jobs:
   terraform-apply:
     runs-on: ubuntu-latest
     outputs:
-      bucket_name: ${{ steps.tf_outputs.outputs.bucket_name }}
-      distribution_id: ${{ steps.tf_outputs.outputs.distribution_id }}
-      appsync_graphql_url: ${{ steps.tf_outputs.outputs.appsync_graphql_url }}
-      appsync_api_key: ${{ steps.tf_outputs.outputs.appsync_api_key }}
+      terraform_bucket_name: ${{ steps.tf_outputs.outputs.terraform_bucket_name }}
+      terraform_distribution_id: ${{ steps.tf_outputs.outputs.terraform_distribution_id }}
+      terraform_appsync_graphql_url: ${{ steps.tf_outputs.outputs.terraform_appsync_graphql_url }}
+      terraform_appsync_api_key: ${{ steps.tf_outputs.outputs.terraform_appsync_api_key }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,10 +51,10 @@ jobs:
         id: tf_outputs
         working-directory: ${{ env.TF_DIR }}
         run: |
-          echo "bucket_name=$(terraform output -raw frontend_bucket_name)" >> "$GITHUB_OUTPUT"
-          echo "distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
-          echo "appsync_graphql_url=$(terraform output -raw appsync_graphql_url)" >> "$GITHUB_OUTPUT"
-          echo "appsync_api_key=$(terraform output -raw appsync_api_key)" >> "$GITHUB_OUTPUT"
+          echo "terraform_bucket_name=$(terraform output -raw terraform_frontend_bucket_name)" >> "$GITHUB_OUTPUT"
+          echo "terraform_distribution_id=$(terraform output -raw terraform_cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+          echo "terraform_appsync_graphql_url=$(terraform output -raw terraform_appsync_graphql_url)" >> "$GITHUB_OUTPUT"
+          echo "terraform_appsync_api_key=$(terraform output -raw terraform_appsync_api_key)" >> "$GITHUB_OUTPUT"
 
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -80,8 +80,8 @@ jobs:
 
       - name: Write frontend backend config
         env:
-          APPSYNC_GRAPHQL_URL: ${{ needs.terraform-apply.outputs.appsync_graphql_url }}
-          APPSYNC_API_KEY: ${{ needs.terraform-apply.outputs.appsync_api_key }}
+          APPSYNC_GRAPHQL_URL: ${{ needs.terraform-apply.outputs.terraform_appsync_graphql_url }}
+          APPSYNC_API_KEY: ${{ needs.terraform-apply.outputs.terraform_appsync_api_key }}
           AWS_REGION: ${{ env.AWS_REGION }}
         run: node scripts/write-amplify-outputs.mjs
 
