@@ -98,6 +98,7 @@ function ParticipantsList({ onBack }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [, setResults] = useState([]);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [selectedRunIndex, setSelectedRunIndex] = useState(0);
   const [deleteError, setDeleteError] = useState('');
