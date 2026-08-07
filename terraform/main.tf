@@ -188,6 +188,7 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
         Sid    = "ManageFrontendBucketObjects"
         Effect = "Allow"
         Action = [
+          "s3:CreateBucket",
           "s3:ListBucket",
           "s3:GetBucketLocation",
           "s3:GetBucketPolicy",
