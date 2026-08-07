@@ -14,8 +14,8 @@ output "terraform_cloudfront_domain_name" {
 }
 
 output "terraform_github_actions_role_arn" {
-  description = "Terraform-generated role ARN to configure in GitHub Actions"
-  value       = var.manage_github_actions_deploy_role ? aws_iam_role.github_actions_deploy[0].arn : var.existing_github_actions_deploy_role_arn
+  description = "Role ARN for GitHub Actions deployment; set this to the manually created role ARN if Terraform does not manage the role"
+  value       = var.existing_github_actions_deploy_role_arn
 }
 
 output "terraform_appsync_graphql_url" {

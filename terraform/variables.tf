@@ -40,14 +40,8 @@ variable "existing_github_oidc_provider_arn" {
   default     = ""
 }
 
-variable "manage_github_actions_deploy_role" {
-  description = "Set true to create and manage the GitHub Actions deploy IAM role in Terraform"
-  type        = bool
-  default     = false
-}
-
 variable "existing_github_actions_deploy_role_arn" {
-  description = "Existing GitHub Actions deploy role ARN to use when manage_github_actions_deploy_role is false"
+  description = "Existing GitHub Actions deploy role ARN to use for GitHub Actions OIDC assume-role"
   type        = string
   default     = ""
 }
