@@ -1,7 +1,8 @@
 locals {
-  repo_full_name       = "${var.github_owner}/${var.github_repo}"
-  effective_bucket     = length(trimspace(var.frontend_bucket_name)) > 0 ? var.frontend_bucket_name : "${var.project_name}-${data.aws_caller_identity.current.account_id}-${var.aws_region}-frontend"
-  github_oidc_provider = var.create_github_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : var.existing_github_oidc_provider_arn
+  repo_full_name                 = "${var.github_owner}/${var.github_repo}"
+  effective_bucket               = length(trimspace(var.frontend_bucket_name)) > 0 ? var.frontend_bucket_name : "${var.project_name}-${data.aws_caller_identity.current.account_id}-${var.aws_region}-frontend"
+  github_oidc_provider           = var.create_github_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : var.existing_github_oidc_provider_arn
+  github_actions_deploy_role_arn = var.manage_github_actions_deploy_role ? aws_iam_role.github_actions_deploy[0].arn : var.existing_github_actions_deploy_role_arn
 }
 
 data "aws_caller_identity" "current" {}
@@ -139,6 +140,8 @@ resource "aws_s3_bucket_policy" "frontend" {
 }
 
 resource "aws_iam_role" "github_actions_deploy" {
+  count = var.manage_github_actions_deploy_role ? 1 : 0
+
   name = "${var.project_name}-github-actions-deploy"
 
   assume_role_policy = jsonencode({
@@ -166,8 +169,10 @@ resource "aws_iam_role" "github_actions_deploy" {
 }
 
 resource "aws_iam_role_policy" "github_actions_deploy" {
+  count = var.manage_github_actions_deploy_role ? 1 : 0
+
   name = "${var.project_name}-github-actions-deploy-policy"
-  role = aws_iam_role.github_actions_deploy.id
+  role = aws_iam_role.github_actions_deploy[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
