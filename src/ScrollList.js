@@ -60,8 +60,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [x2Input, setX2Input] = useState('1');
   const [decayInput, setDecayInput] = useState('0.98');
   const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('6');
-  const [roundCompleted, setRoundCompleted] = useState(false);
-  const [currentParameterSet, setCurrentParameterSet] = useState(null);
+  const [, setRoundCompleted] = useState(false);
+  const [, setCurrentParameterSet] = useState(null);
   const [startTranslateY, setStartTranslateY] = useState(0);
   const [activeMultiplier, setActiveMultiplier] = useState(null);
   const [multiplierTarget, setMultiplierTarget] = useState(null);
@@ -178,21 +178,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     const json = await resp.json();
     return json.data?.listParticipants?.items?.[0] || null;
   }, [participantId]);
-
-  const getAttemptCount = (attemptsRaw) => {
-    if (Array.isArray(attemptsRaw)) return attemptsRaw.length;
-
-    if (typeof attemptsRaw === 'string') {
-      try {
-        const parsed = JSON.parse(attemptsRaw);
-        return Array.isArray(parsed) ? parsed.length : 0;
-      } catch (error) {
-        return 0;
-      }
-    }
-
-    return 0;
-  };
 
   const triggerNextParameterSetUpdate = async (attemptCount) => {
     const resp = await fetch(outputs.data.url, {
