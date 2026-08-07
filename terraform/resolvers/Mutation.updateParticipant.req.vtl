@@ -1,0 +1,48 @@
+#set($input = $ctx.args.input)
+#set($expNames = {})
+#set($expValues = {})
+#set($expSet = [])
+#set($expRemove = [])
+
+#foreach($entry in $input.entrySet())
+  #if($entry.key != "id")
+    #set($name = "#${entry.key}")
+    #set($value = ":${entry.key}")
+    $util.qr($expNames.put($name, $entry.key))
+    #if($util.isNull($entry.value))
+      $util.qr($expRemove.add($name))
+    #else
+      $util.qr($expValues.put($value, $util.dynamodb.toDynamoDB($entry.value)))
+      $util.qr($expSet.add("${name} = ${value}"))
+    #end
+  #end
+#end
+
+$util.qr($expNames.put("#updatedAt", "updatedAt"))
+$util.qr($expValues.put(":updatedAt", $util.dynamodb.toDynamoDB($util.time.nowISO8601())))
+$util.qr($expSet.add("#updatedAt = :updatedAt"))
+
+#set($expression = "")
+#if($expSet.size() > 0)
+  #set($expression = "SET $util.join($expSet, ', ')")
+#end
+#if($expRemove.size() > 0)
+  #if($expression != "")
+    #set($expression = "${expression} REMOVE $util.join($expRemove, ' ')")
+  #else
+    #set($expression = "REMOVE $util.join($expRemove, ' ')")
+  #end
+#end
+
+{
+  "version": "2018-05-29",
+  "operation": "UpdateItem",
+  "key": {
+    "id": $util.dynamodb.toDynamoDBJson($input.id)
+  },
+  "update": {
+    "expression": "$expression",
+    "expressionNames": $util.toJson($expNames),
+    "expressionValues": $util.toJson($expValues)
+  }
+}

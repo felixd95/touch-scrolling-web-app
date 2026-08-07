@@ -1,0 +1,113 @@
+scalar AWSDate
+scalar AWSDateTime
+scalar AWSJSON
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  listParticipants(filter: ModelParticipantFilterInput): ModelParticipantConnection!
+  listResults(filter: ModelResultFilterInput): ModelResultConnection!
+}
+
+type Mutation {
+  createParticipant(input: CreateParticipantInput!): Participant
+  updateParticipant(input: UpdateParticipantInput!): Participant
+  createResult(input: CreateResultInput!): Result
+  triggerNextParameterSet(participantId: ID!, attemptCount: Int!): TriggerNextParameterSetResult
+}
+
+type Participant {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  email: String!
+  birthDate: AWSDate!
+  privateSmartphone: String!
+  scrollHandPreference: String
+  screenTimePerDay: String!
+  attempts: AWSJSON
+  currentParameterSet: AWSJSON
+  nextParameterSet: AWSJSON
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Result {
+  id: ID!
+  participantId: ID!
+  timeMs: String!
+  scrollDistance: String!
+  timestamp: String!
+  multiplierUsed: String!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TriggerNextParameterSetResult {
+  nextParameterSet: String!
+}
+
+type ModelParticipantConnection {
+  items: [Participant]
+}
+
+type ModelResultConnection {
+  items: [Result]
+}
+
+input CreateParticipantInput {
+  id: ID
+  firstName: String!
+  lastName: String!
+  email: String!
+  birthDate: AWSDate!
+  privateSmartphone: String!
+  scrollHandPreference: String
+  screenTimePerDay: String!
+  attempts: AWSJSON
+  currentParameterSet: AWSJSON
+  nextParameterSet: AWSJSON
+}
+
+input UpdateParticipantInput {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: String
+  birthDate: AWSDate
+  privateSmartphone: String
+  scrollHandPreference: String
+  screenTimePerDay: String
+  attempts: AWSJSON
+  currentParameterSet: AWSJSON
+  nextParameterSet: AWSJSON
+}
+
+input CreateResultInput {
+  id: ID
+  participantId: ID!
+  timeMs: String!
+  scrollDistance: String!
+  timestamp: String!
+  multiplierUsed: String!
+}
+
+input ModelIDInput {
+  eq: ID
+}
+
+input ModelStringInput {
+  eq: String
+}
+
+input ModelParticipantFilterInput {
+  id: ModelIDInput
+  email: ModelStringInput
+}
+
+input ModelResultFilterInput {
+  participantId: ModelIDInput
+}

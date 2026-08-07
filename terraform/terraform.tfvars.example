@@ -1,0 +1,15 @@
+aws_region   = "eu-central-1"
+project_name = "touch-scrolling-web-app"
+
+github_owner  = "felixd95"
+github_repo   = "touch-scrolling-web-app"
+github_branch = "main"
+
+# Set false if your AWS account already has a GitHub OIDC provider.
+create_github_oidc_provider = true
+
+# Use only when create_github_oidc_provider = false
+existing_github_oidc_provider_arn = ""
+
+# Optional. Leave empty to auto-generate.
+frontend_bucket_name = ""

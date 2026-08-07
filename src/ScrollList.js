@@ -69,6 +69,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [awaitingBlockStartConfirmation, setAwaitingBlockStartConfirmation] = useState(false);
   const [parametersReadyForNextBlock, setParametersReadyForNextBlock] = useState(true);
   const [parameterSyncError, setParameterSyncError] = useState('');
+  const [currentParameterSet, setCurrentParameterSet] = useState(null);
+  const [nextParameterSet, setNextParameterSet] = useState(null);
   const [liveInstantVelocityPxMs, setLiveInstantVelocityPxMs] = useState(0);
   const [liveRegressionVelocityPxMs, setLiveRegressionVelocityPxMs] = useState(0);
 
@@ -116,7 +118,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     return typeof rawParameterSet === 'object' ? rawParameterSet : null;
   };
 
-  const applyNextParameterSet = (rawParameterSet) => {
+  const applyCurrentParameterSet = (rawParameterSet) => {
     const normalizedParameterSet = normalizeParameterSet(rawParameterSet);
     if (!normalizedParameterSet) return false;
 
@@ -158,6 +160,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     setFlickDistanceThresholdInput(
       toInputString(parameterSet.flickDistanceThreshold, DEFAULT_PARAMETER_SET.flickDistanceThreshold)
     );
+    setCurrentParameterSet(normalizedParameterSet);
     return true;
   };
 
@@ -168,7 +171,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
       body: JSON.stringify({
-        query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts nextParameterSet } } }`,
+        query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts currentParameterSet nextParameterSet } } }`,
         variables: { filter: { id: { eq: participantId } } },
       }),
     });
@@ -212,16 +215,39 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  const updateParticipantParameterSets = async (updatedSets) => {
+    if (!participantId) return null;
+
+    const resp = await fetch(outputs.data.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
+      body: JSON.stringify({
+        query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id currentParameterSet nextParameterSet } }`,
+        variables: { input: { id: participantId, ...updatedSets } },
+      }),
+    });
+
+    const json = await resp.json();
+    if (json.errors?.length) {
+      throw new Error(json.errors[0]?.message || 'Failed to update participant parameter sets');
+    }
+
+    return json.data?.updateParticipant || null;
+  };
+
   const synchronizeNextParameterSet = async (attemptCount) => {
     const immediateParameterSet = await triggerNextParameterSetUpdate(attemptCount);
-    if (applyNextParameterSet(immediateParameterSet)) {
+    if (immediateParameterSet) {
+      setNextParameterSet(immediateParameterSet);
       return true;
     }
 
     for (let retry = 0; retry < 5; retry += 1) {
       await wait(500);
       const participant = await loadParticipantState();
-      if (applyNextParameterSet(participant?.nextParameterSet)) {
+      const nextSet = normalizeParameterSet(participant?.nextParameterSet);
+      if (nextSet) {
+        setNextParameterSet(nextSet);
         return true;
       }
     }
@@ -230,26 +256,35 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   };
 
   useEffect(() => {
-    const loadNextParameterSet = async () => {
+    const loadParticipantParameters = async () => {
       if (!participantId) return;
 
       try {
         const participant = await loadParticipantState();
-        const nextParameterSet = participant?.nextParameterSet;
-        const hasAppliedParameters = applyNextParameterSet(nextParameterSet);
-        if (hasAppliedParameters) {
-          setParametersReadyForNextBlock(true);
-          setParameterSyncError('');
+        const currentSet = normalizeParameterSet(participant?.currentParameterSet);
+        const nextSet = normalizeParameterSet(participant?.nextParameterSet);
+        let activeSet = currentSet;
+        let pendingNext = nextSet;
+
+        if (!activeSet && nextSet) {
+          applyCurrentParameterSet(nextSet);
+          activeSet = nextSet;
+          pendingNext = null;
+        } else if (activeSet) {
+          applyCurrentParameterSet(activeSet);
         }
+
+        setCurrentParameterSet(activeSet || null);
+        setNextParameterSet(pendingNext);
+        setParametersReadyForNextBlock(!pendingNext);
+        setParameterSyncError('');
       } catch (error) {
-        console.error('Error loading next parameter set', error);
+        console.error('Error loading participant parameters', error);
       }
     };
 
-    if (!isSearching && multiplierTarget === null) {
-      loadNextParameterSet();
-    }
-  }, [participantId, isSearching, multiplierTarget]);
+    loadParticipantParameters();
+  }, [participantId]);
 
   useEffect(() => {
     translateYRef.current = translateY;
@@ -829,7 +864,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         }
 
         if (receivedUpdatedParameters) {
-          setParametersReadyForNextBlock(true);
           setAwaitingNextParameterSet(false);
           setAwaitingBlockStartConfirmation(true);
         } else {
@@ -840,10 +874,30 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     }
   };
 
-  const handleConfirmNextBlockStart = () => {
-    setAwaitingBlockStartConfirmation(false);
-    setRoundCompleted(false);
-    setParameterSyncError('');
+  const handleConfirmNextBlockStart = async () => {
+    if (!nextParameterSet || !participantId) {
+      setAwaitingBlockStartConfirmation(false);
+      setParameterSyncError('Keine neuen Parameter zum Starten des nächsten Blocks vorhanden.');
+      return;
+    }
+
+    try {
+      const serializedNext = JSON.stringify(nextParameterSet);
+      await updateParticipantParameterSets({
+        currentParameterSet: serializedNext,
+        nextParameterSet: null,
+      });
+      applyCurrentParameterSet(nextParameterSet);
+      setCurrentParameterSet(nextParameterSet);
+      setNextParameterSet(null);
+      setAwaitingBlockStartConfirmation(false);
+      setParametersReadyForNextBlock(true);
+      setRoundCompleted(false);
+      setParameterSyncError('');
+    } catch (error) {
+      console.error('Error promoting next parameter set', error);
+      setParameterSyncError('Fehler beim Aktivieren des neuen Parametersatzes. Bitte erneut versuchen.');
+    }
   };
 
   const targetPositionRatio = getTargetPositionRatio();

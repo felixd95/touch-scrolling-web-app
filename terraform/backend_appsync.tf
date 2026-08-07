@@ -1,0 +1,296 @@
+data "archive_file" "next_parameter_set_lambda" {
+  type        = "zip"
+  source_file = "${path.module}/lambda/next_parameter_set_monitor.py"
+  output_path = "${path.module}/lambda/next_parameter_set_monitor.zip"
+}
+
+resource "aws_dynamodb_table" "participant" {
+  name         = "${var.project_name}-participant"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  tags = var.tags
+}
+
+resource "aws_dynamodb_table" "result" {
+  name         = "${var.project_name}-result"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  tags = var.tags
+}
+
+resource "aws_iam_role" "next_parameter_set_lambda" {
+  name = "${var.project_name}-next-parameter-set-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "next_parameter_set_lambda_basic" {
+  role       = aws_iam_role.next_parameter_set_lambda.name
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy" "next_parameter_set_lambda" {
+  name = "${var.project_name}-next-parameter-set-policy"
+  role = aws_iam_role.next_parameter_set_lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem"
+        ]
+        Resource = aws_dynamodb_table.participant.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sagemaker:InvokeEndpoint"
+        ]
+        Resource = "arn:${data.aws_partition.current.partition}:sagemaker:${var.aws_region}:${data.aws_caller_identity.current.account_id}:endpoint/${var.sagemaker_endpoint_name}"
+      }
+    ]
+  })
+}
+
+resource "aws_lambda_function" "next_parameter_set_monitor" {
+  function_name    = "${var.project_name}-next-parameter-set-monitor"
+  role             = aws_iam_role.next_parameter_set_lambda.arn
+  runtime          = "python3.12"
+  handler          = "next_parameter_set_monitor.handler"
+  filename         = data.archive_file.next_parameter_set_lambda.output_path
+  source_code_hash = data.archive_file.next_parameter_set_lambda.output_base64sha256
+  timeout          = 120
+
+  environment {
+    variables = {
+      PARTICIPANT_TABLE_NAME  = aws_dynamodb_table.participant.name
+      SAGEMAKER_ENDPOINT_NAME = var.sagemaker_endpoint_name
+    }
+  }
+
+  tags = var.tags
+}
+
+resource "aws_appsync_graphql_api" "api" {
+  name                = "${var.project_name}-api"
+  authentication_type = "API_KEY"
+  schema              = file("${path.module}/graphql/schema.graphql")
+
+  tags = var.tags
+}
+
+resource "aws_appsync_api_key" "api_key" {
+  api_id = aws_appsync_graphql_api.api.id
+}
+
+resource "aws_iam_role" "appsync_ddb_role" {
+  name = "${var.project_name}-appsync-ddb-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "appsync.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "appsync_ddb_role" {
+  name = "${var.project_name}-appsync-ddb-policy"
+  role = aws_iam_role.appsync_ddb_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:Scan",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem"
+        ]
+        Resource = [
+          aws_dynamodb_table.participant.arn,
+          aws_dynamodb_table.result.arn
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role" "appsync_lambda_role" {
+  name = "${var.project_name}-appsync-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "appsync.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "appsync_lambda_role" {
+  name = "${var.project_name}-appsync-lambda-policy"
+  role = aws_iam_role.appsync_lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:InvokeFunction"
+        ]
+        Resource = [
+          aws_lambda_function.next_parameter_set_monitor.arn,
+          "${aws_lambda_function.next_parameter_set_monitor.arn}:*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_appsync_datasource" "participant" {
+  api_id           = aws_appsync_graphql_api.api.id
+  name             = "ParticipantTable"
+  type             = "AMAZON_DYNAMODB"
+  service_role_arn = aws_iam_role.appsync_ddb_role.arn
+
+  dynamodb_config {
+    table_name = aws_dynamodb_table.participant.name
+  }
+}
+
+resource "aws_appsync_datasource" "result" {
+  api_id           = aws_appsync_graphql_api.api.id
+  name             = "ResultTable"
+  type             = "AMAZON_DYNAMODB"
+  service_role_arn = aws_iam_role.appsync_ddb_role.arn
+
+  dynamodb_config {
+    table_name = aws_dynamodb_table.result.name
+  }
+}
+
+resource "aws_appsync_datasource" "next_parameter_set_lambda" {
+  api_id           = aws_appsync_graphql_api.api.id
+  name             = "NextParameterSetLambda"
+  type             = "AWS_LAMBDA"
+  service_role_arn = aws_iam_role.appsync_lambda_role.arn
+
+  lambda_config {
+    function_arn = aws_lambda_function.next_parameter_set_monitor.arn
+  }
+}
+
+resource "aws_lambda_permission" "allow_appsync" {
+  statement_id  = "AllowExecutionFromAppSync"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.next_parameter_set_monitor.function_name
+  principal     = "appsync.amazonaws.com"
+  source_arn    = "${aws_appsync_graphql_api.api.arn}/*"
+}
+
+resource "aws_appsync_resolver" "query_list_participants" {
+  api_id      = aws_appsync_graphql_api.api.id
+  type        = "Query"
+  field       = "listParticipants"
+  data_source = aws_appsync_datasource.participant.name
+
+  request_template  = file("${path.module}/resolvers/Query.listParticipants.req.vtl")
+  response_template = file("${path.module}/resolvers/Query.listParticipants.res.vtl")
+}
+
+resource "aws_appsync_resolver" "mutation_create_participant" {
+  api_id      = aws_appsync_graphql_api.api.id
+  type        = "Mutation"
+  field       = "createParticipant"
+  data_source = aws_appsync_datasource.participant.name
+
+  request_template  = file("${path.module}/resolvers/Mutation.createParticipant.req.vtl")
+  response_template = file("${path.module}/resolvers/Mutation.createParticipant.res.vtl")
+}
+
+resource "aws_appsync_resolver" "mutation_update_participant" {
+  api_id      = aws_appsync_graphql_api.api.id
+  type        = "Mutation"
+  field       = "updateParticipant"
+  data_source = aws_appsync_datasource.participant.name
+
+  request_template  = file("${path.module}/resolvers/Mutation.updateParticipant.req.vtl")
+  response_template = file("${path.module}/resolvers/Mutation.updateParticipant.res.vtl")
+}
+
+resource "aws_appsync_resolver" "mutation_create_result" {
+  api_id      = aws_appsync_graphql_api.api.id
+  type        = "Mutation"
+  field       = "createResult"
+  data_source = aws_appsync_datasource.result.name
+
+  request_template  = file("${path.module}/resolvers/Mutation.createResult.req.vtl")
+  response_template = file("${path.module}/resolvers/Mutation.createResult.res.vtl")
+}
+
+resource "aws_appsync_resolver" "query_list_results" {
+  api_id      = aws_appsync_graphql_api.api.id
+  type        = "Query"
+  field       = "listResults"
+  data_source = aws_appsync_datasource.result.name
+
+  request_template  = file("${path.module}/resolvers/Query.listResults.req.vtl")
+  response_template = file("${path.module}/resolvers/Query.listResults.res.vtl")
+}
+
+resource "aws_appsync_resolver" "mutation_trigger_next_parameter_set" {
+  api_id      = aws_appsync_graphql_api.api.id
+  type        = "Mutation"
+  field       = "triggerNextParameterSet"
+  data_source = aws_appsync_datasource.next_parameter_set_lambda.name
+
+  request_template  = file("${path.module}/resolvers/Mutation.triggerNextParameterSet.req.vtl")
+  response_template = file("${path.module}/resolvers/Mutation.triggerNextParameterSet.res.vtl")
+}

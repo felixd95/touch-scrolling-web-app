@@ -1,0 +1,21 @@
+#set($filter = $ctx.args.filter)
+#if($filter && $filter.participantId && $filter.participantId.eq)
+{
+  "version": "2018-05-29",
+  "operation": "Scan",
+  "filter": {
+    "expression": "#participantId = :participantId",
+    "expressionNames": {
+      "#participantId": "participantId"
+    },
+    "expressionValues": {
+      ":participantId": $util.dynamodb.toDynamoDBJson($filter.participantId.eq)
+    }
+  }
+}
+#else
+{
+  "version": "2018-05-29",
+  "operation": "Scan"
+}
+#end

@@ -1,0 +1,14 @@
+#set($input = $ctx.args.input)
+#if(!$input.id)
+  $util.qr($input.put("id", $util.autoId()))
+#end
+$util.qr($input.put("createdAt", $util.time.nowISO8601()))
+$util.qr($input.put("updatedAt", $util.time.nowISO8601()))
+{
+  "version": "2018-05-29",
+  "operation": "PutItem",
+  "key": {
+    "id": $util.dynamodb.toDynamoDBJson($input.id)
+  },
+  "attributeValues": $util.dynamodb.toMapValuesJson($input)
+}

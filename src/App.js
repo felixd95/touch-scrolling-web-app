@@ -11,12 +11,15 @@ const client = generateClient();
 const RUNS_PER_BLOCK = 10;
 const HAND_PREFERENCE_STORAGE_KEY = 'participantHandPreferences';
 const DEFAULT_NEXT_PARAMETER_SET = {
-  x1: 0.1,
-  x2: 0.5,
-  flickDistanceThreshold: 12,
+  scrollFriction: 0.015,
+  x1: 0.78,
+  x2: 0.9,
+  inflexion: 0.35,
+  physicalCoeffTuning: 0.84,
+  maxLaunchVelocityPxMs: 40,
   blockSize: RUNS_PER_BLOCK,
   status: 'ready',
-  source: 'participant-create-default',
+  source: 'terraform-participant-create-default',
   generatedFromAttemptCount: 0,
 };
 
@@ -109,7 +112,7 @@ function ParticipantsList({ onBack }) {
     return Number(value).toFixed(digits);
   };
 
-  const normalizeNextParameterSet = (raw) => {
+  const normalizeParameterSet = (raw) => {
     if (!raw) return null;
 
     let parsed = raw;
@@ -286,7 +289,8 @@ function ParticipantsList({ onBack }) {
         privateSmartphone: p.privateSmartphone,
         screenTimePerDay: p.screenTimePerDay,
         scrollHandPreference: normalizeHandPreference(p.scrollHandPreference),
-        nextParameterSet: normalizeNextParameterSet(p.nextParameterSet),
+        currentParameterSet: normalizeParameterSet(p.currentParameterSet),
+        nextParameterSet: normalizeParameterSet(p.nextParameterSet),
         attempts: attemptsArr,
       };
     });
@@ -319,14 +323,15 @@ function ParticipantsList({ onBack }) {
             'x-api-key': outputs.data.api_key,
           },
           body: JSON.stringify({
-            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone scrollHandPreference screenTimePerDay attempts nextParameterSet } } }`,
+            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone scrollHandPreference screenTimePerDay attempts currentParameterSet nextParameterSet } } }`,
           }),
         });
         const json = await resp.json();
         if (!mounted) return;
         const itemsWithAttempts = (json.data?.listParticipants?.items || []).map((participant) => ({
           ...participant,
-          nextParameterSet: normalizeNextParameterSet(participant.nextParameterSet),
+          currentParameterSet: normalizeParameterSet(participant.currentParameterSet),
+          nextParameterSet: normalizeParameterSet(participant.nextParameterSet),
         }));
         setItems(itemsWithAttempts);
         // collect all attempts from participants (remote attempts stored in participant.attempts or localStorage fallback)
@@ -437,6 +442,11 @@ function ParticipantsList({ onBack }) {
           {selectedParticipant && (
             <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
               <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
+              {selectedParticipant.currentParameterSet && (
+                <div style={{ marginBottom: 6, fontSize: 13, color: '#4c5967' }}>
+                  Aktueller Parametersatz: x1={formatMetric(selectedParticipant.currentParameterSet.x1)}, x2={formatMetric(selectedParticipant.currentParameterSet.x2)}
+                </div>
+              )}
               {selectedParticipant.nextParameterSet && (
                 <div style={{ marginBottom: 10, fontSize: 13, color: '#4c5967' }}>
                   Naechster Parametersatz: x1={formatMetric(selectedParticipant.nextParameterSet.x1)}, x2={formatMetric(selectedParticipant.nextParameterSet.x2)}
@@ -621,7 +631,8 @@ function App() {
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
               scrollHandPreference: selectedHandPreference,
-              nextParameterSet: JSON.stringify(DEFAULT_NEXT_PARAMETER_SET),
+              currentParameterSet: JSON.stringify(DEFAULT_NEXT_PARAMETER_SET),
+              nextParameterSet: null,
             },
           },
         }),
