@@ -52,6 +52,7 @@ jobs:
           project_name=$(printf '%s' 'var.project_name' | terraform console)
           bucket_name=$(printf '%s' 'local.effective_bucket' | terraform console)
           create_oidc=$(printf '%s' 'var.create_github_oidc_provider' | terraform console)
+          manage_deploy_role=$(printf '%s' 'var.manage_github_actions_deploy_role' | terraform console)
 
           state_list=$(terraform state list 2>/dev/null || true)
           state_has() {
@@ -73,7 +74,10 @@ jobs:
             terraform import "$addr" "$id"
           }
 
-          try_import aws_iam_role.github_actions_deploy "${project_name}-github-actions-deploy"
+          if [ "$manage_deploy_role" = "true" ]; then
+            try_import aws_iam_role.github_actions_deploy[0] "${project_name}-github-actions-deploy"
+          fi
+
           try_import aws_dynamodb_table.participant "${project_name}-participant"
           try_import aws_dynamodb_table.result "${project_name}-result"
           try_import aws_iam_role.next_parameter_set_lambda "${project_name}-next-parameter-set-lambda-role"
