@@ -53,9 +53,10 @@ Workflows:
 Deploy Workflow macht:
 
 1. Terraform apply
-2. npm ci && npm run build
-3. Upload build/ nach S3
-4. CloudFront Invalidation
+2. Bei vorhandenem Remote-State: vorhandene AWS Ressourcen importieren
+3. npm ci && npm run build
+4. Upload build/ nach S3
+5. CloudFront Invalidation
 
 ## Outputs
 

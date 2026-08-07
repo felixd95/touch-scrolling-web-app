@@ -43,6 +43,73 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: terraform validate
 
+      - name: Import existing Terraform-managed AWS resources
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          set -euo pipefail
+
+          account_id=$(aws sts get-caller-identity --query Account --output text)
+          project_name=$(terraform console <<'EOF'
+var.project_name
+EOF
+)
+          bucket_name=$(terraform console <<'EOF'
+local.effective_bucket
+EOF
+)
+          create_oidc=$(terraform console <<'EOF'
+var.create_github_oidc_provider
+EOF
+)
+
+          state_list=$(terraform state list 2>/dev/null || true)
+          state_has() {
+            printf '%s\n' "$state_list" | grep -qx "$1"
+          }
+
+          try_import() {
+            addr="$1"
+            id="$2"
+            if state_has "$addr"; then
+              echo "Skipping import for $addr because it is already in state"
+              return 0
+            fi
+            if [ -z "$id" ] || [ "$id" = "None" ]; then
+              echo "Skipping import for $addr because no remote ID was found"
+              return 0
+            fi
+            echo "Importing $addr => $id"
+            terraform import "$addr" "$id"
+          }
+
+          try_import aws_iam_role.github_actions_deploy "${project_name}-github-actions-deploy"
+          try_import aws_dynamodb_table.participant "${project_name}-participant"
+          try_import aws_dynamodb_table.result "${project_name}-result"
+          try_import aws_iam_role.next_parameter_set_lambda "${project_name}-next-parameter-set-lambda-role"
+          try_import aws_iam_role.appsync_ddb_role "${project_name}-appsync-ddb-role"
+          try_import aws_iam_role.appsync_lambda_role "${project_name}-appsync-lambda-role"
+
+          if [ "$create_oidc" = "true" ]; then
+            oidc_provider_arn="arn:aws:iam::${account_id}:oidc-provider/token.actions.githubusercontent.com"
+            try_import aws_iam_openid_connect_provider.github[0] "$oidc_provider_arn"
+          fi
+
+          try_import aws_s3_bucket.frontend "$bucket_name"
+
+          cloudfront_oac_id=$(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='${project_name}-oac'].Id | [0]" --output text)
+          try_import aws_cloudfront_origin_access_control.frontend "$cloudfront_oac_id"
+
+          distribution_id=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[0].DomainName=='${bucket_name}.s3.${{ env.AWS_REGION }}.amazonaws.com'].Id | [0]" --output text)
+          try_import aws_cloudfront_distribution.frontend "$distribution_id"
+
+          appsync_id=$(aws appsync list-graphql-apis --query "graphqlApis[?name=='${project_name}-api'].apiId | [0]" --output text)
+          try_import aws_appsync_graphql_api.api "$appsync_id"
+
+          if [ -n "$appsync_id" ] && [ "$appsync_id" != "None" ]; then
+            api_key_id=$(aws appsync list-api-keys --api-id "$appsync_id" --query 'apiKeys[0].id' --output text)
+            try_import aws_appsync_api_key.api_key "$appsync_id:$api_key_id"
+          fi
+
       - name: Terraform Apply
         working-directory: ${{ env.TF_DIR }}
         run: terraform apply -auto-approve
