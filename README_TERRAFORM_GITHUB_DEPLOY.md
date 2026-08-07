@@ -30,28 +30,23 @@ Dieses Setup stellt Infrastruktur und Backend per Terraform bereit und deployed 
 ## 2) Terraform Remote State
 
 GitHub Actions verwendet einen S3 Backend-Bucket mit DynamoDB Locking für Terraform State.
-Du musst den State-Bucket und die Locking-Tabelle einmalig im AWS Account anlegen, bevor du die Workflows nutzt.
+Die Workflows erstellen den State-Bucket und die Locking-Tabelle automatisch, wenn sie noch nicht existieren.
 
-- Bucket Name: ein S3-Bucket für Terraform State
-- DynamoDB Table: eine Tabelle mit Partition Key `LockID`
+- Bucket Name: `touch-scrolling-web-app-terraform-state-eu-central-1`
+- DynamoDB Table: `touch-scrolling-web-app-terraform-state-locks`
 
-In GitHub Repository Settings > Secrets and variables > Actions:
-
-- Name: `TF_STATE_BUCKET_NAME`
-- Wert: der S3 Bucket Name
-- Name: `TF_STATE_DYNAMODB_TABLE_NAME`
-- Wert: der DynamoDB Table Name
+Es sind keine GitHub Secrets für `TF_STATE_BUCKET_NAME` oder `TF_STATE_DYNAMODB_TABLE_NAME` erforderlich.
 
 ## 3) Einmaliger Bootstrap (lokal)
 
-Damit GitHub die Rolle annehmen kann, muss die Rolle einmal erstellt werden:
+Damit GitHub die Rolle annehmen kann, muss die Rolle einmal erstellt werden oder bereits vorhanden sein:
 
 1. Im Ordner [terraform](terraform):
    - terraform init \
-     -backend-config="bucket=<state-bucket-name>" \
+     -backend-config="bucket=touch-scrolling-web-app-terraform-state-eu-central-1" \
      -backend-config="key=terraform/terraform.tfstate" \
      -backend-config="region=eu-central-1" \
-     -backend-config="dynamodb_table=<dynamodb-table-name>"
+     -backend-config="dynamodb_table=touch-scrolling-web-app-terraform-state-locks"
    - terraform apply
 2. Output terraform_github_actions_role_arn merken.
 
