@@ -28,6 +28,7 @@
         "s3:PutBucketVersioning",
         "s3:PutBucketOwnershipControls",
         "s3:GetBucketOwnershipControls",
+        "s3:GetBucketTagging",
         "s3:PutObject",
         "s3:GetObject",
         "s3:DeleteObject"
