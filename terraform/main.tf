@@ -224,6 +224,7 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
           "s3:PutBucketVersioning",
           "s3:PutBucketOwnershipControls",
           "s3:GetBucketOwnershipControls",
+          "s3:GetBucketTagging",
           "s3:PutObject",
           "s3:GetObject",
           "s3:DeleteObject"
@@ -259,6 +260,7 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
           "iam:CreateRole",
           "iam:DeleteRole",
           "iam:GetRole",
+          "iam:ListRolePolicies",
           "iam:UpdateAssumeRolePolicy",
           "iam:TagRole",
           "iam:UntagRole",
