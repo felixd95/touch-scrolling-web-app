@@ -366,6 +366,11 @@
   background: #09663e;
 }
 
+.block-confirm-button:disabled {
+  background: #8aa79a;
+  cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
   .safe-area-progress {
     width: 100%;

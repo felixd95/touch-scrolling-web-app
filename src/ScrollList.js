@@ -22,6 +22,7 @@ import {
 
 const NUM_ITEMS = 330;
 const RUNS_PER_BLOCK = 10;
+const RANDOM_BOOTSTRAP_ATTEMPT_LIMIT = RUNS_PER_BLOCK * 3;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
 const FIXED_TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
@@ -81,6 +82,13 @@ const createRandomParameterSet = (attemptCount = 0) => ({
   generatedFromAttemptCount: attemptCount,
   completedBlockCount: Math.floor(attemptCount / RUNS_PER_BLOCK),
 });
+
+const getAttemptCount = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+};
+
+const isBootstrapPhase = (attemptCount) => getAttemptCount(attemptCount) < RANDOM_BOOTSTRAP_ATTEMPT_LIMIT;
 
 function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [targetSequence, setTargetSequence] = useState(() => createShuffledTargetNumbers());
@@ -272,6 +280,60 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     }
 
     return false;
+  };
+
+  const getStoredAttemptsCount = (participantState) => {
+    const rawAttempts = participantState?.attempts;
+    if (!rawAttempts) return 0;
+
+    if (Array.isArray(rawAttempts)) return rawAttempts.length;
+
+    if (typeof rawAttempts === 'string') {
+      try {
+        const parsed = JSON.parse(rawAttempts);
+        return Array.isArray(parsed) ? parsed.length : 0;
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    return 0;
+  };
+
+  const handleRefreshParameterStatus = async () => {
+    if (!participantId) return;
+
+    setAwaitingNextParameterSet(true);
+    setParameterSyncError('');
+
+    try {
+      const participant = await loadParticipantState();
+      const nextSet = normalizeParameterSet(participant?.nextParameterSet);
+
+      if (nextSet) {
+        setNextParameterSet(nextSet);
+        setAwaitingNextParameterSet(false);
+        setAwaitingBlockStartConfirmation(true);
+        return;
+      }
+
+      const attemptsCount = getStoredAttemptsCount(participant);
+      if (isBootstrapPhase(attemptsCount)) {
+        const randomParameterSet = createRandomParameterSet(attemptsCount);
+        await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(randomParameterSet) });
+        setNextParameterSet(randomParameterSet);
+        setAwaitingNextParameterSet(false);
+        setAwaitingBlockStartConfirmation(true);
+        return;
+      }
+
+      setAwaitingNextParameterSet(false);
+      setParameterSyncError('Parameter-Update ausstehend: bitte erneut prüfen.');
+    } catch (error) {
+      console.error('Error refreshing parameter status', error);
+      setAwaitingNextParameterSet(false);
+      setParameterSyncError('Parameter konnten nicht geladen werden. Bitte erneut prüfen.');
+    }
   };
 
   useEffect(() => {
@@ -616,6 +678,12 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const handleTouchStart = (event) => {
     if (event.touches.length !== 1) return;
 
+    if (awaitingNextParameterSet || awaitingBlockStartConfirmation || !parametersReadyForNextBlock) {
+      setLastTouchY(null);
+      touchStatsRef.current.active = false;
+      return;
+    }
+
     stopMomentum();
 
     const touchY = event.touches[0].clientY;
@@ -631,18 +699,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     const parsedX1 = parseFloat(x1Input);
     const canStartNewBlock = multiplierTarget === null;
-
-    if (awaitingNextParameterSet) {
-      return;
-    }
-
-    if (!parametersReadyForNextBlock) {
-      return;
-    }
-
-    if (awaitingBlockStartConfirmation) {
-      return;
-    }
 
     if (canStartNewBlock && !(parsedX1 >= 0)) {
       return;
@@ -872,26 +928,27 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         setRunCount(0);
 
         let receivedUpdatedParameters = false;
+        const attemptsCount = getAttemptCount(saveOutcome?.attemptsCount);
         if (saveOutcome?.savedRemotely) {
           try {
-            if (saveOutcome.attemptsCount < RUNS_PER_BLOCK * 3) {
-              const randomParameterSet = createRandomParameterSet(saveOutcome.attemptsCount);
+            if (isBootstrapPhase(attemptsCount)) {
+              const randomParameterSet = createRandomParameterSet(attemptsCount);
               await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(randomParameterSet) });
               setNextParameterSet(randomParameterSet);
               receivedUpdatedParameters = true;
             } else {
-              receivedUpdatedParameters = await synchronizeNextParameterSet(saveOutcome.attemptsCount);
+              receivedUpdatedParameters = await synchronizeNextParameterSet(attemptsCount);
             }
           } catch (error) {
             console.error('Error setting next parameter set after block finish', error);
-            if (saveOutcome.attemptsCount < RUNS_PER_BLOCK * 3) {
-              const randomParameterSet = createRandomParameterSet(saveOutcome.attemptsCount);
+            if (isBootstrapPhase(attemptsCount)) {
+              const randomParameterSet = createRandomParameterSet(attemptsCount);
               setNextParameterSet(randomParameterSet);
               receivedUpdatedParameters = true;
             }
           }
-        } else if (saveOutcome?.attemptsCount < RUNS_PER_BLOCK * 3) {
-          const randomParameterSet = createRandomParameterSet(saveOutcome.attemptsCount);
+        } else if (isBootstrapPhase(attemptsCount)) {
+          const randomParameterSet = createRandomParameterSet(attemptsCount);
           setNextParameterSet(randomParameterSet);
           receivedUpdatedParameters = true;
         }
@@ -901,7 +958,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           setAwaitingBlockStartConfirmation(true);
         } else {
           setAwaitingNextParameterSet(false);
-          setParameterSyncError('Parameter-Update ausstehend: Der nächste 10er-Block bleibt gesperrt, bis neue Parameter aus dem Backend geladen wurden.');
+          setParameterSyncError('Parameter-Update ausstehend: Der nächste 10er-Block bleibt gesperrt, bis neue Parameter geladen wurden.');
         }
       }
     }
@@ -937,6 +994,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const currentPositionRatio = getCurrentPositionRatio();
   const currentFlingThresholdPxMs = getMinFlingVelocityPxMs();
   const currentDecelerationRate = Math.log(FLING_PHYSICS_CONFIG.x1) / Math.log(FLING_PHYSICS_CONFIG.x2);
+  const showParameterDialog = awaitingNextParameterSet || awaitingBlockStartConfirmation || Boolean(parameterSyncError);
   const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
@@ -971,12 +1029,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
             <div className="parameter-line">physicalCoeffTuning: {FLING_PHYSICS_CONFIG.physicalCoeffTuning.toFixed(3)}</div>
             <div className="parameter-line">maxLaunchVelocity: {FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs.toFixed(2)} px/ms</div>
           </div>
-
-          {parameterSyncError && !isSearching && (
-            <div style={{ marginTop: 12, color: '#b04a00', fontWeight: 'bold' }}>
-              {parameterSyncError}
-            </div>
-          )}
 
           <div style={{ marginTop: 8, fontSize: 12, color: '#4c5967', lineHeight: 1.5 }}>
             <div>Speed: {formatVelocity(liveInstantVelocityPxMs)} px/ms</div>
@@ -1040,13 +1092,31 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         </div>
       </div>
 
-      {awaitingBlockStartConfirmation && (
+      {showParameterDialog && (
         <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="next-block-dialog-title">
           <div className="block-confirm-dialog">
-            <span id="next-block-dialog-title" className="sr-only">Neuer Block bereit</span>
-            <button type="button" className="block-confirm-button" onClick={handleConfirmNextBlockStart}>
-              Nächsten Durchlauf starten
-            </button>
+            <h3 id="next-block-dialog-title">
+              {awaitingBlockStartConfirmation ? 'Neuer Block bereit' : 'Parameter-Update'}
+            </h3>
+            <p>
+              {awaitingBlockStartConfirmation
+                ? 'Neue Parameter sind da. Starte den nächsten 10er-Block.'
+                : (parameterSyncError || 'Parameter werden geladen. Bitte warten.')}
+            </p>
+            {awaitingBlockStartConfirmation ? (
+              <button type="button" className="block-confirm-button" onClick={handleConfirmNextBlockStart}>
+                Nächsten Durchlauf starten
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="block-confirm-button"
+                onClick={handleRefreshParameterStatus}
+                disabled={awaitingNextParameterSet}
+              >
+                {awaitingNextParameterSet ? 'Prüfe...' : 'Erneut prüfen'}
+              </button>
+            )}
           </div>
         </div>
       )}
