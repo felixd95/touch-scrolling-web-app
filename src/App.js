@@ -2,11 +2,47 @@ import { useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
 import outputs from './amplify_outputs.json';
 import ScrollList from './ScrollList';
+import { FLING_PHYSICS_BOUNDS } from './scrollPhysics/overScrollerPhysics';
 import './App.css';
 
 Amplify.configure(outputs);
 const RUNS_PER_BLOCK = 10;
 const HAND_PREFERENCE_STORAGE_KEY = 'participantHandPreferences';
+
+const getRandomParameterInRange = (min, max) => min + Math.random() * (max - min);
+
+const createRandomParameterSet = (attemptCount = 0) => ({
+  scrollFriction: Number(getRandomParameterInRange(
+    FLING_PHYSICS_BOUNDS.scrollFriction.min,
+    FLING_PHYSICS_BOUNDS.scrollFriction.max,
+  ).toFixed(5)),
+  x1: Number(getRandomParameterInRange(
+    FLING_PHYSICS_BOUNDS.x1.min,
+    FLING_PHYSICS_BOUNDS.x1.max,
+  ).toFixed(3)),
+  x2: Number(getRandomParameterInRange(
+    FLING_PHYSICS_BOUNDS.x2.min,
+    FLING_PHYSICS_BOUNDS.x2.max,
+  ).toFixed(3)),
+  inflexion: Number(getRandomParameterInRange(
+    FLING_PHYSICS_BOUNDS.inflexion.min,
+    FLING_PHYSICS_BOUNDS.inflexion.max,
+  ).toFixed(3)),
+  physicalCoeffTuning: Number(getRandomParameterInRange(
+    FLING_PHYSICS_BOUNDS.physicalCoeffTuning.min,
+    FLING_PHYSICS_BOUNDS.physicalCoeffTuning.max,
+  ).toFixed(3)),
+  maxLaunchVelocityPxMs: Number(getRandomParameterInRange(
+    FLING_PHYSICS_BOUNDS.maxLaunchVelocityPxMs.min,
+    FLING_PHYSICS_BOUNDS.maxLaunchVelocityPxMs.max,
+  ).toFixed(2)),
+  blockSize: RUNS_PER_BLOCK,
+  status: 'ready',
+  source: 'random-initial-parameter-set',
+  generatedFromAttemptCount: attemptCount,
+  completedBlockCount: Math.floor(attemptCount / RUNS_PER_BLOCK),
+});
+
 const DEFAULT_NEXT_PARAMETER_SET = {
   scrollFriction: 0.015,
   x1: 0.78,
@@ -15,6 +51,7 @@ const DEFAULT_NEXT_PARAMETER_SET = {
   physicalCoeffTuning: 0.84,
   maxLaunchVelocityPxMs: 40,
   blockSize: RUNS_PER_BLOCK,
+  flickDistanceThreshold: 6,
   status: 'ready',
   source: 'terraform-participant-create-default',
   generatedFromAttemptCount: 0,
@@ -628,7 +665,7 @@ function App() {
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
               scrollHandPreference: selectedHandPreference,
-              currentParameterSet: JSON.stringify(DEFAULT_NEXT_PARAMETER_SET),
+              currentParameterSet: JSON.stringify(createRandomParameterSet(0)),
               nextParameterSet: null,
             },
           },

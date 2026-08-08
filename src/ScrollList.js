@@ -8,6 +8,7 @@ import {
 } from './scrollPhysics/flingThreshold';
 import {
   FLING_PHYSICS_CONFIG,
+  FLING_PHYSICS_BOUNDS,
   ANDROID_SPLINE_SAMPLES,
   ANDROID_SPLINE_TABLE,
   OVER_SCROLL_DISTANCE_PX,
@@ -46,6 +47,40 @@ const DEFAULT_PARAMETER_SET = {
   decay: '0.98',
   flickDistanceThreshold: '6',
 };
+
+const getRandomInRange = (min, max) => min + Math.random() * (max - min);
+
+const createRandomParameterSet = (attemptCount = 0) => ({
+  scrollFriction: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.scrollFriction.min,
+    FLING_PHYSICS_BOUNDS.scrollFriction.max,
+  ).toFixed(5)),
+  x1: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.x1.min,
+    FLING_PHYSICS_BOUNDS.x1.max,
+  ).toFixed(3)),
+  x2: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.x2.min,
+    FLING_PHYSICS_BOUNDS.x2.max,
+  ).toFixed(3)),
+  inflexion: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.inflexion.min,
+    FLING_PHYSICS_BOUNDS.inflexion.max,
+  ).toFixed(3)),
+  physicalCoeffTuning: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.physicalCoeffTuning.min,
+    FLING_PHYSICS_BOUNDS.physicalCoeffTuning.max,
+  ).toFixed(3)),
+  maxLaunchVelocityPxMs: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.maxLaunchVelocityPxMs.min,
+    FLING_PHYSICS_BOUNDS.maxLaunchVelocityPxMs.max,
+  ).toFixed(2)),
+  blockSize: RUNS_PER_BLOCK,
+  status: 'ready',
+  source: 'random-initial-parameter-set',
+  generatedFromAttemptCount: attemptCount,
+  completedBlockCount: Math.floor(attemptCount / RUNS_PER_BLOCK),
+});
 
 function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [targetSequence, setTargetSequence] = useState(() => createShuffledTargetNumbers());
@@ -839,10 +874,26 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         let receivedUpdatedParameters = false;
         if (saveOutcome?.savedRemotely) {
           try {
-            receivedUpdatedParameters = await synchronizeNextParameterSet(saveOutcome.attemptsCount);
+            if (saveOutcome.attemptsCount < RUNS_PER_BLOCK * 3) {
+              const randomParameterSet = createRandomParameterSet(saveOutcome.attemptsCount);
+              await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(randomParameterSet) });
+              setNextParameterSet(randomParameterSet);
+              receivedUpdatedParameters = true;
+            } else {
+              receivedUpdatedParameters = await synchronizeNextParameterSet(saveOutcome.attemptsCount);
+            }
           } catch (error) {
-            console.error('Error triggering next parameter set update', error);
+            console.error('Error setting next parameter set after block finish', error);
+            if (saveOutcome.attemptsCount < RUNS_PER_BLOCK * 3) {
+              const randomParameterSet = createRandomParameterSet(saveOutcome.attemptsCount);
+              setNextParameterSet(randomParameterSet);
+              receivedUpdatedParameters = true;
+            }
           }
+        } else if (saveOutcome?.attemptsCount < RUNS_PER_BLOCK * 3) {
+          const randomParameterSet = createRandomParameterSet(saveOutcome.attemptsCount);
+          setNextParameterSet(randomParameterSet);
+          receivedUpdatedParameters = true;
         }
 
         if (receivedUpdatedParameters) {
@@ -909,6 +960,16 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           <div className="countdown-display">
             <h3>Find:</h3>
             <div className="target-number">{targetNumber}</div>
+          </div>
+
+          <div className="current-parameters">
+            <div className="parameters-title">Aktuelle Parameter</div>
+            <div className="parameter-line">scrollFriction: {FLING_PHYSICS_CONFIG.scrollFriction.toFixed(4)}</div>
+            <div className="parameter-line">x1: {FLING_PHYSICS_CONFIG.x1.toFixed(3)}</div>
+            <div className="parameter-line">x2: {FLING_PHYSICS_CONFIG.x2.toFixed(3)}</div>
+            <div className="parameter-line">inflexion: {FLING_PHYSICS_CONFIG.inflexion.toFixed(3)}</div>
+            <div className="parameter-line">physicalCoeffTuning: {FLING_PHYSICS_CONFIG.physicalCoeffTuning.toFixed(3)}</div>
+            <div className="parameter-line">maxLaunchVelocity: {FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs.toFixed(2)} px/ms</div>
           </div>
 
           {parameterSyncError && !isSearching && (

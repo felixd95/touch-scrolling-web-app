@@ -26,6 +26,33 @@ export const FLING_PHYSICS_CONFIG = {
   maxLaunchVelocityPxMs: 40,
 };
 
+export const FLING_PHYSICS_BOUNDS = {
+  scrollFriction: {
+    min: 0.005,
+    max: 0.05,
+  },
+  x1: {
+    min: 0.6,
+    max: 0.92,
+  },
+  x2: {
+    min: 0.8,
+    max: 0.98,
+  },
+  inflexion: {
+    min: 0.15,
+    max: 0.65,
+  },
+  physicalCoeffTuning: {
+    min: 0.5,
+    max: 1.5,
+  },
+  maxLaunchVelocityPxMs: {
+    min: 20,
+    max: 80,
+  },
+};
+
 const getDecelerationRate = () => {
   // Matches Android formula: DECELERATION_RATE = ln(0.78) / ln(0.9)
   // but parameterized via x1 and x2.

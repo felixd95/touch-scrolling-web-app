@@ -162,17 +162,20 @@ def handler(event, context):
             f"expected at least {attempt_count}, got {len(attempts)}"
         )
 
-    latest_block_start = attempt_count - RUNS_PER_BLOCK
-    recent_data = attempts[latest_block_start:attempt_count]
-    if len(recent_data) < RUNS_PER_BLOCK:
-        raise ValueError(f"Latest parameter set requires {RUNS_PER_BLOCK} data points")
+    # Pass all completed attempts up to the current attempt count to the ML pipeline.
+    all_attempt_data = attempts[:attempt_count]
+    if len(all_attempt_data) < attempt_count:
+        raise ValueError(
+            f"Not enough stored attempts for participant {participant_id}: "
+            f"expected {attempt_count}, got {len(all_attempt_data)}"
+        )
 
     current_params = (
         _normalize_parameter_set(participant_state.get("currentParameterSet"))
         or _normalize_parameter_set(participant_state.get("nextParameterSet"))
         or dict(DEFAULT_PARAMETER_SET)
     )
-    generated_params = _invoke_sagemaker(participant_id, attempt_count, current_params, recent_data)
+    generated_params = _invoke_sagemaker(participant_id, attempt_count, current_params, all_attempt_data)
     next_parameter_set = _build_next_parameter_set(attempt_count, generated_params)
 
     table = dynamodb.Table(table_name)
