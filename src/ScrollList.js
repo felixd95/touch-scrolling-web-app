@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import './ScrollList.css';
-import outputs from './amplify_outputs.json';
+import outputs from './backend_config.json';
 import {
   getMinFlingVelocityPxMs,
   isFlingThresholdMet,

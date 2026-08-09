@@ -85,4 +85,4 @@ Wichtige Terraform Outputs:
 ## Hinweise
 
 - Dieses Setup deployed Frontend und Backend vollstaendig ueber Terraform + GitHub Actions.
-- Legacy Amplify-Deploypfade sind im Repository entfernt, um Drift zwischen zwei IaC-Quellen zu vermeiden.
+- Das Repository nutzt einen einheitlichen Terraform-basierten Deploypfad, um Drift zwischen IaC-Quellen zu vermeiden.

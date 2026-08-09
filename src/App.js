@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Amplify } from 'aws-amplify';
-import outputs from './amplify_outputs.json';
+import outputs from './backend_config.json';
 import ScrollList from './ScrollList';
 import { FLING_PHYSICS_BOUNDS } from './scrollPhysics/overScrollerPhysics';
 import './App.css';
 
-Amplify.configure(outputs);
 const RUNS_PER_BLOCK = 10;
 const HAND_PREFERENCE_STORAGE_KEY = 'participantHandPreferences';
 

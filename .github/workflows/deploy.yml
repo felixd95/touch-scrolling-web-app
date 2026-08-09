@@ -110,7 +110,7 @@ jobs:
           APPSYNC_GRAPHQL_URL: ${{ needs.terraform-apply.outputs.terraform_appsync_graphql_url }}
           APPSYNC_API_KEY: ${{ needs.terraform-apply.outputs.terraform_appsync_api_key }}
           AWS_REGION: ${{ env.AWS_REGION }}
-        run: node scripts/write-amplify-outputs.mjs
+        run: node scripts/write-backend-config.mjs
 
       - name: Build frontend
         run: npm run build

@@ -18,12 +18,12 @@ const payload = {
 };
 
 const targets = [
-  path.resolve('amplify_outputs.json'),
-  path.resolve('src', 'amplify_outputs.json'),
+  path.resolve('backend_config.json'),
+  path.resolve('src', 'backend_config.json'),
 ];
 
 for (const target of targets) {
   fs.writeFileSync(target, JSON.stringify(payload, null, 2));
 }
 
-console.log('Wrote AppSync config to amplify_outputs.json and src/amplify_outputs.json');
+console.log('Wrote AppSync config to backend_config.json and src/backend_config.json');
