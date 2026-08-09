@@ -478,14 +478,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           ? result.blockParameterSet
           : null;
 
-      const enrichedResult = {
-        ...result,
-        blockIndex,
-        attemptInBlock,
-        targetNumber: normalizedTargetNumber,
-        blockParameterSet: normalizedBlockParameterSet,
-      };
-
       // Persist each attempt as a Result item; if backend schema is older, gracefully retry with base fields.
       const resultInputBase = {
         participantId: result.participantId,
