@@ -17,19 +17,6 @@ resource "aws_dynamodb_table" "participant" {
   tags = var.tags
 }
 
-resource "aws_dynamodb_table" "result" {
-  name         = "${local.resource_name_prefix}-result"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "id"
-
-  attribute {
-    name = "id"
-    type = "S"
-  }
-
-  tags = var.tags
-}
-
 resource "aws_iam_role" "next_parameter_set_lambda" {
   name = "${local.resource_name_prefix}-next-parameter-set-lambda-role"
 
@@ -146,8 +133,7 @@ resource "aws_iam_role_policy" "appsync_ddb_role" {
           "dynamodb:UpdateItem"
         ]
         Resource = [
-          aws_dynamodb_table.participant.arn,
-          aws_dynamodb_table.result.arn
+          aws_dynamodb_table.participant.arn
         ]
       }
     ]
@@ -205,17 +191,6 @@ resource "aws_appsync_datasource" "participant" {
   }
 }
 
-resource "aws_appsync_datasource" "result" {
-  api_id           = aws_appsync_graphql_api.api.id
-  name             = "ResultTable"
-  type             = "AMAZON_DYNAMODB"
-  service_role_arn = aws_iam_role.appsync_ddb_role.arn
-
-  dynamodb_config {
-    table_name = aws_dynamodb_table.result.name
-  }
-}
-
 resource "aws_appsync_datasource" "next_parameter_set_lambda" {
   api_id           = aws_appsync_graphql_api.api.id
   name             = "NextParameterSetLambda"
@@ -263,26 +238,6 @@ resource "aws_appsync_resolver" "mutation_update_participant" {
 
   request_template  = file("${path.module}/resolvers/Mutation.updateParticipant.req.vtl")
   response_template = file("${path.module}/resolvers/Mutation.updateParticipant.res.vtl")
-}
-
-resource "aws_appsync_resolver" "mutation_create_result" {
-  api_id      = aws_appsync_graphql_api.api.id
-  type        = "Mutation"
-  field       = "createResult"
-  data_source = aws_appsync_datasource.result.name
-
-  request_template  = file("${path.module}/resolvers/Mutation.createResult.req.vtl")
-  response_template = file("${path.module}/resolvers/Mutation.createResult.res.vtl")
-}
-
-resource "aws_appsync_resolver" "query_list_results" {
-  api_id      = aws_appsync_graphql_api.api.id
-  type        = "Query"
-  field       = "listResults"
-  data_source = aws_appsync_datasource.result.name
-
-  request_template  = file("${path.module}/resolvers/Query.listResults.req.vtl")
-  response_template = file("${path.module}/resolvers/Query.listResults.res.vtl")
 }
 
 resource "aws_appsync_resolver" "mutation_trigger_next_parameter_set" {

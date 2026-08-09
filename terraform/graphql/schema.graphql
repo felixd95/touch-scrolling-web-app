@@ -9,13 +9,11 @@ schema {
 
 type Query {
   listParticipants(filter: ModelParticipantFilterInput): ModelParticipantConnection!
-  listResults(filter: ModelResultFilterInput): ModelResultConnection!
 }
 
 type Mutation {
   createParticipant(input: CreateParticipantInput!): Participant
   updateParticipant(input: UpdateParticipantInput!): Participant
-  createResult(input: CreateResultInput!): Result
   triggerNextParameterSet(participantId: ID!, attemptCount: Int!): TriggerNextParameterSetResult
 }
 
@@ -35,27 +33,12 @@ type Participant {
   updatedAt: AWSDateTime
 }
 
-type Result {
-  id: ID!
-  participantId: ID!
-  timeMs: String!
-  scrollDistance: String!
-  timestamp: String!
-  multiplierUsed: String!
-  createdAt: AWSDateTime
-  updatedAt: AWSDateTime
-}
-
 type TriggerNextParameterSetResult {
   nextParameterSet: String!
 }
 
 type ModelParticipantConnection {
   items: [Participant]
-}
-
-type ModelResultConnection {
-  items: [Result]
 }
 
 input CreateParticipantInput {
@@ -86,15 +69,6 @@ input UpdateParticipantInput {
   nextParameterSet: AWSJSON
 }
 
-input CreateResultInput {
-  id: ID
-  participantId: ID!
-  timeMs: String!
-  scrollDistance: String!
-  timestamp: String!
-  multiplierUsed: String!
-}
-
 input ModelIDInput {
   eq: ID
 }
@@ -106,8 +80,4 @@ input ModelStringInput {
 input ModelParticipantFilterInput {
   id: ModelIDInput
   email: ModelStringInput
-}
-
-input ModelResultFilterInput {
-  participantId: ModelIDInput
 }

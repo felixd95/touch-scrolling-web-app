@@ -476,18 +476,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           ? result.blockParameterSet
           : null;
 
-      const createResultRequest = async (input) => {
-        const createResultResp = await fetch(outputs.data.url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
-          body: JSON.stringify({
-            query: `mutation CreateResult($input: CreateResultInput!) { createResult(input: $input) { id participantId } }`,
-            variables: { input },
-          }),
-        });
-        return createResultResp.json();
-      };
-
       const compactAttempt = {
         attemptInBlock,
         targetNumber: normalizedTargetNumber,
@@ -511,45 +499,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       }
 
       activeBlock.attempts.push(compactAttempt);
-
-      const runCompleted = attemptInBlock === RUNS_PER_BLOCK || activeBlock.attempts.length === RUNS_PER_BLOCK;
-      if (runCompleted) {
-        const runAttempts = activeBlock.attempts
-          .map((attempt, idx) => ({
-            attemptInBlock: Number.isFinite(Number(attempt?.attemptInBlock))
-              ? Math.trunc(Number(attempt.attemptInBlock))
-              : idx + 1,
-            targetNumber: Number.isFinite(Number(attempt?.targetNumber))
-              ? Math.trunc(Number(attempt.targetNumber))
-              : null,
-            timeMs: Number.isFinite(Number(attempt?.timeMs)) ? Number(attempt.timeMs) : null,
-            scrollDistance: Number.isFinite(Number(attempt?.scrollDistance)) ? Number(attempt.scrollDistance) : null,
-            timestamp: attempt?.timestamp || null,
-          }))
-          .sort((a, b) => a.attemptInBlock - b.attemptInBlock);
-
-        const totalTimeMs = runAttempts.reduce(
-          (sum, attempt) => sum + (Number.isFinite(Number(attempt.timeMs)) ? Number(attempt.timeMs) : 0),
-          0,
-        );
-        const totalScrollDistance = runAttempts.reduce(
-          (sum, attempt) => sum + (Number.isFinite(Number(attempt.scrollDistance)) ? Number(attempt.scrollDistance) : 0),
-          0,
-        );
-
-        const summaryInputBase = {
-          participantId: result.participantId,
-          timeMs: String(totalTimeMs),
-          scrollDistance: String(totalScrollDistance),
-          timestamp: String(runAttempts[runAttempts.length - 1]?.timestamp || result.timestamp || new Date().toISOString()),
-          multiplierUsed: String(result.multiplierUsed ?? ''),
-        };
-
-        let createResultJson = await createResultRequest(summaryInputBase);
-        if (createResultJson.errors?.length) {
-          throw new Error(createResultJson.errors[0]?.message || 'Failed to persist run summary item');
-        }
-      }
 
       // Keep at most the latest 100 attempts while preserving block structure.
       while (countAttemptsInBlocks(attemptBlocks) > 100) {
