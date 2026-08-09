@@ -512,7 +512,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
       activeBlock.attempts.push(compactAttempt);
 
-      const runCompleted = activeBlock.attempts.length === RUNS_PER_BLOCK;
+      const runCompleted = attemptInBlock === RUNS_PER_BLOCK || activeBlock.attempts.length === RUNS_PER_BLOCK;
       if (runCompleted) {
         const runAttempts = activeBlock.attempts
           .map((attempt, idx) => ({
@@ -547,23 +547,12 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
         const summaryInputExtended = {
           ...summaryInputBase,
-          blockIndex,
           runNumber: blockIndex,
-          blockParameterSet: activeBlock.parameterSet || normalizedBlockParameterSet,
-          parameterSet: activeBlock.parameterSet || normalizedBlockParameterSet,
-          attemptsDetails: runAttempts,
+          parameterSet: JSON.stringify(activeBlock.parameterSet || normalizedBlockParameterSet || null),
+          attemptsDetails: JSON.stringify(runAttempts),
         };
 
         let createResultJson = await createResultRequest(summaryInputExtended);
-        if (createResultJson.errors?.length) {
-          // Fallback for older API schemas that don't yet contain new summary fields.
-          const summaryInputCompat = {
-            ...summaryInputBase,
-            blockIndex,
-            blockParameterSet: activeBlock.parameterSet || normalizedBlockParameterSet,
-          };
-          createResultJson = await createResultRequest(summaryInputCompat);
-        }
         if (createResultJson.errors?.length) {
           createResultJson = await createResultRequest(summaryInputBase);
         }
