@@ -412,8 +412,64 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       const existing = (qjson.data?.listParticipants?.items[0]?.attempts) || null;
       let arr = [];
       try { arr = existing ? JSON.parse(existing) : []; } catch (e) { arr = []; }
+
+      const attemptsBeforeAppend = arr.length;
+      const blockIndex = Math.floor(attemptsBeforeAppend / RUNS_PER_BLOCK) + 1;
+      const attemptInBlock = (attemptsBeforeAppend % RUNS_PER_BLOCK) + 1;
+      const normalizedTargetNumber = Number.isFinite(Number(result.targetNumber))
+        ? Math.trunc(Number(result.targetNumber))
+        : null;
+      const normalizedBlockParameterSet =
+        result.blockParameterSet && typeof result.blockParameterSet === 'object'
+          ? result.blockParameterSet
+          : null;
+
+      const enrichedResult = {
+        ...result,
+        blockIndex,
+        attemptInBlock,
+        targetNumber: normalizedTargetNumber,
+        blockParameterSet: normalizedBlockParameterSet,
+      };
+
+      // Persist each attempt as a Result item; if backend schema is older, gracefully retry with base fields.
+      const resultInputBase = {
+        participantId: result.participantId,
+        timeMs: String(result.timeMs ?? ''),
+        scrollDistance: String(result.scrollDistance ?? ''),
+        timestamp: String(result.timestamp ?? ''),
+        multiplierUsed: String(result.multiplierUsed ?? ''),
+      };
+      const resultInputExtended = {
+        ...resultInputBase,
+        targetNumber: normalizedTargetNumber,
+        blockIndex,
+        attemptInBlock,
+        blockParameterSet: normalizedBlockParameterSet,
+      };
+
+      const createResultRequest = async (input) => {
+        const createResultResp = await fetch(outputs.data.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
+          body: JSON.stringify({
+            query: `mutation CreateResult($input: CreateResultInput!) { createResult(input: $input) { id participantId } }`,
+            variables: { input },
+          }),
+        });
+        return createResultResp.json();
+      };
+
+      let createResultJson = await createResultRequest(resultInputExtended);
+      if (createResultJson.errors?.length) {
+        createResultJson = await createResultRequest(resultInputBase);
+      }
+      if (createResultJson.errors?.length) {
+        throw new Error(createResultJson.errors[0]?.message || 'Failed to persist result item');
+      }
+
       if (arr.length >= 100) arr.shift();
-      arr.push(result);
+      arr.push(enrichedResult);
 
       // update participant attempts
       const updResp = await fetch(outputs.data.url, {
@@ -876,6 +932,14 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         timestamp,
         multiplierUsed,
         targetNumber,
+        blockParameterSet: {
+          scrollFriction: FLING_PHYSICS_CONFIG.scrollFriction,
+          x1: FLING_PHYSICS_CONFIG.x1,
+          x2: FLING_PHYSICS_CONFIG.x2,
+          inflexion: FLING_PHYSICS_CONFIG.inflexion,
+          physicalCoeffTuning: FLING_PHYSICS_CONFIG.physicalCoeffTuning,
+          maxLaunchVelocityPxMs: FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs,
+        },
         clutchCount: trial?.flicks?.length || 0,
         flickCount: trial?.flicks?.length || 0,
         flicks: trial?.flicks || [],

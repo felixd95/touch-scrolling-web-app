@@ -42,6 +42,10 @@ type Result {
   scrollDistance: String!
   timestamp: String!
   multiplierUsed: String!
+  targetNumber: Int
+  blockIndex: Int
+  attemptInBlock: Int
+  blockParameterSet: AWSJSON
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
@@ -93,6 +97,10 @@ input CreateResultInput {
   scrollDistance: String!
   timestamp: String!
   multiplierUsed: String!
+  targetNumber: Int
+  blockIndex: Int
+  attemptInBlock: Int
+  blockParameterSet: AWSJSON
 }
 
 input ModelIDInput {
