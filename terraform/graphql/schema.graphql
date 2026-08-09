@@ -42,9 +42,6 @@ type Result {
   scrollDistance: String!
   timestamp: String!
   multiplierUsed: String!
-  runNumber: Int
-  parameterSet: AWSJSON
-  attemptsDetails: AWSJSON
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
@@ -96,9 +93,6 @@ input CreateResultInput {
   scrollDistance: String!
   timestamp: String!
   multiplierUsed: String!
-  runNumber: Int
-  parameterSet: AWSJSON
-  attemptsDetails: AWSJSON
 }
 
 input ModelIDInput {

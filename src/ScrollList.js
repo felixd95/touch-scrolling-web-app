@@ -545,17 +545,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           multiplierUsed: String(result.multiplierUsed ?? ''),
         };
 
-        const summaryInputExtended = {
-          ...summaryInputBase,
-          runNumber: blockIndex,
-          parameterSet: JSON.stringify(activeBlock.parameterSet || normalizedBlockParameterSet || null),
-          attemptsDetails: JSON.stringify(runAttempts),
-        };
-
-        let createResultJson = await createResultRequest(summaryInputExtended);
-        if (createResultJson.errors?.length) {
-          createResultJson = await createResultRequest(summaryInputBase);
-        }
+        let createResultJson = await createResultRequest(summaryInputBase);
         if (createResultJson.errors?.length) {
           throw new Error(createResultJson.errors[0]?.message || 'Failed to persist run summary item');
         }
