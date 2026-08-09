@@ -431,25 +431,12 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   }, []);
 
   const saveResult = async (result) => {
-    const fallbackSave = () => {
-      try {
-        // store per-participant attempts mapping
-        const existingMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
-        const pid = result.participantId || 'anonymous';
-        const arr = existingMap[pid] || [];
-        // maintain up to 100 entries
-        if (arr.length >= 100) arr.shift();
-        arr.push(result);
-        existingMap[pid] = arr;
-        localStorage.setItem('participantResults', JSON.stringify(existingMap));
-      } catch (e) {
-        console.error('Fallback save failed', e);
-      }
-    };
-
     if (!result.participantId) {
-      fallbackSave();
-      return { attemptsCount: 0, savedRemotely: false };
+      return {
+        attemptsCount: 0,
+        savedRemotely: false,
+        error: 'Keine participantId gesetzt. Backend-Speicherung nicht moeglich.',
+      };
     }
 
     try {
@@ -463,7 +450,16 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         }),
       });
       const qjson = await qresp.json();
-      const existing = (qjson.data?.listParticipants?.items[0]?.attempts) || null;
+      if (Array.isArray(qjson.errors) && qjson.errors.length > 0) {
+        throw new Error(qjson.errors[0]?.message || 'ListParticipants failed');
+      }
+
+      const participantItem = qjson.data?.listParticipants?.items?.[0] || null;
+      if (!participantItem?.id) {
+        throw new Error('Participant not found in backend while saving attempt');
+      }
+
+      const existing = participantItem.attempts || null;
       const attemptBlocks = normalizeAttemptBlocks(existing);
       const attemptsBeforeAppend = countAttemptsInBlocks(attemptBlocks);
       const blockIndex = Math.floor(attemptsBeforeAppend / RUNS_PER_BLOCK) + 1;
@@ -526,17 +522,18 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         }),
       });
       const updJson = await updResp.json();
-      if (updJson.errors) {
-        console.warn('Update failed, falling back to localStorage', updJson.errors);
-        fallbackSave();
-        return { attemptsCount: attemptsAfterAppend, savedRemotely: false };
+      if (Array.isArray(updJson.errors) && updJson.errors.length > 0) {
+        throw new Error(updJson.errors[0]?.message || 'UpdateParticipant failed');
       }
 
       return { attemptsCount: attemptsAfterAppend, savedRemotely: true };
     } catch (err) {
       console.error('Error saving result', err);
-      fallbackSave();
-      return { attemptsCount: 0, savedRemotely: false };
+      return {
+        attemptsCount: 0,
+        savedRemotely: false,
+        error: err?.message || 'Unbekannter Backend-Fehler beim Speichern',
+      };
     }
   };
 
@@ -999,6 +996,23 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           x2,
         },
       });
+
+      if (!saveOutcome?.savedRemotely) {
+        setIsSearching(false);
+        setRoundCompleted(false);
+        setActiveMultiplier(null);
+        setStartTime(null);
+        residualVelocityRef.current = 0;
+        trialMetricsRef.current = null;
+        touchStatsRef.current.active = false;
+        setAwaitingNextParameterSet(false);
+        setAwaitingBlockStartConfirmation(false);
+        setParametersReadyForNextBlock(false);
+        setParameterSyncError(
+          `Backend-Speichern fehlgeschlagen. Der Versuch wurde nicht uebernommen. Bitte Admin informieren und danach erneut starten. Grund: ${saveOutcome?.error || 'Unbekannter Fehler'}`
+        );
+        return;
+      }
 
       const nextRunCount = runCount + 1;
       const runBlockFinished = nextRunCount >= RUNS_PER_BLOCK;
