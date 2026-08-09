@@ -44,8 +44,11 @@ type Result {
   multiplierUsed: String!
   targetNumber: Int
   blockIndex: Int
+  runNumber: Int
   attemptInBlock: Int
   blockParameterSet: AWSJSON
+  parameterSet: AWSJSON
+  attemptsDetails: AWSJSON
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
@@ -99,8 +102,11 @@ input CreateResultInput {
   multiplierUsed: String!
   targetNumber: Int
   blockIndex: Int
+  runNumber: Int
   attemptInBlock: Int
   blockParameterSet: AWSJSON
+  parameterSet: AWSJSON
+  attemptsDetails: AWSJSON
 }
 
 input ModelIDInput {

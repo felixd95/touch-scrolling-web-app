@@ -180,8 +180,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [parametersReadyForNextBlock, setParametersReadyForNextBlock] = useState(true);
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [nextParameterSet, setNextParameterSet] = useState(null);
-  const [liveInstantVelocityPxMs, setLiveInstantVelocityPxMs] = useState(0);
-  const [liveRegressionVelocityPxMs, setLiveRegressionVelocityPxMs] = useState(0);
 
   const targetNumber = practiceRunCompleted
     ? (targetSequence[targetIndex] ?? targetSequence[0] ?? FIXED_TARGET_NUMBERS[0])
@@ -478,22 +476,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
           ? result.blockParameterSet
           : null;
 
-      // Persist each attempt as a Result item; if backend schema is older, gracefully retry with base fields.
-      const resultInputBase = {
-        participantId: result.participantId,
-        timeMs: String(result.timeMs ?? ''),
-        scrollDistance: String(result.scrollDistance ?? ''),
-        timestamp: String(result.timestamp ?? ''),
-        multiplierUsed: String(result.multiplierUsed ?? ''),
-      };
-      const resultInputExtended = {
-        ...resultInputBase,
-        targetNumber: normalizedTargetNumber,
-        blockIndex,
-        attemptInBlock,
-        blockParameterSet: normalizedBlockParameterSet,
-      };
-
       const createResultRequest = async (input) => {
         const createResultResp = await fetch(outputs.data.url, {
           method: 'POST',
@@ -505,14 +487,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         });
         return createResultResp.json();
       };
-
-      let createResultJson = await createResultRequest(resultInputExtended);
-      if (createResultJson.errors?.length) {
-        createResultJson = await createResultRequest(resultInputBase);
-      }
-      if (createResultJson.errors?.length) {
-        throw new Error(createResultJson.errors[0]?.message || 'Failed to persist result item');
-      }
 
       const compactAttempt = {
         attemptInBlock,
@@ -537,6 +511,66 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       }
 
       activeBlock.attempts.push(compactAttempt);
+
+      const runCompleted = activeBlock.attempts.length === RUNS_PER_BLOCK;
+      if (runCompleted) {
+        const runAttempts = activeBlock.attempts
+          .map((attempt, idx) => ({
+            attemptInBlock: Number.isFinite(Number(attempt?.attemptInBlock))
+              ? Math.trunc(Number(attempt.attemptInBlock))
+              : idx + 1,
+            targetNumber: Number.isFinite(Number(attempt?.targetNumber))
+              ? Math.trunc(Number(attempt.targetNumber))
+              : null,
+            timeMs: Number.isFinite(Number(attempt?.timeMs)) ? Number(attempt.timeMs) : null,
+            scrollDistance: Number.isFinite(Number(attempt?.scrollDistance)) ? Number(attempt.scrollDistance) : null,
+            timestamp: attempt?.timestamp || null,
+          }))
+          .sort((a, b) => a.attemptInBlock - b.attemptInBlock);
+
+        const totalTimeMs = runAttempts.reduce(
+          (sum, attempt) => sum + (Number.isFinite(Number(attempt.timeMs)) ? Number(attempt.timeMs) : 0),
+          0,
+        );
+        const totalScrollDistance = runAttempts.reduce(
+          (sum, attempt) => sum + (Number.isFinite(Number(attempt.scrollDistance)) ? Number(attempt.scrollDistance) : 0),
+          0,
+        );
+
+        const summaryInputBase = {
+          participantId: result.participantId,
+          timeMs: String(totalTimeMs),
+          scrollDistance: String(totalScrollDistance),
+          timestamp: String(runAttempts[runAttempts.length - 1]?.timestamp || result.timestamp || new Date().toISOString()),
+          multiplierUsed: String(result.multiplierUsed ?? ''),
+        };
+
+        const summaryInputExtended = {
+          ...summaryInputBase,
+          blockIndex,
+          runNumber: blockIndex,
+          blockParameterSet: activeBlock.parameterSet || normalizedBlockParameterSet,
+          parameterSet: activeBlock.parameterSet || normalizedBlockParameterSet,
+          attemptsDetails: runAttempts,
+        };
+
+        let createResultJson = await createResultRequest(summaryInputExtended);
+        if (createResultJson.errors?.length) {
+          // Fallback for older API schemas that don't yet contain new summary fields.
+          const summaryInputCompat = {
+            ...summaryInputBase,
+            blockIndex,
+            blockParameterSet: activeBlock.parameterSet || normalizedBlockParameterSet,
+          };
+          createResultJson = await createResultRequest(summaryInputCompat);
+        }
+        if (createResultJson.errors?.length) {
+          createResultJson = await createResultRequest(summaryInputBase);
+        }
+        if (createResultJson.errors?.length) {
+          throw new Error(createResultJson.errors[0]?.message || 'Failed to persist run summary item');
+        }
+      }
 
       // Keep at most the latest 100 attempts while preserving block structure.
       while (countAttemptsInBlocks(attemptBlocks) > 100) {
@@ -652,10 +686,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     if (denominator <= 0) return 0;
     return numerator / denominator;
-  };
-
-  const formatVelocity = (value) => {
-    return Number.isFinite(value) ? value.toFixed(4) : '0.0000';
   };
 
   const getTargetPositionRatio = () => {
@@ -832,8 +862,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     lastMoveTimeRef.current = now;
     velocityRef.current = 0;
     touchSamplesRef.current = [];
-    setLiveInstantVelocityPxMs(0);
-    setLiveRegressionVelocityPxMs(0);
     pushTouchSample(now, touchY);
 
     const parsedX1 = parseFloat(x1Input);
@@ -886,8 +914,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     const instantVelocity = deltaY / dt;
     velocityRef.current = 0.8 * velocityRef.current + 0.2 * instantVelocity;
     pushTouchSample(now, touchY);
-    setLiveInstantVelocityPxMs(instantVelocity);
-    setLiveRegressionVelocityPxMs(getRegressionVelocityPxMs());
 
     if (touchStatsRef.current.active) {
       const absSpeed = Math.abs(instantVelocity);
@@ -904,8 +930,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
     pushTouchSample(endNow, lastTouchY == null ? 0 : lastTouchY);
     const fingerVelocityPxMs = getRegressionVelocityPxMs();
-    setLiveInstantVelocityPxMs(0);
-    setLiveRegressionVelocityPxMs(fingerVelocityPxMs);
 
     const flingVelocityThresholdPxMs = getMinFlingVelocityPxMs();
     const meetsFlingThreshold = isFlingThresholdMet(fingerVelocityPxMs, flingVelocityThresholdPxMs);
@@ -1139,8 +1163,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
   const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
-  const currentFlingThresholdPxMs = getMinFlingVelocityPxMs();
-  const currentDecelerationRate = Math.log(FLING_PHYSICS_CONFIG.x1) / Math.log(FLING_PHYSICS_CONFIG.x2);
   const showParameterDialog = awaitingNextParameterSet || awaitingBlockStartConfirmation || Boolean(parameterSyncError);
   const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
     ? RUNS_PER_BLOCK
@@ -1177,18 +1199,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
             <div className="parameter-line">maxLaunchVelocity: {FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs.toFixed(2)} px/ms</div>
           </div>
 
-          <div style={{ marginTop: 8, fontSize: 12, color: '#4c5967', lineHeight: 1.5 }}>
-            <div>Speed: {formatVelocity(liveInstantVelocityPxMs)} px/ms</div>
-            <div>Regression: {formatVelocity(liveRegressionVelocityPxMs)} px/ms</div>
-            <div>Threshold={formatVelocity(currentFlingThresholdPxMs)} px/msy</div>
-            <div>scrollFriction={FLING_PHYSICS_CONFIG.scrollFriction.toFixed(4)}</div>
-            <div>x1={FLING_PHYSICS_CONFIG.x1.toFixed(2)}</div>
-            <div>x2={FLING_PHYSICS_CONFIG.x2.toFixed(2)}</div>
-            <div>inflexion={FLING_PHYSICS_CONFIG.inflexion.toFixed(2)}</div>
-            <div>physicalCoeffTuning={FLING_PHYSICS_CONFIG.physicalCoeffTuning.toFixed(2)}</div>
-            <div>maxLaunchVelocity={FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs.toFixed(2)} px/ms</div>
-            <div>decelerationRate={currentDecelerationRate.toFixed(6)}</div>
-          </div>
         </div>
       </div>
 
