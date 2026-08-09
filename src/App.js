@@ -276,6 +276,12 @@ function ParticipantsList({ onBack }) {
       }
     }
 
+    if (!Array.isArray(parsed) && parsed && typeof parsed === 'object') {
+      parsed = Object.keys(parsed)
+        .sort((a, b) => Number(a) - Number(b))
+        .map((key) => parsed[key]);
+    }
+
     if (!Array.isArray(parsed)) return { blocks: [], flat: [] };
 
     const looksLikeBlocks = parsed.some((entry) =>
@@ -583,7 +589,8 @@ function ParticipantsList({ onBack }) {
                   {items.map((p) => {
                     // parse attempts array for this participant
                     const parsedAttempts = parseAttemptsPayload(p.attempts);
-                    let attemptsArr = parsedAttempts.flat;
+                    const attemptsArr = parsedAttempts.flat;
+                    const hasStoredAttempts = parsedAttempts.blocks.length > 0 || attemptsArr.length > 0;
                     return (
                       <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
                         <td style={{ padding: 6 }}>{p.id}</td>
@@ -601,12 +608,12 @@ function ParticipantsList({ onBack }) {
                               setSelectedParticipant({
                                 ...p,
                                 attempts: attemptsArr,
-                                attemptBlocks: parseAttemptsPayload(p.attempts).blocks,
+                                attemptBlocks: parsedAttempts.blocks,
                                 runGroups,
                               });
                               setSelectedRunIndex(Math.max(0, runGroups.length - 1));
                             }}
-                            disabled={attemptsArr.length===0}
+                            disabled={!hasStoredAttempts}
                           >
                             View Attempts
                           </button>
