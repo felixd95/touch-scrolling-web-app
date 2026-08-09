@@ -58,6 +58,7 @@ const DEFAULT_NEXT_PARAMETER_SET = {
 };
 
 const normalizeHandPreference = (value) => (value === 'left' ? 'left' : 'right');
+const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
 
 const getStoredHandPreference = (participantId) => {
   if (!participantId) return 'right';
@@ -89,7 +90,8 @@ function LoginForm({ onSuccess, onUserInteraction }) {
     e && e.preventDefault();
     onUserInteraction && onUserInteraction();
     setError('');
-    if (!email) return setError('Bitte E-Mail eingeben');
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail) return setError('Bitte E-Mail eingeben');
     setLoading(true);
     try {
       const resp = await fetch(outputs.data.url, {
@@ -99,15 +101,15 @@ function LoginForm({ onSuccess, onUserInteraction }) {
           'x-api-key': outputs.data.api_key,
         },
         body: JSON.stringify({
-          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id email scrollHandPreference } } }`,
-          variables: { filter: { email: { eq: email } } },
+          query: `query ListParticipants { listParticipants { items { id email scrollHandPreference } } }`,
         }),
       });
 
       const json = await resp.json();
       const items = json.data?.listParticipants?.items || [];
-      if (items.length > 0) {
-        onSuccess(items[0].id, normalizeHandPreference(items[0].scrollHandPreference));
+      const matchingParticipant = items.find((item) => normalizeEmail(item?.email) === normalizedEmail);
+      if (matchingParticipant) {
+        onSuccess(matchingParticipant.id, normalizeHandPreference(matchingParticipant.scrollHandPreference));
       } else {
         setError('E-Mail nicht gefunden');
       }
@@ -144,6 +146,32 @@ function ParticipantsList({ onBack }) {
   const formatMetric = (value, digits = 2) => {
     if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
     return Number(value).toFixed(digits);
+  };
+
+  const formatBlockParameterSummary = (parameterSet) => {
+    if (!parameterSet || typeof parameterSet !== 'object') return 'Keine Parameter gespeichert';
+
+    return [
+      `scrollFriction=${formatMetric(parameterSet.scrollFriction, 4)}`,
+      `x1=${formatMetric(parameterSet.x1, 3)}`,
+      `x2=${formatMetric(parameterSet.x2, 3)}`,
+      `inflexion=${formatMetric(parameterSet.inflexion, 3)}`,
+      `physicalCoeffTuning=${formatMetric(parameterSet.physicalCoeffTuning, 3)}`,
+      `maxLaunchVelocity=${formatMetric(parameterSet.maxLaunchVelocityPxMs, 2)}`,
+    ].join(', ');
+  };
+
+  const getBlockParameterItems = (parameterSet) => {
+    if (!parameterSet || typeof parameterSet !== 'object') return [];
+
+    return [
+      { label: 'scrollFriction', value: formatMetric(parameterSet.scrollFriction, 4) },
+      { label: 'x1', value: formatMetric(parameterSet.x1, 3) },
+      { label: 'x2', value: formatMetric(parameterSet.x2, 3) },
+      { label: 'inflexion', value: formatMetric(parameterSet.inflexion, 3) },
+      { label: 'physicalCoeffTuning', value: formatMetric(parameterSet.physicalCoeffTuning, 3) },
+      { label: 'maxLaunchVelocity', value: formatMetric(parameterSet.maxLaunchVelocityPxMs, 2) },
+    ];
   };
 
   const normalizeParameterSet = (raw) => {
@@ -500,7 +528,7 @@ function ParticipantsList({ onBack }) {
           nextParameterSet: normalizeParameterSet(participant.nextParameterSet),
         }));
         setItems(itemsWithAttempts);
-        // collect all attempts from participants (remote attempts stored in participant.attempts or localStorage fallback)
+        // collect all attempts from participants (remote attempts stored in participant.attempts)
         const allAttempts = [];
         for (const p of itemsWithAttempts) {
           if (p.attempts) {
@@ -508,14 +536,6 @@ function ParticipantsList({ onBack }) {
             for (const a of parsedAttempts.flat) allAttempts.push(a);
           }
         }
-        // merge with local fallback (participantResults)
-        try {
-          const localMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
-          for (const pid of Object.keys(localMap)) {
-            const arr = localMap[pid] || [];
-            for (const a of arr) allAttempts.push(a);
-          }
-        } catch (e) {}
         setResults(allAttempts);
       } catch (err) {
         console.error(err);
@@ -564,12 +584,6 @@ function ParticipantsList({ onBack }) {
                     // parse attempts array for this participant
                     const parsedAttempts = parseAttemptsPayload(p.attempts);
                     let attemptsArr = parsedAttempts.flat;
-                    // also include local fallback for this participant
-                    try {
-                      const localMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
-                      if (localMap[p.id]) attemptsArr = (attemptsArr || []).concat(localMap[p.id]);
-                    } catch (e) {}
-
                     return (
                       <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
                         <td style={{ padding: 6 }}>{p.id}</td>
@@ -584,7 +598,12 @@ function ParticipantsList({ onBack }) {
                             className="nav-button"
                             onClick={() => {
                               const runGroups = buildRunGroups(attemptsArr);
-                              setSelectedParticipant({ ...p, attempts: attemptsArr, runGroups, attemptBlocks: buildAttemptBlocksFromFlat(attemptsArr) });
+                              setSelectedParticipant({
+                                ...p,
+                                attempts: attemptsArr,
+                                attemptBlocks: parseAttemptsPayload(p.attempts).blocks,
+                                runGroups,
+                              });
                               setSelectedRunIndex(Math.max(0, runGroups.length - 1));
                             }}
                             disabled={attemptsArr.length===0}
@@ -612,74 +631,151 @@ function ParticipantsList({ onBack }) {
                   Naechster Parametersatz: x1={formatMetric(selectedParticipant.nextParameterSet.x1)}, x2={formatMetric(selectedParticipant.nextParameterSet.x2)}
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                <label>
-                  Durchlauf wählen:
-                  <select
-                    value={selectedRunIndex}
-                    onChange={(e) => setSelectedRunIndex(Number(e.target.value))}
-                    style={{ marginLeft: 8 }}
-                    disabled={(selectedParticipant.runGroups || []).length === 0 || deletingRun}
-                  >
-                    {(selectedParticipant.runGroups || []).map((group, i) => (
-                      <option key={i} value={i}>
-                        Durchlauf {group.blockIndex ?? (i + 1)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  className="nav-button"
-                  onClick={handleDeleteSelectedRun}
-                  disabled={(selectedParticipant.runGroups || []).length === 0 || deletingRun}
-                  style={{ background: '#c62828' }}
-                >
-                  {deletingRun ? 'Loesche...' : 'Diesen Durchlauf loeschen'}
-                </button>
-              </div>
-              {deleteError && <p style={{ color: '#c62828', marginTop: 8 }}>{deleteError}</p>}
-              {selectedParticipant.runGroups?.[selectedRunIndex]?.parameterSet && (
-                <div style={{ marginTop: 10, marginBottom: 10, fontSize: 13, color: '#4c5967', lineHeight: 1.5 }}>
-                  <strong>Block-Parameter:</strong>{' '}
-                  scrollFriction={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.scrollFriction, 4)},
-                  {' '}x1={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.x1, 3)},
-                  {' '}x2={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.x2, 3)},
-                  {' '}inflexion={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.inflexion, 3)},
-                  {' '}physicalCoeffTuning={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.physicalCoeffTuning, 3)},
-                  {' '}maxLaunchVelocity={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.maxLaunchVelocityPxMs, 2)}
-                </div>
-              )}
-              <div style={{ marginTop: 12, maxHeight: '40vh', overflow: 'auto' }}>
-                {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).length === 0 ? (
-                  <p>Keine Ergebnisse für den ausgewählten Durchlauf.</p>
+              <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+                {(selectedParticipant.runGroups || []).length === 0 ? (
+                  <p>Keine Durchläufe vorhanden.</p>
                 ) : (
-                  <table style={{ minWidth: 900, width: '100%', borderCollapse: 'collapse', background: '#f7f7f7' }}>
-                    <thead>
-                      <tr>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Versuch</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Target</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Zeit (ms)</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Distanz</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Timestamp</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).map((attempt, idx) => (
-                        <tr key={`${attempt?.timestamp || 'na'}-${idx}`} style={{ borderTop: '1px solid #e5e5e5' }}>
-                          <td style={{ padding: 6 }}>{attempt?.attemptInBlock ?? (idx + 1)}</td>
-                          <td style={{ padding: 6 }}>{attempt?.targetNumber ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.timeMs ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.scrollDistance ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.timestamp ?? '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  (selectedParticipant.runGroups || []).map((group, i) => {
+                    const isOpen = i === selectedRunIndex;
+                    const attempts = group.attempts || [];
+                    const parameterItems = getBlockParameterItems(group.parameterSet);
+
+                    return (
+                      <div
+                        key={`run-group-${group.blockIndex ?? i}`}
+                        style={{
+                          border: isOpen ? '1px solid #8aa4c0' : '1px solid #ddd',
+                          borderRadius: 10,
+                          overflow: 'hidden',
+                          background: isOpen ? '#f7fbff' : '#fff',
+                          boxShadow: isOpen ? '0 4px 14px rgba(71, 98, 130, 0.10)' : 'none',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRunIndex(i)}
+                          style={{
+                            width: '100%',
+                            textAlign: 'left',
+                            background: 'transparent',
+                            border: 'none',
+                            padding: 14,
+                            cursor: 'pointer',
+                            display: 'grid',
+                            gap: 10,
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                            <div style={{ display: 'grid', gap: 4 }}>
+                              <strong style={{ fontSize: 16 }}>Block {group.blockIndex ?? (i + 1)}</strong>
+                              <span style={{ fontSize: 12, color: '#66788a' }}>
+                                {attempts.length} Versuche
+                              </span>
+                            </div>
+                            <span style={{ fontSize: 18, color: '#476282', lineHeight: 1 }}>
+                              {isOpen ? '▾' : '▸'}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: 13, color: '#4c5967', lineHeight: 1.5 }}>
+                            {formatBlockParameterSummary(group.parameterSet)}
+                          </span>
+                          {parameterItems.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                              {parameterItems.map((item) => (
+                                <span
+                                  key={`${group.blockIndex ?? i}-${item.label}`}
+                                  style={{
+                                    fontSize: 12,
+                                    color: '#35506b',
+                                    background: '#eaf3fb',
+                                    border: '1px solid #d1e3f2',
+                                    borderRadius: 999,
+                                    padding: '4px 8px',
+                                  }}
+                                >
+                                  {item.label}: {item.value}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </button>
+
+                        {isOpen && (
+                          <div style={{ padding: '0 12px 12px' }}>
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+                              <button
+                                className="nav-button"
+                                onClick={handleDeleteSelectedRun}
+                                disabled={deletingRun}
+                                style={{ background: '#c62828' }}
+                              >
+                                {deletingRun ? 'Loesche...' : 'Diesen Durchlauf loeschen'}
+                              </button>
+                            </div>
+                            {parameterItems.length > 0 && (
+                              <div
+                                style={{
+                                  marginBottom: 10,
+                                  display: 'grid',
+                                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                  gap: 8,
+                                }}
+                              >
+                                {parameterItems.map((item) => (
+                                  <div
+                                    key={`detail-${group.blockIndex ?? i}-${item.label}`}
+                                    style={{
+                                      background: '#fff',
+                                      border: '1px solid #dfe7ee',
+                                      borderRadius: 8,
+                                      padding: '8px 10px',
+                                    }}
+                                  >
+                                    <div style={{ fontSize: 11, color: '#66788a', marginBottom: 3 }}>{item.label}</div>
+                                    <div style={{ fontSize: 14, color: '#1f2f3d', fontWeight: 600 }}>{item.value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <div style={{ maxHeight: '40vh', overflow: 'auto' }}>
+                              {attempts.length === 0 ? (
+                                <p>Keine Ergebnisse für den ausgewählten Durchlauf.</p>
+                              ) : (
+                                <table style={{ minWidth: 900, width: '100%', borderCollapse: 'collapse', background: '#fff', border: '1px solid #dfe7ee', borderRadius: 8 }}>
+                                  <thead>
+                                    <tr>
+                                      <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Versuch</th>
+                                      <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Target</th>
+                                      <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Zeit (ms)</th>
+                                      <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Scroll-Distanz</th>
+                                      <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Timestamp</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {attempts.map((attempt, idx) => (
+                                      <tr key={`${attempt?.timestamp || 'na'}-${idx}`} style={{ borderTop: '1px solid #e5e5e5' }}>
+                                        <td style={{ padding: 8 }}>{attempt?.attemptInBlock ?? (idx + 1)}</td>
+                                        <td style={{ padding: 8 }}>{attempt?.targetNumber ?? '-'}</td>
+                                        <td style={{ padding: 8 }}>{attempt?.timeMs ?? '-'}</td>
+                                        <td style={{ padding: 8 }}>{attempt?.scrollDistance ?? '-'}</td>
+                                        <td style={{ padding: 8 }}>{attempt?.timestamp ?? '-'}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                            <div style={{ marginTop: 8, color: '#666' }}>
+                              Anzahl Ergebnisse im Durchlauf: {attempts.length}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
-              <div style={{ marginTop: 8, color: '#666' }}>
-                Anzahl Ergebnisse im Durchlauf: {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).length}
-              </div>
+              {deleteError && <p style={{ color: '#c62828', marginTop: 8 }}>{deleteError}</p>}
               <div style={{ marginTop: 8 }}>
                 <button className="nav-button" onClick={() => setSelectedParticipant(null)}>Close</button>
               </div>
@@ -718,6 +814,14 @@ function App() {
     setLoading(true);
     setStatus('');
     try {
+      const normalizedEmail = normalizeEmail(formData.email);
+
+      if (!normalizedEmail) {
+        setStatus('Bitte eine E-Mail eingeben.');
+        setLoading(false);
+        return;
+      }
+
       // check if email already exists
       const resp = await fetch(outputs.data.url, {
         method: 'POST',
@@ -726,14 +830,14 @@ function App() {
           'x-api-key': outputs.data.api_key,
         },
         body: JSON.stringify({
-          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id email } } }`,
-          variables: { filter: { email: { eq: formData.email.trim() } } },
+          query: `query ListParticipants { listParticipants { items { id email } } }`,
         }),
       });
 
       const json = await resp.json();
       const items = json.data?.listParticipants?.items || [];
-      if (items.length > 0) {
+      const emailAlreadyExists = items.some((item) => normalizeEmail(item?.email) === normalizedEmail);
+      if (emailAlreadyExists) {
         setStatus('E-Mail ist bereits vergeben. Bitte andere E-Mail verwenden.');
         setLoading(false);
         return;
@@ -760,7 +864,7 @@ function App() {
             input: {
               firstName: formData.firstName.trim(),
               lastName: formData.lastName.trim(),
-              email: formData.email.trim(),
+              email: normalizedEmail,
               birthDate: formData.birthDate,
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
