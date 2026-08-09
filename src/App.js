@@ -177,6 +177,36 @@ function ParticipantsList({ onBack }) {
   const buildRunGroups = (attempts) => {
     if (!Array.isArray(attempts) || attempts.length === 0) return [];
 
+    const hasBlockMetadata = attempts.some((attempt) => Number.isFinite(Number(attempt?.blockIndex)));
+    if (hasBlockMetadata) {
+      const grouped = new Map();
+      for (const attempt of attempts) {
+        const blockIndex = Number.isFinite(Number(attempt?.blockIndex))
+          ? Math.trunc(Number(attempt.blockIndex))
+          : 1;
+        if (!grouped.has(blockIndex)) {
+          grouped.set(blockIndex, []);
+        }
+        grouped.get(blockIndex).push(attempt);
+      }
+
+      return Array.from(grouped.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([blockIndex, blockAttempts]) => ({
+          multiplier: Number(blockAttempts?.[0]?.multiplierUsed ?? 1),
+          blockIndex,
+          parameterSet:
+            blockAttempts?.[0]?.blockParameterSet && typeof blockAttempts[0].blockParameterSet === 'object'
+              ? blockAttempts[0].blockParameterSet
+              : null,
+          attempts: blockAttempts.sort((a, b) => {
+            const ai = Number.isFinite(Number(a?.attemptInBlock)) ? Number(a.attemptInBlock) : 0;
+            const bi = Number.isFinite(Number(b?.attemptInBlock)) ? Number(b.attemptInBlock) : 0;
+            return ai - bi;
+          }),
+        }));
+    }
+
     const sorted = [...attempts].sort((a, b) => {
       const ta = a?.timestamp ? new Date(a.timestamp).getTime() : 0;
       const tb = b?.timestamp ? new Date(b.timestamp).getTime() : 0;
@@ -206,6 +236,112 @@ function ParticipantsList({ onBack }) {
     return groups;
   };
 
+  const parseAttemptsPayload = (rawAttempts) => {
+    if (!rawAttempts) return { blocks: [], flat: [] };
+
+    let parsed = rawAttempts;
+    if (typeof parsed === 'string') {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch (error) {
+        return { blocks: [], flat: [] };
+      }
+    }
+
+    if (!Array.isArray(parsed)) return { blocks: [], flat: [] };
+
+    const looksLikeBlocks = parsed.some((entry) =>
+      entry && typeof entry === 'object' && Array.isArray(entry.attempts)
+    );
+
+    if (!looksLikeBlocks) {
+      return { blocks: [], flat: parsed.filter((entry) => entry && typeof entry === 'object') };
+    }
+
+    const blocks = parsed
+      .filter((entry) => entry && typeof entry === 'object' && Array.isArray(entry.attempts))
+      .map((entry, index) => ({
+        runNumber: Number.isFinite(Number(entry.runNumber)) ? Math.trunc(Number(entry.runNumber)) : index + 1,
+        parameterSet: entry.parameterSet && typeof entry.parameterSet === 'object' ? entry.parameterSet : null,
+        attempts: entry.attempts.filter((attempt) => attempt && typeof attempt === 'object'),
+      }));
+
+    const flat = [];
+    for (const block of blocks) {
+      const runNumber = Number.isFinite(Number(block.runNumber)) ? Math.trunc(Number(block.runNumber)) : 1;
+      (block.attempts || []).forEach((attempt, idx) => {
+        flat.push({
+          ...attempt,
+          blockIndex: runNumber,
+          attemptInBlock: Number.isFinite(Number(attempt?.attemptInBlock))
+            ? Math.trunc(Number(attempt.attemptInBlock))
+            : idx + 1,
+          blockParameterSet:
+            attempt?.blockParameterSet && typeof attempt.blockParameterSet === 'object'
+              ? attempt.blockParameterSet
+              : block.parameterSet,
+        });
+      });
+    }
+
+    return { blocks, flat };
+  };
+
+  const buildAttemptBlocksFromFlat = (attempts) => {
+    if (!Array.isArray(attempts) || attempts.length === 0) return [];
+
+    const sorted = [...attempts].sort((a, b) => {
+      const blockA = Number.isFinite(Number(a?.blockIndex)) ? Number(a.blockIndex) : 0;
+      const blockB = Number.isFinite(Number(b?.blockIndex)) ? Number(b.blockIndex) : 0;
+      if (blockA !== blockB) return blockA - blockB;
+
+      const attemptA = Number.isFinite(Number(a?.attemptInBlock)) ? Number(a.attemptInBlock) : 0;
+      const attemptB = Number.isFinite(Number(b?.attemptInBlock)) ? Number(b.attemptInBlock) : 0;
+      if (attemptA !== attemptB) return attemptA - attemptB;
+
+      const ta = a?.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const tb = b?.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return ta - tb;
+    });
+
+    const blocks = [];
+    sorted.forEach((attempt, index) => {
+      const runNumber = Number.isFinite(Number(attempt?.blockIndex))
+        ? Math.trunc(Number(attempt.blockIndex))
+        : Math.floor(index / RUNS_PER_BLOCK) + 1;
+      const attemptInBlock = Number.isFinite(Number(attempt?.attemptInBlock))
+        ? Math.trunc(Number(attempt.attemptInBlock))
+        : (index % RUNS_PER_BLOCK) + 1;
+
+      let block = blocks.find((entry) => entry.runNumber === runNumber);
+      if (!block) {
+        block = {
+          runNumber,
+          parameterSet:
+            attempt?.blockParameterSet && typeof attempt.blockParameterSet === 'object'
+              ? attempt.blockParameterSet
+              : null,
+          attempts: [],
+        };
+        blocks.push(block);
+      }
+
+      if (!block.parameterSet && attempt?.blockParameterSet && typeof attempt.blockParameterSet === 'object') {
+        block.parameterSet = attempt.blockParameterSet;
+      }
+
+      block.attempts.push({
+        attemptInBlock,
+        targetNumber: Number.isFinite(Number(attempt?.targetNumber)) ? Math.trunc(Number(attempt.targetNumber)) : null,
+        timeMs: Number.isFinite(Number(attempt?.timeMs)) ? Number(attempt.timeMs) : attempt?.timeMs,
+        scrollDistance: Number.isFinite(Number(attempt?.scrollDistance)) ? Number(attempt.scrollDistance) : attempt?.scrollDistance,
+        timestamp: attempt?.timestamp,
+      });
+    });
+
+    return blocks.sort((a, b) => a.runNumber - b.runNumber);
+  };
+
   const updateLocalParticipantAttempts = (participantId, attempts) => {
     try {
       const localMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
@@ -217,6 +353,8 @@ function ParticipantsList({ onBack }) {
   };
 
   const updateParticipantAttemptsInBackend = async (participantId, attempts) => {
+    const serializedAttempts = JSON.stringify(buildAttemptBlocksFromFlat(attempts));
+
     const resp = await fetch(outputs.data.url, {
       method: 'POST',
       headers: {
@@ -225,7 +363,7 @@ function ParticipantsList({ onBack }) {
       },
       body: JSON.stringify({
         query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id attempts } }`,
-        variables: { input: { id: participantId, attempts: JSON.stringify(attempts) } },
+        variables: { input: { id: participantId, attempts: serializedAttempts } },
       }),
     });
 
@@ -245,7 +383,7 @@ function ParticipantsList({ onBack }) {
     if (!selectedGroup) return;
 
     const shouldDelete = window.confirm(
-      `Durchlauf ${selectedRunIndex + 1} mit ${selectedGroup.attempts.length} Versuch(en) wirklich loeschen?`
+      `Durchlauf ${selectedGroup.blockIndex ?? (selectedRunIndex + 1)} mit ${selectedGroup.attempts.length} Versuch(en) wirklich loeschen?`
     );
     if (!shouldDelete) return;
 
@@ -276,7 +414,7 @@ function ParticipantsList({ onBack }) {
       setItems((prev) =>
         prev.map((p) =>
           p.id === selectedParticipant.id
-            ? { ...p, attempts: JSON.stringify(nextAttempts) }
+            ? { ...p, attempts: JSON.stringify(buildAttemptBlocksFromFlat(nextAttempts)) }
             : p
         )
       );
@@ -306,14 +444,7 @@ function ParticipantsList({ onBack }) {
 
   const handleDownloadAllData = () => {
     const dataToExport = items.map((p) => {
-      let attemptsArr = [];
-      if (p.attempts) {
-        try {
-          attemptsArr = JSON.parse(p.attempts);
-        } catch (e) {
-          attemptsArr = [];
-        }
-      }
+      const parsedAttempts = parseAttemptsPayload(p.attempts);
       return {
         participantId: p.id,
         firstName: p.firstName,
@@ -325,7 +456,8 @@ function ParticipantsList({ onBack }) {
         scrollHandPreference: normalizeHandPreference(p.scrollHandPreference),
         currentParameterSet: normalizeParameterSet(p.currentParameterSet),
         nextParameterSet: normalizeParameterSet(p.nextParameterSet),
-        attempts: attemptsArr,
+        attemptBlocks: parsedAttempts.blocks,
+        attempts: parsedAttempts.flat,
       };
     });
 
@@ -372,12 +504,8 @@ function ParticipantsList({ onBack }) {
         const allAttempts = [];
         for (const p of itemsWithAttempts) {
           if (p.attempts) {
-            try {
-              const arr = JSON.parse(p.attempts || '[]');
-              for (const a of arr) allAttempts.push(a);
-            } catch (e) {
-              // ignore parse errors
-            }
+            const parsedAttempts = parseAttemptsPayload(p.attempts);
+            for (const a of parsedAttempts.flat) allAttempts.push(a);
           }
         }
         // merge with local fallback (participantResults)
@@ -434,10 +562,8 @@ function ParticipantsList({ onBack }) {
             <tbody>
                   {items.map((p) => {
                     // parse attempts array for this participant
-                    let attemptsArr = [];
-                    if (p.attempts) {
-                      try { attemptsArr = JSON.parse(p.attempts); } catch (e) { attemptsArr = []; }
-                    }
+                    const parsedAttempts = parseAttemptsPayload(p.attempts);
+                    let attemptsArr = parsedAttempts.flat;
                     // also include local fallback for this participant
                     try {
                       const localMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
@@ -458,7 +584,7 @@ function ParticipantsList({ onBack }) {
                             className="nav-button"
                             onClick={() => {
                               const runGroups = buildRunGroups(attemptsArr);
-                              setSelectedParticipant({ ...p, attempts: attemptsArr, runGroups });
+                              setSelectedParticipant({ ...p, attempts: attemptsArr, runGroups, attemptBlocks: buildAttemptBlocksFromFlat(attemptsArr) });
                               setSelectedRunIndex(Math.max(0, runGroups.length - 1));
                             }}
                             disabled={attemptsArr.length===0}
@@ -497,7 +623,7 @@ function ParticipantsList({ onBack }) {
                   >
                     {(selectedParticipant.runGroups || []).map((group, i) => (
                       <option key={i} value={i}>
-                        Durchlauf {i + 1} (Multiplier: {group.multiplier})
+                        Durchlauf {group.blockIndex ?? (i + 1)}
                       </option>
                     ))}
                   </select>
@@ -512,64 +638,38 @@ function ParticipantsList({ onBack }) {
                 </button>
               </div>
               {deleteError && <p style={{ color: '#c62828', marginTop: 8 }}>{deleteError}</p>}
+              {selectedParticipant.runGroups?.[selectedRunIndex]?.parameterSet && (
+                <div style={{ marginTop: 10, marginBottom: 10, fontSize: 13, color: '#4c5967', lineHeight: 1.5 }}>
+                  <strong>Block-Parameter:</strong>{' '}
+                  scrollFriction={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.scrollFriction, 4)},
+                  {' '}x1={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.x1, 3)},
+                  {' '}x2={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.x2, 3)},
+                  {' '}inflexion={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.inflexion, 3)},
+                  {' '}physicalCoeffTuning={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.physicalCoeffTuning, 3)},
+                  {' '}maxLaunchVelocity={formatMetric(selectedParticipant.runGroups[selectedRunIndex].parameterSet.maxLaunchVelocityPxMs, 2)}
+                </div>
+              )}
               <div style={{ marginTop: 12, maxHeight: '40vh', overflow: 'auto' }}>
                 {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).length === 0 ? (
                   <p>Keine Ergebnisse für den ausgewählten Durchlauf.</p>
                 ) : (
-                  <table style={{ minWidth: 1400, width: '100%', borderCollapse: 'collapse', background: '#f7f7f7' }}>
+                  <table style={{ minWidth: 900, width: '100%', borderCollapse: 'collapse', background: '#f7f7f7' }}>
                     <thead>
                       <tr>
-                        <th style={{ textAlign: 'left', padding: 6 }}>#</th>
+                        <th style={{ textAlign: 'left', padding: 6 }}>Versuch</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Target</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Zeit (ms)</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Distanz</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>x1</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>x2</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Flicks</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Switchbacks</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Overshoot</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Overshoot Count</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Max Overshoot (px)</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Startdistanz (px)</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Startdistanz (Items)</th>
-                        <th style={{ textAlign: 'left', padding: 6 }}>Flick-Details</th>
                         <th style={{ textAlign: 'left', padding: 6 }}>Timestamp</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(selectedParticipant.runGroups?.[selectedRunIndex]?.attempts || []).map((attempt, idx) => (
                         <tr key={`${attempt?.timestamp || 'na'}-${idx}`} style={{ borderTop: '1px solid #e5e5e5' }}>
-                          <td style={{ padding: 6 }}>{idx + 1}</td>
+                          <td style={{ padding: 6 }}>{attempt?.attemptInBlock ?? (idx + 1)}</td>
                           <td style={{ padding: 6 }}>{attempt?.targetNumber ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.timeMs ?? '-'}</td>
                           <td style={{ padding: 6 }}>{attempt?.scrollDistance ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.x1 ?? attempt?.paperParams?.a ?? 0.1, 2)}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.paperParams?.x2 ?? attempt?.paperParams?.b ?? 0.5, 2)}</td>
-                          <td style={{ padding: 6 }}>{attempt?.flickCount ?? attempt?.clutchCount ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.switchbackCount ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.overshoot?.didOvershoot ? 'Ja' : 'Nein'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.overshoot?.count ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.overshoot?.maxDistancePx ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{attempt?.startDistancePx ?? '-'}</td>
-                          <td style={{ padding: 6 }}>{formatMetric(attempt?.startDistanceItems)}</td>
-                          <td style={{ padding: 6 }}>
-                            {Array.isArray(attempt?.flicks) && attempt.flicks.length > 0 ? (
-                              <details>
-                                <summary>{attempt.flicks.length} Flicks anzeigen</summary>
-                                <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
-                                  {attempt.flicks.map((flick, flickIdx) => (
-                                    <div key={flickIdx} style={{ fontSize: 12, lineHeight: 1.4, background: '#fff', padding: 6, borderRadius: 4, border: '1px solid #e2e2e2' }}>
-                                      <strong>Flick {flickIdx + 1}:</strong>{' '}
-                                      dir={flick?.direction ?? '-'}, dist(px)={formatMetric(flick?.distancePx, 1)}, dist(items)={formatMetric(flick?.distanceItems, 2)},
-                                      dur(ms)={formatMetric(flick?.durationMs, 1)}, avg(px/ms)={formatMetric(flick?.avgSpeedPxMs, 3)}, max(px/ms)={formatMetric(flick?.maxSpeedPxMs, 3)}
-                                    </div>
-                                  ))}
-                                </div>
-                              </details>
-                            ) : (
-                              '-'
-                            )}
-                          </td>
                           <td style={{ padding: 6 }}>{attempt?.timestamp ?? '-'}</td>
                         </tr>
                       ))}

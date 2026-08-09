@@ -77,6 +77,49 @@ def _normalize_attempts(raw_attempts):
     return [_to_plain(item) for item in raw_attempts]
 
 
+def _flatten_attempts_for_ml(raw_attempts):
+    """Return a flat attempt list that is robust for both legacy and block-based formats."""
+    if not isinstance(raw_attempts, list):
+        return []
+
+    # New format: [{runNumber, parameterSet, attempts:[...]}]
+    looks_like_blocks = any(
+        isinstance(entry, dict) and isinstance(entry.get("attempts"), list)
+        for entry in raw_attempts
+    )
+    if looks_like_blocks:
+        flattened = []
+        for block_entry in raw_attempts:
+            if not isinstance(block_entry, dict):
+                continue
+
+            run_number = block_entry.get("runNumber")
+            parameter_set = block_entry.get("parameterSet")
+            attempts = block_entry.get("attempts")
+            if not isinstance(attempts, list):
+                continue
+
+            for idx, attempt in enumerate(attempts):
+                if not isinstance(attempt, dict):
+                    continue
+
+                flattened.append(
+                    {
+                        **attempt,
+                        "blockIndex": attempt.get("blockIndex") if attempt.get("blockIndex") is not None else run_number,
+                        "attemptInBlock": attempt.get("attemptInBlock") if attempt.get("attemptInBlock") is not None else (idx + 1),
+                        "blockParameterSet": attempt.get("blockParameterSet") if isinstance(attempt.get("blockParameterSet"), dict) else parameter_set,
+                        # Keep compatibility for inference parser that reads paperParams.
+                        "paperParams": attempt.get("paperParams") if isinstance(attempt.get("paperParams"), dict) else parameter_set,
+                    }
+                )
+
+        return flattened
+
+    # Legacy format: already a flat attempts list.
+    return [entry for entry in raw_attempts if isinstance(entry, dict)]
+
+
 def _load_participant_state(table_name, participant_id):
     table = dynamodb.Table(table_name)
     response = table.get_item(
@@ -155,15 +198,16 @@ def handler(event, context):
 
     participant_state = _load_participant_state(table_name, participant_id)
     attempts = participant_state.get("attempts", [])
+    flat_attempts = _flatten_attempts_for_ml(attempts)
 
-    if len(attempts) < attempt_count:
+    if len(flat_attempts) < attempt_count:
         raise ValueError(
             f"Not enough attempts stored for participant {participant_id}: "
-            f"expected at least {attempt_count}, got {len(attempts)}"
+            f"expected at least {attempt_count}, got {len(flat_attempts)}"
         )
 
     # Pass all completed attempts up to the current attempt count to the ML pipeline.
-    all_attempt_data = attempts[:attempt_count]
+    all_attempt_data = flat_attempts[:attempt_count]
     if len(all_attempt_data) < attempt_count:
         raise ValueError(
             f"Not enough stored attempts for participant {participant_id}: "

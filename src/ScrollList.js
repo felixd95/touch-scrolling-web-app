@@ -90,6 +90,72 @@ const getAttemptCount = (value) => {
 
 const isBootstrapPhase = (attemptCount) => getAttemptCount(attemptCount) < RANDOM_BOOTSTRAP_ATTEMPT_LIMIT;
 
+const normalizeAttemptBlocks = (rawAttempts) => {
+  if (!rawAttempts) return [];
+
+  let parsed = rawAttempts;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(parsed) || parsed.length === 0) return [];
+
+  const looksLikeBlockStructure = parsed.some((entry) =>
+    entry && typeof entry === 'object' && Array.isArray(entry.attempts)
+  );
+
+  if (looksLikeBlockStructure) {
+    return parsed
+      .filter((entry) => entry && typeof entry === 'object' && Array.isArray(entry.attempts))
+      .map((entry, index) => ({
+        runNumber: Number.isFinite(Number(entry.runNumber)) ? Math.trunc(Number(entry.runNumber)) : index + 1,
+        parameterSet:
+          entry.parameterSet && typeof entry.parameterSet === 'object'
+            ? entry.parameterSet
+            : null,
+        attempts: entry.attempts.filter((attempt) => attempt && typeof attempt === 'object'),
+      }));
+  }
+
+  const blocks = [];
+  parsed.forEach((attempt, index) => {
+    if (!attempt || typeof attempt !== 'object') return;
+
+    const runNumber = Math.floor(index / RUNS_PER_BLOCK) + 1;
+    const attemptInBlock = (index % RUNS_PER_BLOCK) + 1;
+    let block = blocks[blocks.length - 1];
+
+    if (!block || block.runNumber !== runNumber) {
+      block = {
+        runNumber,
+        parameterSet:
+          attempt.blockParameterSet && typeof attempt.blockParameterSet === 'object'
+            ? attempt.blockParameterSet
+            : null,
+        attempts: [],
+      };
+      blocks.push(block);
+    }
+
+    block.attempts.push({
+      ...attempt,
+      blockIndex: runNumber,
+      attemptInBlock: Number.isFinite(Number(attempt.attemptInBlock))
+        ? Math.trunc(Number(attempt.attemptInBlock))
+        : attemptInBlock,
+    });
+  });
+
+  return blocks;
+};
+
+const countAttemptsInBlocks = (blocks) =>
+  blocks.reduce((sum, block) => sum + (Array.isArray(block?.attempts) ? block.attempts.length : 0), 0);
+
 function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [targetSequence, setTargetSequence] = useState(() => createShuffledTargetNumbers());
   const [targetIndex, setTargetIndex] = useState(0);
@@ -286,18 +352,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     const rawAttempts = participantState?.attempts;
     if (!rawAttempts) return 0;
 
-    if (Array.isArray(rawAttempts)) return rawAttempts.length;
-
-    if (typeof rawAttempts === 'string') {
-      try {
-        const parsed = JSON.parse(rawAttempts);
-        return Array.isArray(parsed) ? parsed.length : 0;
-      } catch (error) {
-        return 0;
-      }
-    }
-
-    return 0;
+    const blocks = normalizeAttemptBlocks(rawAttempts);
+    return countAttemptsInBlocks(blocks);
   };
 
   const handleRefreshParameterStatus = async () => {
@@ -410,10 +466,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       });
       const qjson = await qresp.json();
       const existing = (qjson.data?.listParticipants?.items[0]?.attempts) || null;
-      let arr = [];
-      try { arr = existing ? JSON.parse(existing) : []; } catch (e) { arr = []; }
-
-      const attemptsBeforeAppend = arr.length;
+      const attemptBlocks = normalizeAttemptBlocks(existing);
+      const attemptsBeforeAppend = countAttemptsInBlocks(attemptBlocks);
       const blockIndex = Math.floor(attemptsBeforeAppend / RUNS_PER_BLOCK) + 1;
       const attemptInBlock = (attemptsBeforeAppend % RUNS_PER_BLOCK) + 1;
       const normalizedTargetNumber = Number.isFinite(Number(result.targetNumber))
@@ -468,8 +522,45 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         throw new Error(createResultJson.errors[0]?.message || 'Failed to persist result item');
       }
 
-      if (arr.length >= 100) arr.shift();
-      arr.push(enrichedResult);
+      const compactAttempt = {
+        attemptInBlock,
+        targetNumber: normalizedTargetNumber,
+        timeMs: Number(result.timeMs ?? 0),
+        scrollDistance: Number(result.scrollDistance ?? 0),
+        timestamp: result.timestamp,
+      };
+
+      let activeBlock = attemptBlocks[attemptBlocks.length - 1];
+      if (!activeBlock || Number(activeBlock.runNumber) !== blockIndex || !Array.isArray(activeBlock.attempts) || activeBlock.attempts.length >= RUNS_PER_BLOCK) {
+        activeBlock = {
+          runNumber: blockIndex,
+          parameterSet: normalizedBlockParameterSet,
+          attempts: [],
+        };
+        attemptBlocks.push(activeBlock);
+      }
+
+      if (!activeBlock.parameterSet && normalizedBlockParameterSet) {
+        activeBlock.parameterSet = normalizedBlockParameterSet;
+      }
+
+      activeBlock.attempts.push(compactAttempt);
+
+      // Keep at most the latest 100 attempts while preserving block structure.
+      while (countAttemptsInBlocks(attemptBlocks) > 100) {
+        if (!attemptBlocks.length) break;
+        const firstBlock = attemptBlocks[0];
+        if (!Array.isArray(firstBlock.attempts) || firstBlock.attempts.length === 0) {
+          attemptBlocks.shift();
+          continue;
+        }
+        firstBlock.attempts.shift();
+        if (firstBlock.attempts.length === 0) {
+          attemptBlocks.shift();
+        }
+      }
+
+      const attemptsAfterAppend = countAttemptsInBlocks(attemptBlocks);
 
       // update participant attempts
       const updResp = await fetch(outputs.data.url, {
@@ -477,17 +568,17 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
           query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id attempts } }`,
-          variables: { input: { id: result.participantId, attempts: JSON.stringify(arr) } },
+          variables: { input: { id: result.participantId, attempts: JSON.stringify(attemptBlocks) } },
         }),
       });
       const updJson = await updResp.json();
       if (updJson.errors) {
         console.warn('Update failed, falling back to localStorage', updJson.errors);
         fallbackSave();
-        return { attemptsCount: arr.length, savedRemotely: false };
+        return { attemptsCount: attemptsAfterAppend, savedRemotely: false };
       }
 
-      return { attemptsCount: arr.length, savedRemotely: true };
+      return { attemptsCount: attemptsAfterAppend, savedRemotely: true };
     } catch (err) {
       console.error('Error saving result', err);
       fallbackSave();
