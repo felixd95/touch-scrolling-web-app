@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import outputs from './backend_config.json';
 import ScrollList from './ScrollList';
 import { FLING_PHYSICS_BOUNDS } from './scrollPhysics/overScrollerPhysics';
@@ -57,6 +57,34 @@ const DEFAULT_NEXT_PARAMETER_SET = {
 
 const normalizeHandPreference = (value) => (value === 'left' ? 'left' : 'right');
 const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
+
+const normalizeParameterSet = (raw) => {
+  if (!raw) return null;
+
+  let parsed = raw;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const source = parsed.parameters && typeof parsed.parameters === 'object'
+    ? parsed.parameters
+    : parsed;
+
+  return {
+    ...parsed,
+    x1: Number(source.x1 ?? source.a ?? DEFAULT_NEXT_PARAMETER_SET.x1),
+    x2: Number(source.x2 ?? source.b ?? DEFAULT_NEXT_PARAMETER_SET.x2),
+    flickDistanceThreshold: Number(
+      source.flickDistanceThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickDistanceThreshold
+    ),
+  };
+};
 
 const getStoredHandPreference = (participantId) => {
   if (!participantId) return 'right';
@@ -134,6 +162,7 @@ function LoginForm({ onSuccess, onUserInteraction }) {
 function ParticipantsList({ onBack }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
   const [, setResults] = useState([]);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
@@ -170,34 +199,6 @@ function ParticipantsList({ onBack }) {
       { label: 'physicalCoeffTuning', value: formatMetric(parameterSet.physicalCoeffTuning, 3) },
       { label: 'maxLaunchVelocity', value: formatMetric(parameterSet.maxLaunchVelocityPxMs, 2) },
     ];
-  };
-
-  const normalizeParameterSet = (raw) => {
-    if (!raw) return null;
-
-    let parsed = raw;
-    if (typeof parsed === 'string') {
-      try {
-        parsed = JSON.parse(parsed);
-      } catch (e) {
-        return null;
-      }
-    }
-
-    if (!parsed || typeof parsed !== 'object') return null;
-
-    const source = parsed.parameters && typeof parsed.parameters === 'object'
-      ? parsed.parameters
-      : parsed;
-
-    return {
-      ...parsed,
-      x1: Number(source.x1 ?? source.a ?? DEFAULT_NEXT_PARAMETER_SET.x1),
-      x2: Number(source.x2 ?? source.b ?? DEFAULT_NEXT_PARAMETER_SET.x2),
-      flickDistanceThreshold: Number(
-        source.flickDistanceThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickDistanceThreshold
-      ),
-    };
   };
 
   const buildRunGroups = (attempts) => {
@@ -407,6 +408,30 @@ function ParticipantsList({ onBack }) {
     return json.data?.updateParticipant;
   };
 
+  const fetchParticipantsFromBackend = useCallback(async () => {
+    const resp = await fetch(outputs.data.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': outputs.data.api_key,
+      },
+      body: JSON.stringify({
+        query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone scrollHandPreference screenTimePerDay attempts currentParameterSet nextParameterSet } } }`,
+      }),
+    });
+
+    const json = await resp.json();
+    if (json.errors?.length) {
+      throw new Error(json.errors[0]?.message || 'Fehler beim Laden der Teilnehmerdaten');
+    }
+
+    return (json.data?.listParticipants?.items || []).map((participant) => ({
+      ...participant,
+      currentParameterSet: normalizeParameterSet(participant.currentParameterSet),
+      nextParameterSet: normalizeParameterSet(participant.nextParameterSet),
+    }));
+  }, []);
+
   const handleDeleteSelectedRun = async () => {
     if (!selectedParticipant) return;
 
@@ -474,38 +499,50 @@ function ParticipantsList({ onBack }) {
     }
   };
 
-  const handleDownloadAllData = () => {
-    const dataToExport = items.map((p) => {
-      const parsedAttempts = parseAttemptsPayload(p.attempts);
-      return {
-        participantId: p.id,
-        firstName: p.firstName,
-        lastName: p.lastName,
-        email: p.email,
-        birthDate: p.birthDate,
-        privateSmartphone: p.privateSmartphone,
-        screenTimePerDay: p.screenTimePerDay,
-        scrollHandPreference: normalizeHandPreference(p.scrollHandPreference),
-        currentParameterSet: normalizeParameterSet(p.currentParameterSet),
-        nextParameterSet: normalizeParameterSet(p.nextParameterSet),
-        attemptBlocks: parsedAttempts.blocks,
-        attempts: parsedAttempts.flat,
-      };
-    });
+  const handleDownloadAllData = async () => {
+    setDownloading(true);
+    setError('');
+    try {
+      const freshItems = await fetchParticipantsFromBackend();
+      setItems(freshItems);
 
-    const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `touch-scrolling-data-${timestamp}.json`;
-    const jsonString = JSON.stringify(dataToExport, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+      const dataToExport = freshItems.map((p) => {
+        const parsedAttempts = parseAttemptsPayload(p.attempts);
+        return {
+          participantId: p.id,
+          firstName: p.firstName,
+          lastName: p.lastName,
+          email: p.email,
+          birthDate: p.birthDate,
+          privateSmartphone: p.privateSmartphone,
+          screenTimePerDay: p.screenTimePerDay,
+          scrollHandPreference: normalizeHandPreference(p.scrollHandPreference),
+          currentParameterSet: normalizeParameterSet(p.currentParameterSet),
+          nextParameterSet: normalizeParameterSet(p.nextParameterSet),
+          attemptBlocks: parsedAttempts.blocks,
+          attempts: parsedAttempts.flat,
+        };
+      });
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `touch-scrolling-data-${timestamp}.json`;
+      const jsonString = JSON.stringify(dataToExport, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      setError('Fehler beim Download der Daten');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   useEffect(() => {
@@ -514,23 +551,8 @@ function ParticipantsList({ onBack }) {
       setLoading(true);
       setError('');
       try {
-        const resp = await fetch(outputs.data.url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': outputs.data.api_key,
-          },
-          body: JSON.stringify({
-            query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone scrollHandPreference screenTimePerDay attempts currentParameterSet nextParameterSet } } }`,
-          }),
-        });
-        const json = await resp.json();
+        const itemsWithAttempts = await fetchParticipantsFromBackend();
         if (!mounted) return;
-        const itemsWithAttempts = (json.data?.listParticipants?.items || []).map((participant) => ({
-          ...participant,
-          currentParameterSet: normalizeParameterSet(participant.currentParameterSet),
-          nextParameterSet: normalizeParameterSet(participant.nextParameterSet),
-        }));
         setItems(itemsWithAttempts);
         // collect all attempts from participants (remote attempts stored in participant.attempts)
         const allAttempts = [];
@@ -551,7 +573,7 @@ function ParticipantsList({ onBack }) {
 
     fetchList();
     return () => { mounted = false };
-  }, []);
+  }, [fetchParticipantsFromBackend]);
 
   return (
     <div className="card" style={{ maxWidth: '1100px', maxHeight: '90vh', overflowY: 'auto' }}>
@@ -561,10 +583,10 @@ function ParticipantsList({ onBack }) {
         <button
           className="nav-button"
           onClick={handleDownloadAllData}
-          disabled={loading || items.length === 0}
+          disabled={loading || downloading || items.length === 0}
           style={{ background: '#0066cc' }}
         >
-          Download Daten (JSON)
+          {downloading ? 'Download laeuft...' : 'Download Daten (JSON)'}
         </button>
       </div>
       {loading && <p>Lade...</p>}
