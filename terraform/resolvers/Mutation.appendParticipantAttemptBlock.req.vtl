@@ -1,4 +1,13 @@
-#set($block = $util.parseJson($ctx.args.block))
+#set($rawBlock = $ctx.args.block)
+#set($block = $rawBlock)
+#if($util.isString($rawBlock))
+  #set($block = $util.parseJson($rawBlock))
+#end
+
+#if($util.isNull($block) || !$util.isMap($block) || !$block.containsKey("attempts") || !$util.isList($block.attempts))
+  $util.error("Invalid block payload for appendParticipantAttemptBlock")
+#end
+
 #set($newBlocks = [])
 $util.qr($newBlocks.add($block))
 {

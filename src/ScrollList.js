@@ -493,7 +493,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
           query: `mutation AppendParticipantAttemptBlock($participantId: ID!, $block: AWSJSON!) { appendParticipantAttemptBlock(participantId: $participantId, block: $block) { id attempts } }`,
-          variables: { participantId: saveParticipantId, block: JSON.stringify(nextBlock) },
+          variables: { participantId: saveParticipantId, block: nextBlock },
         }),
       });
       const appendJson = await appendResp.json();
