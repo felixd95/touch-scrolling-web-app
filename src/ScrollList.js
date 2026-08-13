@@ -278,13 +278,13 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
       body: JSON.stringify({
-        query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts currentParameterSet nextParameterSet } } }`,
-        variables: { filter: { id: { eq: participantId } } },
+        query: `query ListParticipants { listParticipants { items { id attempts currentParameterSet nextParameterSet } } }`,
       }),
     });
 
     const json = await resp.json();
-    return json.data?.listParticipants?.items?.[0] || null;
+    const items = json.data?.listParticipants?.items || [];
+    return items.find((item) => item?.id === participantId) || null;
   }, [participantId]);
 
   const triggerNextParameterSetUpdate = async (attemptCount) => {
@@ -454,8 +454,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
-          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts } } }`,
-          variables: { filter: { id: { eq: saveParticipantId } } },
+          query: `query ListParticipants { listParticipants { items { id attempts } } }`,
         }),
       });
       const qjson = await qresp.json();
@@ -463,7 +462,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         throw new Error(qjson.errors[0]?.message || 'ListParticipants failed');
       }
 
-      const participantItem = qjson.data?.listParticipants?.items?.[0] || null;
+      const items = qjson.data?.listParticipants?.items || [];
+      const participantItem = items.find((item) => item?.id === saveParticipantId) || null;
       if (!participantItem?.id) {
         throw new Error('Participant not found in backend while saving attempt');
       }

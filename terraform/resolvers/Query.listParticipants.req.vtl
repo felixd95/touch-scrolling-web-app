@@ -6,7 +6,7 @@
 #if($filter.id && $filter.id.eq)
   #set($exp = "#id = :id")
   $util.qr($expNames.put("#id", "id"))
-  $util.qr($expValues.put(":id", $util.dynamodb.toDynamoDBJson($filter.id.eq)))
+  $util.qr($expValues.put(":id", $util.dynamodb.toDynamoDB($filter.id.eq)))
 #end
 
 #if($filter.email && $filter.email.eq)
@@ -16,7 +16,7 @@
     #set($exp = "#email = :email")
   #end
   $util.qr($expNames.put("#email", "email"))
-  $util.qr($expValues.put(":email", $util.dynamodb.toDynamoDBJson($filter.email.eq)))
+  $util.qr($expValues.put(":email", $util.dynamodb.toDynamoDB($filter.email.eq)))
 #end
 
 #if($exp != "")
