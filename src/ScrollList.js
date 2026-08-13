@@ -180,6 +180,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [parametersReadyForNextBlock, setParametersReadyForNextBlock] = useState(true);
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [nextParameterSet, setNextParameterSet] = useState(null);
+  const [pendingBlockAttempts, setPendingBlockAttempts] = useState([]);
 
   const targetNumber = practiceRunCompleted
     ? (targetSequence[targetIndex] ?? targetSequence[0] ?? FIXED_TARGET_NUMBERS[0])
@@ -430,12 +431,20 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
     };
   }, []);
 
-  const saveResult = async (result) => {
-    if (!result.participantId) {
+  const saveResult = async ({ participantId: saveParticipantId, blockAttempts, blockParameterSet }) => {
+    if (!saveParticipantId) {
       return {
         attemptsCount: 0,
         savedRemotely: false,
         error: 'Keine participantId gesetzt. Backend-Speicherung nicht moeglich.',
+      };
+    }
+
+    if (!Array.isArray(blockAttempts) || blockAttempts.length === 0) {
+      return {
+        attemptsCount: 0,
+        savedRemotely: false,
+        error: 'Keine Blockdaten zum Speichern vorhanden.',
       };
     }
 
@@ -446,7 +455,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
           query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts } } }`,
-          variables: { filter: { id: { eq: result.participantId } } },
+          variables: { filter: { id: { eq: saveParticipantId } } },
         }),
       });
       const qjson = await qresp.json();
@@ -463,38 +472,22 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       const attemptBlocks = normalizeAttemptBlocks(existing);
       const attemptsBeforeAppend = countAttemptsInBlocks(attemptBlocks);
       const blockIndex = Math.floor(attemptsBeforeAppend / RUNS_PER_BLOCK) + 1;
-      const attemptInBlock = (attemptsBeforeAppend % RUNS_PER_BLOCK) + 1;
-      const normalizedTargetNumber = Number.isFinite(Number(result.targetNumber))
-        ? Math.trunc(Number(result.targetNumber))
-        : null;
-      const normalizedBlockParameterSet =
-        result.blockParameterSet && typeof result.blockParameterSet === 'object'
-          ? result.blockParameterSet
-          : null;
 
-      const compactAttempt = {
-        attemptInBlock,
-        targetNumber: normalizedTargetNumber,
-        timeMs: Number(result.timeMs ?? 0),
-        scrollDistance: Number(result.scrollDistance ?? 0),
-        timestamp: result.timestamp,
+      const nextBlock = {
+        runNumber: blockIndex,
+        parameterSet: blockParameterSet && typeof blockParameterSet === 'object' ? blockParameterSet : null,
+        attempts: blockAttempts.map((attempt, index) => ({
+          attemptInBlock: index + 1,
+          targetNumber: Number.isFinite(Number(attempt?.targetNumber))
+            ? Math.trunc(Number(attempt.targetNumber))
+            : null,
+          timeMs: Number(attempt?.timeMs ?? 0),
+          scrollDistance: Number(attempt?.scrollDistance ?? 0),
+          timestamp: attempt?.timestamp,
+        })),
       };
 
-      let activeBlock = attemptBlocks[attemptBlocks.length - 1];
-      if (!activeBlock || Number(activeBlock.runNumber) !== blockIndex || !Array.isArray(activeBlock.attempts) || activeBlock.attempts.length >= RUNS_PER_BLOCK) {
-        activeBlock = {
-          runNumber: blockIndex,
-          parameterSet: normalizedBlockParameterSet,
-          attempts: [],
-        };
-        attemptBlocks.push(activeBlock);
-      }
-
-      if (!activeBlock.parameterSet && normalizedBlockParameterSet) {
-        activeBlock.parameterSet = normalizedBlockParameterSet;
-      }
-
-      activeBlock.attempts.push(compactAttempt);
+      attemptBlocks.push(nextBlock);
 
       // Keep at most the latest 100 attempts while preserving block structure.
       while (countAttemptsInBlocks(attemptBlocks) > 100) {
@@ -518,7 +511,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
           query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id attempts } }`,
-          variables: { input: { id: result.participantId, attempts: JSON.stringify(attemptBlocks) } },
+          variables: { input: { id: saveParticipantId, attempts: attemptBlocks } },
         }),
       });
       const updJson = await updResp.json();
@@ -954,65 +947,19 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         : DEFAULT_DECAY;
       const fingerVelocityPxMs = getRegressionVelocityPxMs();
       const flingThresholdPxMs = getMinFlingVelocityPxMs();
-      const multiplierUsed = activeMultiplier || (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 0.1);
       const trial = trialMetricsRef.current;
 
-      const saveOutcome = await saveResult({
-        participantId,
+      const currentAttempt = {
+        targetNumber,
         timeMs: totalTime,
         scrollDistance,
         timestamp,
-        multiplierUsed,
-        targetNumber,
-        blockParameterSet: {
-          scrollFriction: FLING_PHYSICS_CONFIG.scrollFriction,
-          x1: FLING_PHYSICS_CONFIG.x1,
-          x2: FLING_PHYSICS_CONFIG.x2,
-          inflexion: FLING_PHYSICS_CONFIG.inflexion,
-          physicalCoeffTuning: FLING_PHYSICS_CONFIG.physicalCoeffTuning,
-          maxLaunchVelocityPxMs: FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs,
-        },
-        clutchCount: trial?.flicks?.length || 0,
-        flickCount: trial?.flicks?.length || 0,
-        flicks: trial?.flicks || [],
-        overshoot: {
-          didOvershoot: trial?.didOvershoot || false,
-          count: trial?.overshootCount || 0,
-          maxDistancePx: trial?.maxOvershootDistancePx || 0,
-        },
-        switchbackCount: trial?.switchbackCount || 0,
-        startDistancePx: trial?.startDistancePx || 0,
-        startDistanceItems: trial?.startDistanceItems ?? null,
-        flickThresholds: {
-          velocityPxMs: flingThresholdPxMs,
-          distancePx: parseFloat(flickDistanceThresholdInput) >= 0 ? parseFloat(flickDistanceThresholdInput) : 6,
-        },
-        decayFactor: decay,
-        fingerVelocityPxMs,
-        paperParams: {
-          a: x1,
-          b: x2,
-          x1,
-          x2,
-        },
-      });
+      };
 
-      if (!saveOutcome?.savedRemotely) {
-        setIsSearching(false);
-        setRoundCompleted(false);
-        setActiveMultiplier(null);
-        setStartTime(null);
-        residualVelocityRef.current = 0;
-        trialMetricsRef.current = null;
-        touchStatsRef.current.active = false;
-        setAwaitingNextParameterSet(false);
-        setAwaitingBlockStartConfirmation(false);
-        setParametersReadyForNextBlock(false);
-        setParameterSyncError(
-          `Backend-Speichern fehlgeschlagen. Der Versuch wurde nicht uebernommen. Bitte Admin informieren und danach erneut starten. Grund: ${saveOutcome?.error || 'Unbekannter Fehler'}`
-        );
-        return;
-      }
+      const nextPendingBlockAttempts = [...pendingBlockAttempts, currentAttempt];
+      setPendingBlockAttempts(nextPendingBlockAttempts);
+
+      let saveOutcome = { attemptsCount: 0, savedRemotely: true };
 
       const nextRunCount = runCount + 1;
       const runBlockFinished = nextRunCount >= RUNS_PER_BLOCK;
@@ -1033,6 +980,42 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       touchStatsRef.current.active = false;
 
       if (runBlockFinished) {
+        saveOutcome = await saveResult({
+          participantId,
+          blockAttempts: nextPendingBlockAttempts,
+          blockParameterSet: {
+            scrollFriction: FLING_PHYSICS_CONFIG.scrollFriction,
+            x1: FLING_PHYSICS_CONFIG.x1,
+            x2: FLING_PHYSICS_CONFIG.x2,
+            inflexion: FLING_PHYSICS_CONFIG.inflexion,
+            physicalCoeffTuning: FLING_PHYSICS_CONFIG.physicalCoeffTuning,
+            maxLaunchVelocityPxMs: FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs,
+            decay,
+            fingerVelocityPxMs,
+            flingThresholdPxMs,
+            x1InputValue: x1,
+            x2InputValue: x2,
+          },
+        });
+
+        if (!saveOutcome?.savedRemotely) {
+          setIsSearching(false);
+          setRoundCompleted(false);
+          setActiveMultiplier(null);
+          setStartTime(null);
+          residualVelocityRef.current = 0;
+          trialMetricsRef.current = null;
+          touchStatsRef.current.active = false;
+          setAwaitingNextParameterSet(false);
+          setAwaitingBlockStartConfirmation(false);
+          setParametersReadyForNextBlock(false);
+          setParameterSyncError(
+            `Backend-Speichern fehlgeschlagen. Der Versuch wurde nicht uebernommen. Grund: ${saveOutcome?.error || 'Unbekannter Fehler'}`
+          );
+          return;
+        }
+
+        setPendingBlockAttempts([]);
         setAwaitingNextParameterSet(true);
         setAwaitingBlockStartConfirmation(false);
         setParametersReadyForNextBlock(false);
