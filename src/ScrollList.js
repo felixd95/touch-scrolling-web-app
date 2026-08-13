@@ -278,13 +278,13 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id attempts currentParameterSet nextParameterSet } } }`,
+        query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts currentParameterSet nextParameterSet } } }`,
+        variables: { filter: { id: { eq: participantId } } },
       }),
     });
 
     const json = await resp.json();
-    const items = json.data?.listParticipants?.items || [];
-    return items.find((item) => item?.id === participantId) || null;
+    return json.data?.listParticipants?.items?.[0] || null;
   }, [participantId]);
 
   const triggerNextParameterSetUpdate = async (attemptCount) => {
@@ -454,7 +454,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
-          query: `query ListParticipants { listParticipants { items { id attempts } } }`,
+          query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts } } }`,
+          variables: { filter: { id: { eq: saveParticipantId } } },
         }),
       });
       const qjson = await qresp.json();
@@ -462,8 +463,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         throw new Error(qjson.errors[0]?.message || 'ListParticipants failed');
       }
 
-      const items = qjson.data?.listParticipants?.items || [];
-      const participantItem = items.find((item) => item?.id === saveParticipantId) || null;
+      const participantItem = qjson.data?.listParticipants?.items?.[0] || null;
       if (!participantItem?.id) {
         throw new Error('Participant not found in backend while saving attempt');
       }
@@ -489,18 +489,10 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
 
       attemptBlocks.push(nextBlock);
 
-      // Keep at most the latest 100 attempts while preserving block structure.
+      // Keep at most the latest 100 attempts while preserving complete 10-run blocks.
       while (countAttemptsInBlocks(attemptBlocks) > 100) {
         if (!attemptBlocks.length) break;
-        const firstBlock = attemptBlocks[0];
-        if (!Array.isArray(firstBlock.attempts) || firstBlock.attempts.length === 0) {
-          attemptBlocks.shift();
-          continue;
-        }
-        firstBlock.attempts.shift();
-        if (firstBlock.attempts.length === 0) {
-          attemptBlocks.shift();
-        }
+        attemptBlocks.shift();
       }
 
       const attemptsAfterAppend = countAttemptsInBlocks(attemptBlocks);
@@ -511,7 +503,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
           query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id attempts } }`,
-          variables: { input: { id: saveParticipantId, attempts: attemptBlocks } },
+          variables: { input: { id: saveParticipantId, attempts: JSON.stringify(attemptBlocks) } },
         }),
       });
       const updJson = await updResp.json();
