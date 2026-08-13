@@ -168,7 +168,7 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const [x1Input, setX1Input] = useState('1');
   const [x2Input, setX2Input] = useState('1');
   const [decayInput, setDecayInput] = useState('0.98');
-  const [flickDistanceThresholdInput, setFlickDistanceThresholdInput] = useState('6');
+  const [, setFlickDistanceThresholdInput] = useState('6');
   const [, setRoundCompleted] = useState(false);
   const [, setCurrentParameterSet] = useState(null);
   const [startTranslateY, setStartTranslateY] = useState(0);
@@ -947,8 +947,6 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         : DEFAULT_DECAY;
       const fingerVelocityPxMs = getRegressionVelocityPxMs();
       const flingThresholdPxMs = getMinFlingVelocityPxMs();
-      const trial = trialMetricsRef.current;
-
       const currentAttempt = {
         targetNumber,
         timeMs: totalTime,
