@@ -14,6 +14,7 @@ type Query {
 type Mutation {
   createParticipant(input: CreateParticipantInput!): Participant
   updateParticipant(input: UpdateParticipantInput!): Participant
+  appendParticipantAttemptBlock(participantId: ID!, block: AWSJSON!): Participant
   triggerNextParameterSet(participantId: ID!, attemptCount: Int!): TriggerNextParameterSetResult
 }
 

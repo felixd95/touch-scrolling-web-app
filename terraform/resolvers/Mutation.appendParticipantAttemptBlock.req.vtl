@@ -1,0 +1,22 @@
+#set($block = $util.parseJson($ctx.args.block))
+#set($newBlocks = [])
+$util.qr($newBlocks.add($block))
+{
+  "version": "2018-05-29",
+  "operation": "UpdateItem",
+  "key": {
+    "id": $util.dynamodb.toDynamoDBJson($ctx.args.participantId)
+  },
+  "update": {
+    "expression": "SET #attempts = list_append(if_not_exists(#attempts, :emptyList), :newBlocks), #updatedAt = :updatedAt",
+    "expressionNames": {
+      "#attempts": "attempts",
+      "#updatedAt": "updatedAt"
+    },
+    "expressionValues": {
+      ":emptyList": $util.dynamodb.toDynamoDBJson([]),
+      ":newBlocks": $util.dynamodb.toDynamoDBJson($newBlocks),
+      ":updatedAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
+    }
+  }
+}

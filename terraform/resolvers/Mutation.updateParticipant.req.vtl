@@ -3,6 +3,7 @@
 #set($expValues = {})
 #set($expSet = [])
 #set($expRemove = [])
+#set($jsonFields = ["attempts", "currentParameterSet", "nextParameterSet"])
 
 #foreach($entry in $input.entrySet())
   #if($entry.key != "id")
@@ -12,7 +13,11 @@
     #if($util.isNull($entry.value))
       $util.qr($expRemove.add($name))
     #else
-      $util.qr($expValues.put($value, $util.dynamodb.toDynamoDB($entry.value)))
+      #if($jsonFields.contains($entry.key) && $util.isString($entry.value))
+        $util.qr($expValues.put($value, $util.dynamodb.toDynamoDB($util.parseJson($entry.value))))
+      #else
+        $util.qr($expValues.put($value, $util.dynamodb.toDynamoDB($entry.value)))
+      #end
       $util.qr($expSet.add("${name} = ${value}"))
     #end
   #end

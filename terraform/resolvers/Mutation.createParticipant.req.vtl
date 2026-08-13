@@ -2,6 +2,19 @@
 #if(!$input.id)
   $util.qr($input.put("id", $util.autoId()))
 #end
+
+#if(!$util.isNull($input.attempts) && $util.isString($input.attempts))
+  $util.qr($input.put("attempts", $util.parseJson($input.attempts)))
+#end
+
+#if(!$util.isNull($input.currentParameterSet) && $util.isString($input.currentParameterSet))
+  $util.qr($input.put("currentParameterSet", $util.parseJson($input.currentParameterSet)))
+#end
+
+#if(!$util.isNull($input.nextParameterSet) && $util.isString($input.nextParameterSet))
+  $util.qr($input.put("nextParameterSet", $util.parseJson($input.nextParameterSet)))
+#end
+
 $util.qr($input.put("createdAt", $util.time.nowISO8601()))
 $util.qr($input.put("updatedAt", $util.time.nowISO8601()))
 {

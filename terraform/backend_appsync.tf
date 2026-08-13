@@ -240,6 +240,16 @@ resource "aws_appsync_resolver" "mutation_update_participant" {
   response_template = file("${path.module}/resolvers/Mutation.updateParticipant.res.vtl")
 }
 
+resource "aws_appsync_resolver" "mutation_append_participant_attempt_block" {
+  api_id      = aws_appsync_graphql_api.api.id
+  type        = "Mutation"
+  field       = "appendParticipantAttemptBlock"
+  data_source = aws_appsync_datasource.participant.name
+
+  request_template  = file("${path.module}/resolvers/Mutation.appendParticipantAttemptBlock.req.vtl")
+  response_template = file("${path.module}/resolvers/Mutation.appendParticipantAttemptBlock.res.vtl")
+}
+
 resource "aws_appsync_resolver" "mutation_trigger_next_parameter_set" {
   api_id      = aws_appsync_graphql_api.api.id
   type        = "Mutation"

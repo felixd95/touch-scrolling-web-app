@@ -896,6 +896,7 @@ function App() {
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
               scrollHandPreference: selectedHandPreference,
+              attempts: JSON.stringify([]),
               currentParameterSet: JSON.stringify(createRandomParameterSet(0)),
               nextParameterSet: null,
             },

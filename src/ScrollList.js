@@ -469,8 +469,8 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
       }
 
       const existing = participantItem.attempts || null;
-      const attemptBlocks = normalizeAttemptBlocks(existing);
-      const attemptsBeforeAppend = countAttemptsInBlocks(attemptBlocks);
+      const existingBlocks = normalizeAttemptBlocks(existing);
+      const attemptsBeforeAppend = countAttemptsInBlocks(existingBlocks);
       const blockIndex = Math.floor(attemptsBeforeAppend / RUNS_PER_BLOCK) + 1;
 
       const nextBlock = {
@@ -487,29 +487,24 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         })),
       };
 
-      attemptBlocks.push(nextBlock);
-
-      // Keep at most the latest 100 attempts while preserving complete 10-run blocks.
-      while (countAttemptsInBlocks(attemptBlocks) > 100) {
-        if (!attemptBlocks.length) break;
-        attemptBlocks.shift();
-      }
-
-      const attemptsAfterAppend = countAttemptsInBlocks(attemptBlocks);
-
-      // update participant attempts
-      const updResp = await fetch(outputs.data.url, {
+      // Append block atomically in backend so each user attempts JSON grows block by block.
+      const appendResp = await fetch(outputs.data.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
         body: JSON.stringify({
-          query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id attempts } }`,
-          variables: { input: { id: saveParticipantId, attempts: JSON.stringify(attemptBlocks) } },
+          query: `mutation AppendParticipantAttemptBlock($participantId: ID!, $block: AWSJSON!) { appendParticipantAttemptBlock(participantId: $participantId, block: $block) { id attempts } }`,
+          variables: { participantId: saveParticipantId, block: JSON.stringify(nextBlock) },
         }),
       });
-      const updJson = await updResp.json();
-      if (Array.isArray(updJson.errors) && updJson.errors.length > 0) {
-        throw new Error(updJson.errors[0]?.message || 'UpdateParticipant failed');
+      const appendJson = await appendResp.json();
+      if (Array.isArray(appendJson.errors) && appendJson.errors.length > 0) {
+        throw new Error(appendJson.errors[0]?.message || 'appendParticipantAttemptBlock failed');
       }
+
+      const updatedAttempts = appendJson.data?.appendParticipantAttemptBlock?.attempts;
+      const attemptsAfterAppend = updatedAttempts
+        ? countAttemptsInBlocks(normalizeAttemptBlocks(updatedAttempts))
+        : attemptsBeforeAppend + blockAttempts.length;
 
       return { attemptsCount: attemptsAfterAppend, savedRemotely: true };
     } catch (err) {
