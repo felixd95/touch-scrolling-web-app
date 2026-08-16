@@ -134,7 +134,43 @@ def _load_participant_state(table_name, participant_id):
     }
 
 
-def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, recent_data):
+def _scan_other_participants_data(table_name, exclude_participant_id):
+    """Scan every participant except the calling one and return their flattened
+    attempts so the SageMaker multi-task GP can pool observations across
+    participants. Uses a projection (id, attempts) to keep the scan cheap and
+    paginates via LastEvaluatedKey since Scan only returns up to 1MB per page.
+    """
+    table = dynamodb.Table(table_name)
+    items = []
+    scan_kwargs = {"ProjectionExpression": "id, attempts"}
+
+    while True:
+        response = table.scan(**scan_kwargs)
+        items.extend(response.get("Items", []))
+        last_key = response.get("LastEvaluatedKey")
+        if not last_key:
+            break
+        scan_kwargs["ExclusiveStartKey"] = last_key
+
+    participants_data = []
+    for item in items:
+        other_participant_id = item.get("id")
+        if not other_participant_id or other_participant_id == exclude_participant_id:
+            continue
+
+        flat_attempts = _flatten_attempts_for_ml(_normalize_attempts(item.get("attempts")))
+        if not flat_attempts:
+            continue
+
+        participants_data.append({
+            "participantId": other_participant_id,
+            "attempts": flat_attempts,
+        })
+
+    return participants_data
+
+
+def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, participants_data):
     endpoint_name = os.environ.get("SAGEMAKER_ENDPOINT_NAME")
     if not endpoint_name:
         raise RuntimeError("Missing SAGEMAKER_ENDPOINT_NAME environment variable")
@@ -145,7 +181,7 @@ def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, rece
         "completedBlockCount": math.floor(attempt_count / RUNS_PER_BLOCK),
         "runsPerBlock": RUNS_PER_BLOCK,
         "currentParameterSet": current_parameter_set,
-        "recentData": recent_data,
+        "participantsData": participants_data,
     }
 
     response = sagemaker_runtime.invoke_endpoint(
@@ -219,7 +255,13 @@ def handler(event, context):
         or _normalize_parameter_set(participant_state.get("nextParameterSet"))
         or dict(DEFAULT_PARAMETER_SET)
     )
-    generated_params = _invoke_sagemaker(participant_id, attempt_count, current_params, all_attempt_data)
+
+    other_participants_data = _scan_other_participants_data(table_name, exclude_participant_id=participant_id)
+    participants_data = other_participants_data + [
+        {"participantId": participant_id, "attempts": all_attempt_data}
+    ]
+
+    generated_params = _invoke_sagemaker(participant_id, attempt_count, current_params, participants_data)
     next_parameter_set = _build_next_parameter_set(attempt_count, generated_params)
 
     table = dynamodb.Table(table_name)

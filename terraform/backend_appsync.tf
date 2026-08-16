@@ -52,7 +52,11 @@ resource "aws_iam_role_policy" "next_parameter_set_lambda" {
         Effect = "Allow"
         Action = [
           "dynamodb:GetItem",
-          "dynamodb:UpdateItem"
+          "dynamodb:UpdateItem",
+          # Needed to pool every participant's attempts into the SageMaker
+          # multi-task GP request (participantsData); the table has no GSI
+          # for "all participants", so a table Scan is required.
+          "dynamodb:Scan"
         ]
         Resource = aws_dynamodb_table.participant.arn
       },
