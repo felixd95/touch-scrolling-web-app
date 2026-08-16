@@ -96,6 +96,16 @@ resource "aws_appsync_graphql_api" "api" {
 
 resource "aws_appsync_api_key" "api_key" {
   api_id = aws_appsync_graphql_api.api.id
+
+  # AWS defaults an API key to expire 7 days after creation if "expires" is
+  # not set. Since this key is never recreated (only refreshed) across
+  # applies, it would silently expire and every request would start
+  # returning "UnauthorizedException: You are not authorized to make this
+  # call." even though the URL/key values in the frontend config are
+  # correct. Extending the expiry on every apply (max allowed by AWS is 365
+  # days) keeps the same key value valid indefinitely, as long as the
+  # deploy pipeline runs at least once a year.
+  expires = timeadd(timestamp(), "8760h")
 }
 
 resource "aws_iam_role" "appsync_ddb_role" {
