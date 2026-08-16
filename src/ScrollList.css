@@ -8,13 +8,9 @@
 }
 
 .safe-area-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   width: 100%;
   z-index: 40;
-  pointer-events: none;
+  flex-shrink: 0;
   display: flex;
   justify-content: stretch;
   padding-top: max(2px, env(safe-area-inset-top));
@@ -42,11 +38,12 @@
 }
 
 .target-banner {
+  flex-shrink: 0;
   display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 8px;
-  padding: max(14px, env(safe-area-inset-top)) 12px 8px;
+  padding: 4px 12px;
   text-align: center;
 }
 
@@ -57,7 +54,7 @@
 }
 
 .target-banner-value {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: bold;
   color: #28a745;
   line-height: 1;
@@ -193,7 +190,7 @@
 
 .list-item {
   box-sizing: border-box;
-  height: calc(100dvh / 15);
+  height: var(--list-item-height, calc(100dvh / 15));
   padding: 0 12px;
   border: 1px solid #ccc;
   background-color: #fff;

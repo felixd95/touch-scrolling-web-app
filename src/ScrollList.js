@@ -21,6 +21,7 @@ import {
 } from './scrollPhysics/overScrollerPhysics';
 
 const NUM_ITEMS = 330;
+const ITEMS_PER_SCREEN = 15;
 const RUNS_PER_BLOCK = 10;
 const RANDOM_BOOTSTRAP_ATTEMPT_LIMIT = RUNS_PER_BLOCK * 3;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
@@ -1077,6 +1078,8 @@ function ScrollList({ participantId }) {
   const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
+  const listItemHeightPx = containerHeight > 0 ? containerHeight / ITEMS_PER_SCREEN : null;
+  const wrapperStyle = listItemHeightPx ? { '--list-item-height': `${listItemHeightPx}px` } : undefined;
 
   const renderDistanceFeedback = (side) => (
     <div className="distance-feedback" aria-hidden="true">
@@ -1096,7 +1099,7 @@ function ScrollList({ participantId }) {
   );
 
   return (
-    <div className="scroll-list-wrapper">
+    <div className="scroll-list-wrapper" style={wrapperStyle}>
       <div className="safe-area-progress" aria-label={`Fortschritt ${completedRunsForProgress} von ${RUNS_PER_BLOCK}`}>
         <div className="safe-area-progress-track" role="img" aria-hidden="true">
           {Array.from({ length: RUNS_PER_BLOCK }, (_, index) => (
