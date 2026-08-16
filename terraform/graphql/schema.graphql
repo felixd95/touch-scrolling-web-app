@@ -25,7 +25,6 @@ type Participant {
   email: String!
   birthDate: AWSDate!
   privateSmartphone: String!
-  scrollHandPreference: String
   screenTimePerDay: String!
   attempts: AWSJSON
   currentParameterSet: AWSJSON
@@ -49,7 +48,6 @@ input CreateParticipantInput {
   email: String!
   birthDate: AWSDate!
   privateSmartphone: String!
-  scrollHandPreference: String
   screenTimePerDay: String!
   attempts: AWSJSON
   currentParameterSet: AWSJSON
@@ -63,7 +61,6 @@ input UpdateParticipantInput {
   email: String
   birthDate: AWSDate
   privateSmartphone: String
-  scrollHandPreference: String
   screenTimePerDay: String
   attempts: AWSJSON
   currentParameterSet: AWSJSON

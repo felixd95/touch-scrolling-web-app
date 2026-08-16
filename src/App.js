@@ -5,7 +5,6 @@ import { FLING_PHYSICS_BOUNDS } from './scrollPhysics/overScrollerPhysics';
 import './App.css';
 
 const RUNS_PER_BLOCK = 10;
-const HAND_PREFERENCE_STORAGE_KEY = 'participantHandPreferences';
 
 const getRandomParameterInRange = (min, max) => min + Math.random() * (max - min);
 
@@ -55,7 +54,6 @@ const DEFAULT_NEXT_PARAMETER_SET = {
   generatedFromAttemptCount: 0,
 };
 
-const normalizeHandPreference = (value) => (value === 'left' ? 'left' : 'right');
 const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
 
 const normalizeParameterSet = (raw) => {
@@ -86,27 +84,6 @@ const normalizeParameterSet = (raw) => {
   };
 };
 
-const getStoredHandPreference = (participantId) => {
-  if (!participantId) return 'right';
-  try {
-    const map = JSON.parse(localStorage.getItem(HAND_PREFERENCE_STORAGE_KEY) || '{}');
-    return map[participantId] === 'left' ? 'left' : 'right';
-  } catch (error) {
-    return 'right';
-  }
-};
-
-const setStoredHandPreference = (participantId, handPreference) => {
-  if (!participantId) return;
-  try {
-    const map = JSON.parse(localStorage.getItem(HAND_PREFERENCE_STORAGE_KEY) || '{}');
-    map[participantId] = handPreference === 'left' ? 'left' : 'right';
-    localStorage.setItem(HAND_PREFERENCE_STORAGE_KEY, JSON.stringify(map));
-  } catch (error) {
-    // ignore local storage write errors
-  }
-};
-
 function LoginForm({ onSuccess, onUserInteraction }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -127,7 +104,7 @@ function LoginForm({ onSuccess, onUserInteraction }) {
           'x-api-key': outputs.data.api_key,
         },
         body: JSON.stringify({
-          query: `query ListParticipants { listParticipants { items { id email scrollHandPreference } } }`,
+          query: `query ListParticipants { listParticipants { items { id email } } }`,
         }),
       });
 
@@ -135,7 +112,7 @@ function LoginForm({ onSuccess, onUserInteraction }) {
       const items = json.data?.listParticipants?.items || [];
       const matchingParticipant = items.find((item) => normalizeEmail(item?.email) === normalizedEmail);
       if (matchingParticipant) {
-        onSuccess(matchingParticipant.id, normalizeHandPreference(matchingParticipant.scrollHandPreference));
+        onSuccess(matchingParticipant.id);
       } else {
         setError('E-Mail nicht gefunden');
       }
@@ -416,7 +393,7 @@ function ParticipantsList({ onBack }) {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone scrollHandPreference screenTimePerDay attempts currentParameterSet nextParameterSet } } }`,
+        query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay attempts currentParameterSet nextParameterSet } } }`,
       }),
     });
 
@@ -516,7 +493,6 @@ function ParticipantsList({ onBack }) {
           birthDate: p.birthDate,
           privateSmartphone: p.privateSmartphone,
           screenTimePerDay: p.screenTimePerDay,
-          scrollHandPreference: normalizeHandPreference(p.scrollHandPreference),
           currentParameterSet: normalizeParameterSet(p.currentParameterSet),
           nextParameterSet: normalizeParameterSet(p.nextParameterSet),
           attemptBlocks: parsedAttempts.blocks,
@@ -601,7 +577,6 @@ function ParticipantsList({ onBack }) {
                 <th style={{ textAlign: 'left', padding: 6 }}>E-Mail</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Geburtstag</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Device</th>
-                <th style={{ textAlign: 'left', padding: 6 }}>Scroll-Hand</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>ScreenTime</th>
               </tr>
             </thead>
@@ -618,7 +593,6 @@ function ParticipantsList({ onBack }) {
                         <td style={{ padding: 6 }}>{p.email}</td>
                         <td style={{ padding: 6 }}>{p.birthDate}</td>
                         <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
-                        <td style={{ padding: 6 }}>{normalizeHandPreference(p.scrollHandPreference) === 'left' ? 'Left' : 'Right'}</td>
                         <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
                         <td style={{ padding: 6 }}>
                           <button
@@ -821,13 +795,11 @@ function App() {
     birthDate: '',
     privateSmartphone: '',
     screenTimePerDay: '',
-    scrollHandPreference: '',
   });
 
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [participantId, setParticipantId] = useState(null);
-  const [scrollHandPreference, setScrollHandPreference] = useState('right');
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -870,14 +842,6 @@ function App() {
         return;
       }
 
-      if (!formData.scrollHandPreference) {
-        setStatus('Bitte waehlen, mit welcher Hand gescrollt wird.');
-        setLoading(false);
-        return;
-      }
-
-      const selectedHandPreference = normalizeHandPreference(formData.scrollHandPreference);
-
       // create participant
       const createResp = await fetch(outputs.data.url, {
         method: 'POST',
@@ -895,7 +859,6 @@ function App() {
               birthDate: formData.birthDate,
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
-              scrollHandPreference: selectedHandPreference,
               attempts: JSON.stringify([]),
               currentParameterSet: JSON.stringify(createRandomParameterSet(0)),
               nextParameterSet: null,
@@ -918,13 +881,10 @@ function App() {
           birthDate: '',
           privateSmartphone: '',
           screenTimePerDay: '',
-          scrollHandPreference: '',
         });
         const newId = createJson.data?.createParticipant?.id;
         if (newId) {
           setParticipantId(newId);
-          setScrollHandPreference(selectedHandPreference);
-          setStoredHandPreference(newId, selectedHandPreference);
         }
         setCurrentPage('scrolllist');
       }
@@ -957,13 +917,8 @@ function App() {
         <div className="card">
           <h2>Login</h2>
           <LoginForm
-            onSuccess={(id, backendHandPreference) => {
+            onSuccess={(id) => {
               setParticipantId(id);
-              const resolvedHandPreference = normalizeHandPreference(
-                backendHandPreference || getStoredHandPreference(id)
-              );
-              setScrollHandPreference(resolvedHandPreference);
-              setStoredHandPreference(id, resolvedHandPreference);
               setCurrentPage('scrolllist');
             }}
           />
@@ -1046,20 +1001,6 @@ function App() {
               </select>
             </label>
 
-            <label>
-              Scroll hand
-              <select
-                name="scrollHandPreference"
-                value={formData.scrollHandPreference}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled>Bitte auswählen</option>
-                <option value="right">Right hand</option>
-                <option value="left">Left hand</option>
-              </select>
-            </label>
-
               <button type="submit" disabled={loading}>
                 {loading ? 'Saving...' : 'Start study'}
               </button>
@@ -1071,7 +1012,7 @@ function App() {
         currentPage === 'list' ? (
           <ParticipantsList onBack={() => setCurrentPage('landing')} />
           ) : (
-          <ScrollList participantId={participantId} scrollHandPreference={scrollHandPreference} />
+          <ScrollList participantId={participantId} />
         )
       )}
     </main>
