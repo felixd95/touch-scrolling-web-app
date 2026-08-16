@@ -2,12 +2,9 @@
   width: 100%;
   height: 100dvh;
   display: flex;
+  flex-direction: column;
   gap: 0;
   position: relative;
-}
-
-.scroll-list-wrapper.left-hand {
-  flex-direction: row-reverse;
 }
 
 .safe-area-progress {
@@ -44,24 +41,36 @@
   background: #48d597;
 }
 
-.timer-panel {
-  width: 20%;
-  background-color: #f8f9fa;
-  border-right: 1px solid #ddd;
+.target-banner {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: center;
-  padding: 20px;
+  gap: 8px;
+  padding: max(14px, env(safe-area-inset-top)) 12px 8px;
+  text-align: center;
 }
 
-.scroll-list-wrapper.left-hand .timer-panel {
-  border-right: none;
-  border-left: 1px solid #ddd;
+.target-banner-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+}
+
+.target-banner-value {
+  font-size: 36px;
+  font-weight: bold;
+  color: #28a745;
+  line-height: 1;
+}
+
+.scroll-list-row {
+  flex: 1;
+  display: flex;
+  min-height: 0;
 }
 
 .distance-feedback {
   width: 14px;
-  border-right: 1px solid #ddd;
   background: linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%);
   display: flex;
   justify-content: center;
@@ -69,8 +78,11 @@
   padding: 10px 0;
 }
 
-.scroll-list-wrapper.left-hand .distance-feedback {
-  border-right: none;
+.distance-feedback:first-child {
+  border-right: 1px solid #ddd;
+}
+
+.distance-feedback:last-child {
   border-left: 1px solid #ddd;
 }
 
@@ -104,87 +116,6 @@
   box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.18);
 }
 
-.timer-content {
-  width: 100%;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-.timer {
-  font-size: 28px;
-  font-weight: bold;
-  color: #007bff;
-}
-
-.multiplier-input {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.multiplier-input label {
-  font-size: 14px;
-  font-weight: 700;
-  color: #333;
-  text-align: left;
-}
-
-.multiplier-input input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #cfd6dd;
-  font-size: 16px;
-}
-
-.multiplier-input small {
-  color: #666;
-  font-size: 12px;
-  display: block;
-}
-
-.countdown-display {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.current-parameters {
-  width: 100%;
-  text-align: left;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
-  margin-top: 16px;
-}
-
-.parameters-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 8px;
-}
-
-.parameter-line {
-  font-size: 13px;
-  color: #475569;
-  line-height: 1.5;
-  margin-bottom: 4px;
-}
-
-.countdown-display h3 {
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  color: #333;
-}
-
 .countdown-text {
   font-size: 16px;
   color: #666;
@@ -195,13 +126,6 @@
   font-size: 80px;
   font-weight: bold;
   color: #007bff;
-  line-height: 1;
-}
-
-.target-number {
-  font-size: 40px;
-  font-weight: bold;
-  color: #28a745;
   line-height: 1;
 }
 

@@ -156,7 +156,7 @@ const normalizeAttemptBlocks = (rawAttempts) => {
 const countAttemptsInBlocks = (blocks) =>
   blocks.reduce((sum, block) => sum + (Array.isArray(block?.attempts) ? block.attempts.length : 0), 0);
 
-function ScrollList({ participantId, scrollHandPreference = 'right' }) {
+function ScrollList({ participantId }) {
   const [targetSequence, setTargetSequence] = useState(() => createShuffledTargetNumbers());
   const [targetIndex, setTargetIndex] = useState(0);
   const [practiceRunCompleted, setPracticeRunCompleted] = useState(false);
@@ -1077,10 +1077,26 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
   const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
-  const wrapperClassName = `scroll-list-wrapper ${scrollHandPreference === 'left' ? 'left-hand' : 'right-hand'}`;
+
+  const renderDistanceFeedback = (side) => (
+    <div className="distance-feedback" aria-hidden="true">
+      <div className="distance-track">
+        <div
+          className="distance-marker distance-marker-target"
+          style={{ top: `${targetPositionRatio * 100}%` }}
+          title={`Target (${side})`}
+        />
+        <div
+          className="distance-marker distance-marker-current"
+          style={{ top: `${currentPositionRatio * 100}%` }}
+          title={`Current Position (${side})`}
+        />
+      </div>
+    </div>
+  );
 
   return (
-    <div className={wrapperClassName}>
+    <div className="scroll-list-wrapper">
       <div className="safe-area-progress" aria-label={`Fortschritt ${completedRunsForProgress} von ${RUNS_PER_BLOCK}`}>
         <div className="safe-area-progress-track" role="img" aria-hidden="true">
           {Array.from({ length: RUNS_PER_BLOCK }, (_, index) => (
@@ -1092,71 +1108,47 @@ function ScrollList({ participantId, scrollHandPreference = 'right' }) {
         </div>
       </div>
 
-      <div className="timer-panel">
-        <div className="timer-content">
-          <div className="countdown-display">
-            <h3>Find:</h3>
-            <div className="target-number">{targetNumber}</div>
-          </div>
-
-          <div className="current-parameters">
-            <div className="parameters-title">Aktuelle Parameter</div>
-            <div className="parameter-line">scrollFriction: {FLING_PHYSICS_CONFIG.scrollFriction.toFixed(4)}</div>
-            <div className="parameter-line">x1: {FLING_PHYSICS_CONFIG.x1.toFixed(3)}</div>
-            <div className="parameter-line">x2: {FLING_PHYSICS_CONFIG.x2.toFixed(3)}</div>
-            <div className="parameter-line">inflexion: {FLING_PHYSICS_CONFIG.inflexion.toFixed(3)}</div>
-            <div className="parameter-line">physicalCoeffTuning: {FLING_PHYSICS_CONFIG.physicalCoeffTuning.toFixed(3)}</div>
-            <div className="parameter-line">maxLaunchVelocity: {FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs.toFixed(2)} px/ms</div>
-          </div>
-
-        </div>
+      <div className="target-banner">
+        <span className="target-banner-label">Find:</span>
+        <span className="target-banner-value">{targetNumber}</span>
       </div>
 
-      <div className="distance-feedback" aria-hidden="true">
-        <div className="distance-track">
-          <div
-            className="distance-marker distance-marker-target"
-            style={{ top: `${targetPositionRatio * 100}%` }}
-            title="Target"
-          />
-          <div
-            className="distance-marker distance-marker-current"
-            style={{ top: `${currentPositionRatio * 100}%` }}
-            title="Current Position"
-          />
-        </div>
-      </div>
+      <div className="scroll-list-row">
+        {renderDistanceFeedback('left')}
 
-      <div className="scroll-list-container">
-        <div
-          className="scroll-list"
-          ref={scrollListRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
-        >
-          <div ref={scrollListInnerRef} className="scroll-list-inner" style={{ transform: `translateY(${translateY}px)` }}>
-            {Array.from({ length: NUM_ITEMS }, (_, i) => (
-              <button
-                key={i}
-                className={`list-item ${i === targetId ? 'target' : ''} ${
-                  i === targetId && !isSearching ? 'found' : ''
-                }`}
-                onClick={() => handleButtonClick(i)}
-                onTouchEnd={(event) => {
-                  if (i === targetId) {
-                    event.stopPropagation();
-                    handleButtonClick(i);
-                  }
-                }}
-                disabled={!isSearching}
-              >
-                {i + 1}
-              </button>
-            ))}
+        <div className="scroll-list-container">
+          <div
+            className="scroll-list"
+            ref={scrollListRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
+          >
+            <div ref={scrollListInnerRef} className="scroll-list-inner" style={{ transform: `translateY(${translateY}px)` }}>
+              {Array.from({ length: NUM_ITEMS }, (_, i) => (
+                <button
+                  key={i}
+                  className={`list-item ${i === targetId ? 'target' : ''} ${
+                    i === targetId && !isSearching ? 'found' : ''
+                  }`}
+                  onClick={() => handleButtonClick(i)}
+                  onTouchEnd={(event) => {
+                    if (i === targetId) {
+                      event.stopPropagation();
+                      handleButtonClick(i);
+                    }
+                  }}
+                  disabled={!isSearching}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+
+        {renderDistanceFeedback('right')}
       </div>
 
       {showParameterDialog && (
