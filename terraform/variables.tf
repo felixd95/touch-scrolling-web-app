@@ -62,13 +62,23 @@ variable "sagemaker_container_image" {
   description = <<-EOT
     Full ECR image URI for the SageMaker inference container that runs
     sagemaker/active-learning-endpoint/code/inference.py. Leave empty to use
-    the default AWS Deep Learning Containers PyTorch CPU image for
-    var.aws_region. Verify the tag is still current at
-    https://aws.github.io/deep-learning-containers/reference/available_images/
-    before applying, since AWS periodically retires old image tags.
+    the default prebuilt SageMaker Scikit-learn image (see
+    data.aws_sagemaker_prebuilt_ecr_image.sklearn and
+    var.sagemaker_sklearn_image_tag in sagemaker.tf).
   EOT
   type        = string
   default     = ""
+}
+
+variable "sagemaker_sklearn_image_tag" {
+  description = <<-EOT
+    Image tag for the prebuilt "sagemaker-scikit-learn" ECR repository (see
+    data.aws_sagemaker_prebuilt_ecr_image.sklearn in sagemaker.tf). Verify
+    this tag still exists for var.aws_region before applying - AWS
+    periodically retires old image tags.
+  EOT
+  type        = string
+  default     = "1.2-1"
 }
 
 variable "sagemaker_dlc_account_id" {

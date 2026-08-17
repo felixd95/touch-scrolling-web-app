@@ -1,11 +1,13 @@
 locals {
-  # Use the long-established "pytorch-inference" DLC repository/tag rather
-  # than the very recent unified "pytorch:2.13.0" image: that newer image
-  # ships a PyTorch version so new that botorch's dependency resolver can
-  # end up trying to reinstall/downgrade torch when requirements.txt is
-  # pip-installed at container startup, which was causing the endpoint's
-  # model process to crash ("model process exited") during health checks.
-  sagemaker_container_image = length(trimspace(var.sagemaker_container_image)) > 0 ? var.sagemaker_container_image : "${var.sagemaker_dlc_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/pytorch-inference:2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+  # inference.py now only needs numpy/scikit-learn (no torch/gpytorch/
+  # botorch), so this uses the official, dedicated SageMaker Scikit-learn
+  # container instead of the much heavier PyTorch DLC image. scikit-learn
+  # ships pre-installed in this image, so requirements.txt no longer needs
+  # to pip-install anything at container cold start - this also eliminates
+  # the PyTorch DLC image itself as a variable, after repeated identical
+  # "model process exited" endpoint creation failures that persisted across
+  # multiple different botorch/gpytorch dependency pins on that image.
+  sagemaker_container_image = length(trimspace(var.sagemaker_container_image)) > 0 ? var.sagemaker_container_image : data.aws_sagemaker_prebuilt_ecr_image.sklearn.registry_path
   sagemaker_model_key        = "models/active-learning-endpoint/model.tar.gz"
 
   # bucket_name_prefix already ends in "-"; strip it so we don't end up with
@@ -18,6 +20,19 @@ locals {
   # long var.project_name is.
   sagemaker_endpoint_config_prefix = "${local.sagemaker_name_root}-al-cfg-"
 }
+
+# Resolves the registry path of AWS's official prebuilt SageMaker
+# Scikit-learn inference image (maintained by AWS, not hand-built from a
+# guessed ECR URI/tag). See var.sagemaker_sklearn_image_tag if AWS retires
+# this specific tag in this region and the apply fails with an image-not-
+# found error.
+data "aws_sagemaker_prebuilt_ecr_image" "sklearn" {
+  repository_name = "sagemaker-scikit-learn"
+  image_tag        = var.sagemaker_sklearn_image_tag
+  region           = var.aws_region
+}
+
+
 
 # Packages sagemaker/active-learning-endpoint/code/{inference.py,requirements.txt}
 # into a model.tar.gz with the "code/" layout SageMaker's inference toolkit
@@ -126,15 +141,16 @@ resource "aws_iam_role_policy" "sagemaker_execution" {
         Resource = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/sagemaker/*"
       },
       {
-        # Required to pull the AWS Deep Learning Containers image, which is
-        # hosted in a separate AWS-owned ECR account (var.sagemaker_dlc_account_id),
-        # not this account's own registry.
+        # Required to pull the prebuilt SageMaker Scikit-learn image, which
+        # is hosted in a separate AWS-owned ECR account
+        # (data.aws_sagemaker_prebuilt_ecr_image.sklearn.registry_id), not
+        # this account's own registry.
         Effect = "Allow"
         Action = [
           "ecr:BatchGetImage",
           "ecr:GetDownloadUrlForLayer"
         ]
-        Resource = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${var.sagemaker_dlc_account_id}:repository/*"
+        Resource = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${data.aws_sagemaker_prebuilt_ecr_image.sklearn.registry_id}:repository/*"
       },
       {
         # GetAuthorizationToken has no resource-level permissions; it must be

@@ -8,24 +8,18 @@ from typing import Any, Dict, List, Optional, Tuple
 # calls predict_fn(), so if CreateEndpoint fails with "model process
 # exited" the crash must be happening here at import time (or in
 # model_fn() below). These prints are flushed immediately so they show up
-# in CloudWatch even if the process segfaults right after.
+# in CloudWatch even if the process crashes right after.
 print("DEBUG inference.py: starting imports", flush=True)
 
-import torch  # noqa: E402
+import numpy as np  # noqa: E402
 
-print(f"DEBUG inference.py: torch imported, version={torch.__version__}", flush=True)
+print(f"DEBUG inference.py: numpy imported, version={np.__version__}", flush=True)
 
-import numpy  # noqa: E402
+import sklearn  # noqa: E402
+from sklearn.gaussian_process import GaussianProcessRegressor  # noqa: E402
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel, WhiteKernel  # noqa: E402
 
-print(f"DEBUG inference.py: numpy imported, version={numpy.__version__}", flush=True)
-
-import scipy  # noqa: E402
-
-print(f"DEBUG inference.py: scipy imported, version={scipy.__version__}", flush=True)
-
-import gpytorch  # noqa: E402
-
-print(f"DEBUG inference.py: gpytorch imported, version={gpytorch.__version__}", flush=True)
+print(f"DEBUG inference.py: scikit-learn imported, version={sklearn.__version__}", flush=True)
 print("DEBUG inference.py: all imports completed successfully", flush=True)
 
 REQUIRED_KEYS = (
@@ -60,43 +54,16 @@ PARAMETER_BOUNDS = {
     "maxLaunchVelocityPxMs": (20.0, 80.0),
 }
 
-# GPyTorch models are numerically more stable in double precision.
-TORCH_DTYPE = torch.double
-
-# Number of Adam optimization steps used to fit each per-target GP's
-# hyperparameters (mean/kernel lengthscale/task covariance) via marginal
-# log-likelihood. Small/cheap since training sets are tiny (a handful of
-# blocks per participant).
-GP_TRAINING_ITERATIONS = 50
-
-
-class _MultiTaskGPModel(gpytorch.models.ExactGP):
-    """Minimal ICM ("Hadamard") multi-task GP: the same architecture
-    botorch.models.MultiTaskGP used (a data kernel multiplied with an
-    IndexKernel over the task/participant id in the last input column),
-    implemented directly in GPyTorch so the endpoint no longer needs the
-    much heavier botorch dependency tree at container cold start."""
-
-    def __init__(self, train_x: torch.Tensor, train_y: torch.Tensor, likelihood: gpytorch.likelihoods.GaussianLikelihood, num_tasks: int):
-        super().__init__(train_x, train_y, likelihood)
-        num_data_dims = train_x.shape[-1] - 1
-        self.mean_module = gpytorch.means.ConstantMean()
-        self.data_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(ard_num_dims=num_data_dims))
-        self.task_covar_module = gpytorch.kernels.IndexKernel(num_tasks=num_tasks, rank=1)
-
-    def forward(self, x: torch.Tensor) -> gpytorch.distributions.MultivariateNormal:
-        data_x = x[..., :-1]
-        task_idx = x[..., -1].long()
-        mean_x = self.mean_module(data_x)
-        data_covar = self.data_covar_module(data_x)
-        task_covar = self.task_covar_module(task_idx)
-        return gpytorch.distributions.MultivariateNormal(mean_x, data_covar.mul(task_covar))
+# Bounds passed to scikit-learn's kernel hyperparameter optimizer (L-BFGS on
+# the marginal log-likelihood, run internally by GaussianProcessRegressor.fit).
+GP_LENGTH_SCALE_BOUNDS = (1e-2, 1e3)
 
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
-    # No persisted model artifact is required: a fresh multi-task Gaussian
-    # Process (task = participant) is fitted with GPyTorch on every
-    # invocation from the data supplied in the request body.
+    # No persisted model artifact is required: a fresh Gaussian Process
+    # (task = participant, included as an extra input feature) is fitted
+    # with scikit-learn on every invocation from the data supplied in the
+    # request body.
     print(f"DEBUG inference.py: model_fn called with model_dir={model_dir}", flush=True)
     return {}
 
@@ -294,9 +261,9 @@ def _normalize_participants_data(
 def _build_task_training_data(
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
     target_index: int,
-) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
+) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
     """Build the (scrollFriction, x1, x2, inflexion, physicalCoeffTuning,
-    maxLaunchVelocityPxMs, task_id) -> time training tensors for one of the
+    maxLaunchVelocityPxMs, task_id) -> time training arrays for one of the
     10 target-number objectives, pooling observations across participants."""
     rows_x = []
     rows_y = []
@@ -304,43 +271,30 @@ def _build_task_training_data(
     for task_id, blocks in blocks_by_task_id.items():
         for block in blocks:
             rows_x.append([*block["x"], float(task_id)])
-            rows_y.append([block["timeVector"][target_index]])
+            rows_y.append(block["timeVector"][target_index])
 
     if not rows_x:
         return None, None
 
-    train_x = torch.tensor(rows_x, dtype=TORCH_DTYPE)
-    train_y = torch.tensor(rows_y, dtype=TORCH_DTYPE)
+    train_x = np.array(rows_x, dtype=float)
+    train_y = np.array(rows_y, dtype=float)
     return train_x, train_y
 
 
-def _fit_multi_task_gp(
-    train_x: torch.Tensor, train_y: torch.Tensor, num_tasks: int
-) -> Tuple[_MultiTaskGPModel, gpytorch.likelihoods.GaussianLikelihood]:
-    """Fit a GPyTorch multi-task GP where the last input column is the task
-    (participant) index. The ICM multi-task kernel lets the model share
-    statistical strength about the parameter -> completion-time relationship
-    across participants instead of fitting each participant in isolation."""
-    train_y_flat = train_y.squeeze(-1)
-    likelihood = gpytorch.likelihoods.GaussianLikelihood().to(TORCH_DTYPE)
-    model = _MultiTaskGPModel(train_x, train_y_flat, likelihood, num_tasks=num_tasks).to(TORCH_DTYPE)
+def _fit_gp(train_x: np.ndarray, train_y: np.ndarray) -> GaussianProcessRegressor:
+    """Fit a simple scikit-learn Gaussian Process. The task (participant) id
+    is included as an extra numeric input column alongside the physics
+    parameters, with its own ARD length scale in the RBF kernel, so the GP
+    can learn how much weight to give participant-level differences without
+    needing a dedicated multi-task/coregionalization kernel."""
+    num_dims = train_x.shape[1]
+    kernel = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(
+        length_scale=np.ones(num_dims), length_scale_bounds=GP_LENGTH_SCALE_BOUNDS
+    ) + WhiteKernel(noise_level=1.0, noise_level_bounds=(1e-5, 1e2))
 
-    model.train()
-    likelihood.train()
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
-    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
-
-    for _ in range(GP_TRAINING_ITERATIONS):
-        optimizer.zero_grad()
-        output = model(train_x)
-        loss = -mll(output, train_y_flat)
-        loss.backward()
-        optimizer.step()
-
-    model.eval()
-    likelihood.eval()
-    return model, likelihood
+    gp = GaussianProcessRegressor(kernel=kernel, normalize_y=True, n_restarts_optimizer=2)
+    gp.fit(train_x, train_y)
+    return gp
 
 
 def _select_best_candidate_index(
@@ -351,12 +305,10 @@ def _select_best_candidate_index(
     """Fit one multi-task GP per target-time objective and scalarize the 10
     posterior-mean predictions (mean + weighted worst-case + spread) across
     every candidate, returning the index of the best candidate."""
-    candidate_x = torch.tensor(
+    candidate_x = np.array(
         [[*(c[key] for key in REQUIRED_KEYS), float(current_task_id)] for c in candidate_params],
-        dtype=TORCH_DTYPE,
+        dtype=float,
     )
-
-    num_tasks = len(blocks_by_task_id)
 
     predicted_times = []
     for target_index in range(len(TARGET_NUMBERS)):
@@ -364,20 +316,18 @@ def _select_best_candidate_index(
         if train_x is None or train_x.shape[0] < 2:
             return None
 
-        model, likelihood = _fit_multi_task_gp(train_x, train_y, num_tasks=num_tasks)
-        with torch.no_grad():
-            posterior = likelihood(model(candidate_x))
-            predicted_times.append(posterior.mean)
+        gp = _fit_gp(train_x, train_y)
+        predicted_times.append(gp.predict(candidate_x))
 
-    stacked_times = torch.stack(predicted_times, dim=0)  # (10 objectives, num_candidates)
-    mean_time = stacked_times.mean(dim=0)
-    max_time = stacked_times.max(dim=0).values
-    min_time = stacked_times.min(dim=0).values
+    stacked_times = np.stack(predicted_times, axis=0)  # (10 objectives, num_candidates)
+    mean_time = stacked_times.mean(axis=0)
+    max_time = stacked_times.max(axis=0)
+    min_time = stacked_times.min(axis=0)
     spread = max_time - min_time
 
     # Joint objective: minimize average time, worst-case time, and imbalance across targets.
     score = mean_time + 0.35 * max_time + 0.10 * spread
-    return int(torch.argmin(score).item())
+    return int(np.argmin(score))
 
 
 def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, Any]:
@@ -399,7 +349,7 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
             best_index = _select_best_candidate_index(blocks_by_task_id, candidates, current_task_id)
             if best_index is not None:
                 best_candidate = candidates[best_index]
-                strategy = "gpytorch-multitask-gp-multi-objective-10-target-times"
+                strategy = "sklearn-gp-multi-objective-10-target-times"
         except Exception as error:
             print(f"DEBUG inference.py: multi-task GP fit failed: {error!r}", flush=True)
             traceback.print_exc(file=sys.stdout)
