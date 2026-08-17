@@ -1,11 +1,47 @@
 import json
 import random
+import sys
+import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
-import torch
-from botorch.fit import fit_gpytorch_mll
-from botorch.models import MultiTaskGP
-from gpytorch.mlls import ExactMarginalLogLikelihood
+# Debug breadcrumbs: SageMaker's serverless health check ("/ping") never
+# calls predict_fn(), so if CreateEndpoint fails with "model process
+# exited" the crash must be happening here at import time (or in
+# model_fn() below) - most likely an ABI mismatch between the pre-baked
+# torch/numpy in the DLC image and whatever numpy/scipy pip resolves and
+# (re)installs at cold start for botorch's transitive dependencies. These
+# prints are flushed immediately so they show up in CloudWatch even if the
+# process segfaults right after.
+print("DEBUG inference.py: starting imports", flush=True)
+
+import torch  # noqa: E402
+
+print(f"DEBUG inference.py: torch imported, version={torch.__version__}", flush=True)
+
+import numpy  # noqa: E402
+
+print(f"DEBUG inference.py: numpy imported, version={numpy.__version__}", flush=True)
+
+import scipy  # noqa: E402
+
+print(f"DEBUG inference.py: scipy imported, version={scipy.__version__}", flush=True)
+
+from botorch.fit import fit_gpytorch_mll  # noqa: E402
+
+print("DEBUG inference.py: botorch.fit imported", flush=True)
+
+from botorch.models import MultiTaskGP  # noqa: E402
+
+import botorch  # noqa: E402
+
+print(f"DEBUG inference.py: botorch.models imported, botorch version={botorch.__version__}", flush=True)
+
+from gpytorch.mlls import ExactMarginalLogLikelihood  # noqa: E402
+
+import gpytorch  # noqa: E402
+
+print(f"DEBUG inference.py: gpytorch.mlls imported, gpytorch version={gpytorch.__version__}", flush=True)
+print("DEBUG inference.py: all imports completed successfully", flush=True)
 
 REQUIRED_KEYS = (
     "scrollFriction",
@@ -47,6 +83,7 @@ def model_fn(model_dir: str) -> Dict[str, Any]:
     # No persisted model artifact is required: a fresh multi-task Gaussian
     # Process (task = participant) is fitted with BoTorch on every
     # invocation from the data supplied in the request body.
+    print(f"DEBUG inference.py: model_fn called with model_dir={model_dir}", flush=True)
     return {}
 
 
@@ -330,7 +367,10 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
             if best_index is not None:
                 best_candidate = candidates[best_index]
                 strategy = "botorch-multitask-gp-multi-objective-10-target-times"
-        except Exception:
+        except Exception as error:
+            print(f"DEBUG inference.py: multi-task GP fit failed: {error!r}", flush=True)
+            traceback.print_exc(file=sys.stdout)
+            sys.stdout.flush()
             best_candidate = current
 
     return {
