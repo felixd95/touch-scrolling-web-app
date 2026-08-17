@@ -80,7 +80,12 @@ variable "sagemaker_dlc_account_id" {
 variable "sagemaker_serverless_memory_size_mb" {
   description = "Memory allocated to the SageMaker Serverless Inference endpoint (MB). Must be one of 1024, 2048, 3072, 4096, 5120, 6144."
   type        = number
-  default     = 3072
+  # Set to the maximum: pip-installing botorch/gpytorch (plus their
+  # scipy/linear_operator/pyro-ppl transitive dependencies) at container
+  # cold start, on top of the already-loaded torch runtime, was likely
+  # exceeding the previous 3072 MB budget and getting the model process
+  # OOM-killed - which surfaces as the generic "model process exited" error.
+  default = 6144
 }
 
 variable "sagemaker_serverless_max_concurrency" {
