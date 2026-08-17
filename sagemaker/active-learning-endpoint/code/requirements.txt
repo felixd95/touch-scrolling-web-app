@@ -1,15 +1,15 @@
-# The SageMaker PyTorch container already ships torch, so only the
-# additional Bayesian-optimization libraries used by inference.py need to be
-# installed. The SageMaker inference toolkit pip-installs this file into the
-# container at model load time.
+# The SageMaker PyTorch container already ships torch, so only GPyTorch
+# needs to be installed. The SageMaker inference toolkit pip-installs this
+# file into the container at model load time.
 #
-# Versions are pinned to releases whose own dependency constraints
-# (botorch>=0.18 requires torch>=2.4; gpytorch>=1.15 requires torch>=2.0) are
-# already satisfied by the torch version shipped in the
-# pytorch-inference:2.6.0 DLC. This matters because an older botorch/gpytorch
-# release (e.g. one predating torch 2.6) would declare an incompatible torch
-# upper bound, causing pip to try to reinstall/downgrade torch at container
-# startup - which previously crashed the endpoint's model process during
-# health checks.
-botorch==0.18.1
+# inference.py implements its own minimal ICM ("Hadamard") multi-task GP
+# directly on top of GPyTorch (see _MultiTaskGPModel) instead of using
+# botorch.models.MultiTaskGP. This drops botorch and its own extra
+# transitive dependencies (pyro-ppl, multipledispatch, ninja, etc.) from
+# the cold-start dependency-install path entirely, while keeping the same
+# ICM model architecture.
+#
+# gpytorch>=1.15 requires torch>=2.0, satisfied by the torch version shipped
+# in the pytorch-inference:2.6.0 DLC.
 gpytorch==1.15.2
+

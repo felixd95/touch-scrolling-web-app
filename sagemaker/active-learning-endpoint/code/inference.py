@@ -7,11 +7,8 @@ from typing import Any, Dict, List, Optional, Tuple
 # Debug breadcrumbs: SageMaker's serverless health check ("/ping") never
 # calls predict_fn(), so if CreateEndpoint fails with "model process
 # exited" the crash must be happening here at import time (or in
-# model_fn() below) - most likely an ABI mismatch between the pre-baked
-# torch/numpy in the DLC image and whatever numpy/scipy pip resolves and
-# (re)installs at cold start for botorch's transitive dependencies. These
-# prints are flushed immediately so they show up in CloudWatch even if the
-# process segfaults right after.
+# model_fn() below). These prints are flushed immediately so they show up
+# in CloudWatch even if the process segfaults right after.
 print("DEBUG inference.py: starting imports", flush=True)
 
 import torch  # noqa: E402
@@ -26,21 +23,9 @@ import scipy  # noqa: E402
 
 print(f"DEBUG inference.py: scipy imported, version={scipy.__version__}", flush=True)
 
-from botorch.fit import fit_gpytorch_mll  # noqa: E402
-
-print("DEBUG inference.py: botorch.fit imported", flush=True)
-
-from botorch.models import MultiTaskGP  # noqa: E402
-
-import botorch  # noqa: E402
-
-print(f"DEBUG inference.py: botorch.models imported, botorch version={botorch.__version__}", flush=True)
-
-from gpytorch.mlls import ExactMarginalLogLikelihood  # noqa: E402
-
 import gpytorch  # noqa: E402
 
-print(f"DEBUG inference.py: gpytorch.mlls imported, gpytorch version={gpytorch.__version__}", flush=True)
+print(f"DEBUG inference.py: gpytorch imported, version={gpytorch.__version__}", flush=True)
 print("DEBUG inference.py: all imports completed successfully", flush=True)
 
 REQUIRED_KEYS = (
@@ -75,13 +60,42 @@ PARAMETER_BOUNDS = {
     "maxLaunchVelocityPxMs": (20.0, 80.0),
 }
 
-# BoTorch/GPyTorch models are numerically more stable in double precision.
+# GPyTorch models are numerically more stable in double precision.
 TORCH_DTYPE = torch.double
+
+# Number of Adam optimization steps used to fit each per-target GP's
+# hyperparameters (mean/kernel lengthscale/task covariance) via marginal
+# log-likelihood. Small/cheap since training sets are tiny (a handful of
+# blocks per participant).
+GP_TRAINING_ITERATIONS = 50
+
+
+class _MultiTaskGPModel(gpytorch.models.ExactGP):
+    """Minimal ICM ("Hadamard") multi-task GP: the same architecture
+    botorch.models.MultiTaskGP used (a data kernel multiplied with an
+    IndexKernel over the task/participant id in the last input column),
+    implemented directly in GPyTorch so the endpoint no longer needs the
+    much heavier botorch dependency tree at container cold start."""
+
+    def __init__(self, train_x: torch.Tensor, train_y: torch.Tensor, likelihood: gpytorch.likelihoods.GaussianLikelihood, num_tasks: int):
+        super().__init__(train_x, train_y, likelihood)
+        num_data_dims = train_x.shape[-1] - 1
+        self.mean_module = gpytorch.means.ConstantMean()
+        self.data_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(ard_num_dims=num_data_dims))
+        self.task_covar_module = gpytorch.kernels.IndexKernel(num_tasks=num_tasks, rank=1)
+
+    def forward(self, x: torch.Tensor) -> gpytorch.distributions.MultivariateNormal:
+        data_x = x[..., :-1]
+        task_idx = x[..., -1].long()
+        mean_x = self.mean_module(data_x)
+        data_covar = self.data_covar_module(data_x)
+        task_covar = self.task_covar_module(task_idx)
+        return gpytorch.distributions.MultivariateNormal(mean_x, data_covar.mul(task_covar))
 
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
     # No persisted model artifact is required: a fresh multi-task Gaussian
-    # Process (task = participant) is fitted with BoTorch on every
+    # Process (task = participant) is fitted with GPyTorch on every
     # invocation from the data supplied in the request body.
     print(f"DEBUG inference.py: model_fn called with model_dir={model_dir}", flush=True)
     return {}
@@ -300,15 +314,33 @@ def _build_task_training_data(
     return train_x, train_y
 
 
-def _fit_multi_task_gp(train_x: torch.Tensor, train_y: torch.Tensor) -> MultiTaskGP:
-    """Fit a BoTorch MultiTaskGP where the last input column is the task
+def _fit_multi_task_gp(
+    train_x: torch.Tensor, train_y: torch.Tensor, num_tasks: int
+) -> Tuple[_MultiTaskGPModel, gpytorch.likelihoods.GaussianLikelihood]:
+    """Fit a GPyTorch multi-task GP where the last input column is the task
     (participant) index. The ICM multi-task kernel lets the model share
     statistical strength about the parameter -> completion-time relationship
     across participants instead of fitting each participant in isolation."""
-    model = MultiTaskGP(train_x, train_y, task_feature=-1)
-    mll = ExactMarginalLogLikelihood(model.likelihood, model)
-    fit_gpytorch_mll(mll)
-    return model
+    train_y_flat = train_y.squeeze(-1)
+    likelihood = gpytorch.likelihoods.GaussianLikelihood().to(TORCH_DTYPE)
+    model = _MultiTaskGPModel(train_x, train_y_flat, likelihood, num_tasks=num_tasks).to(TORCH_DTYPE)
+
+    model.train()
+    likelihood.train()
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+
+    for _ in range(GP_TRAINING_ITERATIONS):
+        optimizer.zero_grad()
+        output = model(train_x)
+        loss = -mll(output, train_y_flat)
+        loss.backward()
+        optimizer.step()
+
+    model.eval()
+    likelihood.eval()
+    return model, likelihood
 
 
 def _select_best_candidate_index(
@@ -324,17 +356,18 @@ def _select_best_candidate_index(
         dtype=TORCH_DTYPE,
     )
 
+    num_tasks = len(blocks_by_task_id)
+
     predicted_times = []
     for target_index in range(len(TARGET_NUMBERS)):
         train_x, train_y = _build_task_training_data(blocks_by_task_id, target_index)
         if train_x is None or train_x.shape[0] < 2:
             return None
 
-        model = _fit_multi_task_gp(train_x, train_y)
-        model.eval()
+        model, likelihood = _fit_multi_task_gp(train_x, train_y, num_tasks=num_tasks)
         with torch.no_grad():
-            posterior = model.posterior(candidate_x)
-            predicted_times.append(posterior.mean.squeeze(-1))
+            posterior = likelihood(model(candidate_x))
+            predicted_times.append(posterior.mean)
 
     stacked_times = torch.stack(predicted_times, dim=0)  # (10 objectives, num_candidates)
     mean_time = stacked_times.mean(dim=0)
@@ -366,7 +399,7 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
             best_index = _select_best_candidate_index(blocks_by_task_id, candidates, current_task_id)
             if best_index is not None:
                 best_candidate = candidates[best_index]
-                strategy = "botorch-multitask-gp-multi-objective-10-target-times"
+                strategy = "gpytorch-multitask-gp-multi-objective-10-target-times"
         except Exception as error:
             print(f"DEBUG inference.py: multi-task GP fit failed: {error!r}", flush=True)
             traceback.print_exc(file=sys.stdout)
