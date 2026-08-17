@@ -28,3 +28,14 @@ output "terraform_appsync_api_key" {
   value       = aws_appsync_api_key.api_key.key
   sensitive   = true
 }
+
+output "terraform_sagemaker_endpoint_name" {
+  description = "Terraform-managed SageMaker endpoint name serving the active-learning model"
+  value       = aws_sagemaker_endpoint.active_learning.name
+}
+
+output "terraform_sagemaker_model_bucket" {
+  description = "S3 bucket storing the packaged SageMaker model.tar.gz artifact"
+  value       = aws_s3_bucket.sagemaker_model_artifacts.bucket
+}
+

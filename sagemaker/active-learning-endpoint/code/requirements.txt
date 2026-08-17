@@ -1,0 +1,6 @@
+# The SageMaker PyTorch container already ships torch, so only the
+# additional Bayesian-optimization libraries used by inference.py need to be
+# installed. The SageMaker inference toolkit pip-installs this file into the
+# container at model load time.
+botorch
+gpytorch

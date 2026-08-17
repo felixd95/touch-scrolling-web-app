@@ -58,6 +58,37 @@ variable "sagemaker_endpoint_name" {
   default     = "touch-scrolling-active-learning-endpoint"
 }
 
+variable "sagemaker_container_image" {
+  description = <<-EOT
+    Full ECR image URI for the SageMaker inference container that runs
+    sagemaker/active-learning-endpoint/code/inference.py. Leave empty to use
+    the default AWS Deep Learning Containers PyTorch CPU image for
+    var.aws_region. Verify the tag is still current at
+    https://aws.github.io/deep-learning-containers/reference/available_images/
+    before applying, since AWS periodically retires old image tags.
+  EOT
+  type        = string
+  default     = ""
+}
+
+variable "sagemaker_dlc_account_id" {
+  description = "AWS account ID that hosts the Deep Learning Containers ECR images for most commercial regions"
+  type        = string
+  default     = "763104351884"
+}
+
+variable "sagemaker_serverless_memory_size_mb" {
+  description = "Memory allocated to the SageMaker Serverless Inference endpoint (MB). Must be one of 1024, 2048, 3072, 4096, 5120, 6144."
+  type        = number
+  default     = 3072
+}
+
+variable "sagemaker_serverless_max_concurrency" {
+  description = "Maximum concurrent invocations for the SageMaker Serverless Inference endpoint"
+  type        = number
+  default     = 1
+}
+
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)
