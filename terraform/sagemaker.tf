@@ -1,6 +1,16 @@
 locals {
   sagemaker_container_image = length(trimspace(var.sagemaker_container_image)) > 0 ? var.sagemaker_container_image : "${var.sagemaker_dlc_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/pytorch:2.13.0-cpu-amzn2023-sagemaker"
   sagemaker_model_key        = "models/active-learning-endpoint/model.tar.gz"
+
+  # bucket_name_prefix already ends in "-"; strip it so we don't end up with
+  # double dashes when composing other resource names from it.
+  sagemaker_name_root = trimsuffix(local.bucket_name_prefix, "-")
+
+  # aws_sagemaker_endpoint_configuration.name_prefix has a hard 37-character
+  # limit (AWS appends a 26-char random suffix, total endpoint config names
+  # are capped at 63), so this must stay short and fixed regardless of how
+  # long var.project_name is.
+  sagemaker_endpoint_config_prefix = "${local.sagemaker_name_root}-al-cfg-"
 }
 
 # Packages sagemaker/active-learning-endpoint/code/{inference.py,requirements.txt}
@@ -23,7 +33,7 @@ data "archive_file" "sagemaker_model" {
 }
 
 resource "aws_s3_bucket" "sagemaker_model_artifacts" {
-  bucket        = "${local.bucket_name_prefix}-${data.aws_caller_identity.current.account_id}-${var.aws_region}-sagemaker"
+  bucket        = "${local.sagemaker_name_root}-${data.aws_caller_identity.current.account_id}-${var.aws_region}-sagemaker"
   force_destroy = true
 
   tags = var.tags
@@ -136,7 +146,7 @@ resource "aws_sagemaker_model" "active_learning" {
 }
 
 resource "aws_sagemaker_endpoint_configuration" "active_learning" {
-  name_prefix = "${local.resource_name_prefix}-active-learning-config-"
+  name_prefix = local.sagemaker_endpoint_config_prefix
 
   # Serverless Inference: no instance runs idle between requests (billed only
   # for the compute actually used per invocation), which fits an experiment
