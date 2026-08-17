@@ -198,8 +198,11 @@ resource "aws_sagemaker_endpoint" "active_learning" {
   # after can fail with "Cannot create already existing endpoint" because
   # the deletion is still propagating. Block until AWS confirms the old
   # endpoint is actually deleted before Terraform moves on to (re-)create it.
+  # NOTE: destroy-time provisioners may only reference 'self', so the region
+  # is not passed explicitly here; the AWS CLI picks it up from the
+  # AWS_REGION/AWS_DEFAULT_REGION environment variable set by the CI job.
   provisioner "local-exec" {
     when    = destroy
-    command = "aws sagemaker wait endpoint-deleted --endpoint-name ${self.name} --region ${var.aws_region} || true"
+    command = "aws sagemaker wait endpoint-deleted --endpoint-name ${self.name} || true"
   }
 }
