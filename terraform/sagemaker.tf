@@ -191,4 +191,15 @@ resource "aws_sagemaker_endpoint" "active_learning" {
   endpoint_config_name = aws_sagemaker_endpoint_configuration.active_learning.name
 
   tags = var.tags
+
+  # SageMaker's DeleteEndpoint API returns before the endpoint is fully gone.
+  # If Terraform needs to destroy-and-recreate this resource (e.g. it was
+  # tainted by a failed create), a CreateEndpoint call issued immediately
+  # after can fail with "Cannot create already existing endpoint" because
+  # the deletion is still propagating. Block until AWS confirms the old
+  # endpoint is actually deleted before Terraform moves on to (re-)create it.
+  provisioner "local-exec" {
+    when    = destroy
+    command = "aws sagemaker wait endpoint-deleted --endpoint-name ${self.name} --region ${var.aws_region} || true"
+  }
 }
