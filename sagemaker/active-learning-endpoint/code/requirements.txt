@@ -3,9 +3,13 @@
 # installed. The SageMaker inference toolkit pip-installs this file into the
 # container at model load time.
 #
-# Versions are pinned to releases that are compatible with the torch version
-# shipped by the pytorch-inference:2.6.0 DLC, so pip does not attempt to
-# reinstall/downgrade torch itself (which previously caused the endpoint's
-# model process to crash during startup health checks).
-botorch==0.11.3
-gpytorch==1.13
+# Versions are pinned to releases whose own dependency constraints
+# (botorch>=0.18 requires torch>=2.4; gpytorch>=1.15 requires torch>=2.0) are
+# already satisfied by the torch version shipped in the
+# pytorch-inference:2.6.0 DLC. This matters because an older botorch/gpytorch
+# release (e.g. one predating torch 2.6) would declare an incompatible torch
+# upper bound, causing pip to try to reinstall/downgrade torch at container
+# startup - which previously crashed the endpoint's model process during
+# health checks.
+botorch==0.18.1
+gpytorch==1.15.2
