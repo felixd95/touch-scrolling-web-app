@@ -118,6 +118,24 @@ resource "aws_iam_role_policy" "sagemaker_execution" {
           "logs:DescribeLogStreams"
         ]
         Resource = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/sagemaker/*"
+      },
+      {
+        # Required to pull the AWS Deep Learning Containers image, which is
+        # hosted in a separate AWS-owned ECR account (var.sagemaker_dlc_account_id),
+        # not this account's own registry.
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer"
+        ]
+        Resource = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${var.sagemaker_dlc_account_id}:repository/*"
+      },
+      {
+        # GetAuthorizationToken has no resource-level permissions; it must be
+        # granted on "*".
+        Effect   = "Allow"
+        Action   = ["ecr:GetAuthorizationToken"]
+        Resource = "*"
       }
     ]
   })
