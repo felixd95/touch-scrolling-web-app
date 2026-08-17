@@ -2,5 +2,10 @@
 # additional Bayesian-optimization libraries used by inference.py need to be
 # installed. The SageMaker inference toolkit pip-installs this file into the
 # container at model load time.
-botorch
-gpytorch
+#
+# Versions are pinned to releases that are compatible with the torch version
+# shipped by the pytorch-inference:2.6.0 DLC, so pip does not attempt to
+# reinstall/downgrade torch itself (which previously caused the endpoint's
+# model process to crash during startup health checks).
+botorch==0.11.3
+gpytorch==1.13

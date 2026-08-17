@@ -1,5 +1,11 @@
 locals {
-  sagemaker_container_image = length(trimspace(var.sagemaker_container_image)) > 0 ? var.sagemaker_container_image : "${var.sagemaker_dlc_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/pytorch:2.13.0-cpu-amzn2023-sagemaker"
+  # Use the long-established "pytorch-inference" DLC repository/tag rather
+  # than the very recent unified "pytorch:2.13.0" image: that newer image
+  # ships a PyTorch version so new that botorch's dependency resolver can
+  # end up trying to reinstall/downgrade torch when requirements.txt is
+  # pip-installed at container startup, which was causing the endpoint's
+  # model process to crash ("model process exited") during health checks.
+  sagemaker_container_image = length(trimspace(var.sagemaker_container_image)) > 0 ? var.sagemaker_container_image : "${var.sagemaker_dlc_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/pytorch-inference:2.6.0-cpu-py312-ubuntu22.04-sagemaker"
   sagemaker_model_key        = "models/active-learning-endpoint/model.tar.gz"
 
   # bucket_name_prefix already ends in "-"; strip it so we don't end up with
