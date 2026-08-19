@@ -29,6 +29,7 @@ type Participant {
   attempts: AWSJSON
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON
+  parameterBlockMetrics: AWSJSON
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }

@@ -1,6 +1,8 @@
 import json
 import math
 import os
+import time
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import boto3
@@ -46,6 +48,96 @@ def _to_dynamo(value):
     if isinstance(value, list):
         return [_to_dynamo(v) for v in value]
     return value
+
+
+def _collect_numeric_field(attempts, key):
+    """Return the numeric values stored under `key` across the given attempts,
+    ignoring missing entries and non-numeric/boolean values."""
+    values = []
+    for attempt in attempts:
+        if not isinstance(attempt, dict):
+            continue
+        value = attempt.get(key)
+        if isinstance(value, bool):
+            continue
+        if isinstance(value, (int, float)):
+            values.append(float(value))
+    return values
+
+
+def _numeric_summary(values):
+    """Compute count/mean/min/max/median/std for a list of numbers, or None if empty."""
+    if not values:
+        return None
+
+    ordered = sorted(values)
+    n = len(ordered)
+    mean = sum(ordered) / n
+    mid = n // 2
+    median = ordered[mid] if n % 2 else (ordered[mid - 1] + ordered[mid]) / 2.0
+    variance = sum((x - mean) ** 2 for x in ordered) / n
+
+    return {
+        "count": n,
+        "mean": mean,
+        "min": ordered[0],
+        "max": ordered[-1],
+        "median": median,
+        "std": math.sqrt(variance),
+    }
+
+
+def _build_block_metrics(
+    attempt_count,
+    participant_attempts,
+    tested_parameter_set,
+    generated_parameter_set,
+    raw_prediction,
+    sagemaker_latency_ms,
+    pooled_participant_count,
+    pooled_attempt_count,
+):
+    """Summarize the block of trials that produced this parameter generation so
+    each generated parameter block is accompanied by its own metrics record."""
+    completed_block_count = math.floor(attempt_count / RUNS_PER_BLOCK)
+    block_attempts = participant_attempts[-RUNS_PER_BLOCK:] if participant_attempts else []
+
+    metrics = {
+        "blockNumber": completed_block_count,
+        "generatedFromAttemptCount": completed_block_count * RUNS_PER_BLOCK,
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "runsInBlock": len(block_attempts),
+        "sagemakerLatencyMs": round(sagemaker_latency_ms, 1),
+        "pooledParticipantCount": pooled_participant_count,
+        "pooledAttemptCount": pooled_attempt_count,
+        "testedParameterSet": tested_parameter_set,
+        "generatedParameterSet": generated_parameter_set,
+    }
+
+    # Core behavioural summaries derived from the stored attempts.
+    stat_fields = (
+        ("timeMs", "completionTimeMs"),
+        ("scrollDistance", "scrollDistancePx"),
+        ("switchbackCount", "switchbacks"),
+        ("overshootCount", "overshoots"),
+        ("maxOvershootDistancePx", "maxOvershootDistancePx"),
+    )
+    for source_key, output_key in stat_fields:
+        summary = _numeric_summary(_collect_numeric_field(block_attempts, source_key))
+        if summary:
+            metrics[output_key] = summary
+
+    # Optional model diagnostics, only if the endpoint returned them.
+    if isinstance(raw_prediction, dict):
+        model_diagnostics = {}
+        for score_key in ("score", "candidateScore", "acquisitionValue", "predictedMean", "predictedSpread"):
+            value = raw_prediction.get(score_key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                model_diagnostics[score_key] = float(value)
+        if model_diagnostics:
+            metrics["model"] = model_diagnostics
+
+    return metrics
 
 
 def _normalize_parameter_set(raw):
@@ -198,11 +290,13 @@ def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, part
         "participantsData": participants_data,
     }
 
+    invoke_started = time.perf_counter()
     response = sagemaker_runtime.invoke_endpoint(
         EndpointName=endpoint_name,
         ContentType="application/json",
         Body=json.dumps(payload).encode("utf-8"),
     )
+    sagemaker_latency_ms = (time.perf_counter() - invoke_started) * 1000.0
 
     body = response.get("Body")
     raw = body.read().decode("utf-8") if body else ""
@@ -214,7 +308,7 @@ def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, part
     if not normalized:
         raise RuntimeError("SageMaker response missing required parameter fields")
 
-    return normalized
+    return normalized, parsed, sagemaker_latency_ms
 
 
 def _build_next_parameter_set(attempt_count, generated_params):
@@ -275,14 +369,35 @@ def handler(event, context):
         {"participantId": participant_id, "attempts": all_attempt_data}
     ]
 
-    generated_params = _invoke_sagemaker(participant_id, attempt_count, current_params, participants_data)
+    generated_params, raw_prediction, sagemaker_latency_ms = _invoke_sagemaker(
+        participant_id, attempt_count, current_params, participants_data
+    )
     next_parameter_set = _build_next_parameter_set(attempt_count, generated_params)
+
+    pooled_attempt_count = sum(len(entry.get("attempts", [])) for entry in participants_data)
+    block_metrics = _build_block_metrics(
+        attempt_count=attempt_count,
+        participant_attempts=all_attempt_data,
+        tested_parameter_set=current_params,
+        generated_parameter_set=generated_params,
+        raw_prediction=raw_prediction,
+        sagemaker_latency_ms=sagemaker_latency_ms,
+        pooled_participant_count=len(participants_data),
+        pooled_attempt_count=pooled_attempt_count,
+    )
 
     table = dynamodb.Table(table_name)
     table.update_item(
         Key={"id": participant_id},
-        UpdateExpression="SET nextParameterSet = :nextParameterSet",
-        ExpressionAttributeValues={":nextParameterSet": _to_dynamo(next_parameter_set)},
+        UpdateExpression=(
+            "SET nextParameterSet = :nextParameterSet, "
+            "parameterBlockMetrics = list_append(if_not_exists(parameterBlockMetrics, :empty), :metrics)"
+        ),
+        ExpressionAttributeValues={
+            ":nextParameterSet": _to_dynamo(next_parameter_set),
+            ":metrics": _to_dynamo([block_metrics]),
+            ":empty": [],
+        },
     )
 
     return {

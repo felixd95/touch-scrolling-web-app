@@ -938,11 +938,15 @@ function ScrollList({ participantId }) {
         : DEFAULT_DECAY;
       const fingerVelocityPxMs = getRegressionVelocityPxMs();
       const flingThresholdPxMs = getMinFlingVelocityPxMs();
+      const trialMetrics = trialMetricsRef.current;
       const currentAttempt = {
         targetNumber,
         timeMs: totalTime,
         scrollDistance,
         timestamp,
+        overshootCount: trialMetrics ? trialMetrics.overshootCount : 0,
+        maxOvershootDistancePx: trialMetrics ? trialMetrics.maxOvershootDistancePx : 0,
+        didOvershoot: trialMetrics ? trialMetrics.didOvershoot : false,
       };
 
       const nextPendingBlockAttempts = [...pendingBlockAttempts, currentAttempt];
