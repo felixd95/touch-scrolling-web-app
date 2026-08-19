@@ -70,6 +70,34 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: terraform validate
 
+      # SageMaker's DeleteEndpoint API is asynchronous and the fixed-name
+      # endpoint frequently gets stuck in a "Failed" state after a crashed
+      # create. When Terraform then tries to destroy-and-recreate it in the
+      # same apply, the CreateEndpoint call races the still-propagating delete
+      # and fails with "Cannot create already existing endpoint". To make the
+      # pipeline self-healing, proactively delete any lingering endpoint with
+      # this name and block until AWS confirms it is really gone BEFORE the
+      # apply runs, so Terraform always starts from a clean slate.
+      - name: Ensure no lingering SageMaker endpoint
+        env:
+          SAGEMAKER_ENDPOINT_NAME: touch-scrolling-active-learning-endpoint
+        run: |
+          set -euo pipefail
+          if aws sagemaker describe-endpoint \
+              --endpoint-name "${SAGEMAKER_ENDPOINT_NAME}" >/dev/null 2>&1; then
+            STATUS=$(aws sagemaker describe-endpoint \
+              --endpoint-name "${SAGEMAKER_ENDPOINT_NAME}" \
+              --query 'EndpointStatus' --output text)
+            echo "Existing endpoint found in status '${STATUS}'. Deleting it..."
+            aws sagemaker delete-endpoint --endpoint-name "${SAGEMAKER_ENDPOINT_NAME}"
+            echo "Waiting for endpoint deletion to fully propagate..."
+            aws sagemaker wait endpoint-deleted --endpoint-name "${SAGEMAKER_ENDPOINT_NAME}" \
+              || echo "wait endpoint-deleted returned non-zero; continuing (endpoint likely already gone)"
+            echo "Endpoint deletion confirmed."
+          else
+            echo "No existing endpoint named '${SAGEMAKER_ENDPOINT_NAME}'. Nothing to clean up."
+          fi
+
       - name: Terraform Apply
         working-directory: ${{ env.TF_DIR }}
         run: terraform apply -auto-approve
