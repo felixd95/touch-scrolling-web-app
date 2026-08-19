@@ -41,6 +41,51 @@ resource "aws_iam_role_policy_attachment" "next_parameter_set_lambda_basic" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+# Customer-managed key that encrypts this Lambda's environment variables.
+# Managing it in Terraform (instead of relying on a manually-created CMK)
+# guarantees the key policy grants the execution role kms:Decrypt, which is
+# what Lambda needs at cold start to read the encrypted env vars. Without a
+# correct resource-based policy, Lambda fails with "KMS access was denied".
+resource "aws_kms_key" "next_parameter_set_lambda_env" {
+  description             = "${local.resource_name_prefix} next-parameter-set Lambda environment variable encryption"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "EnableIAMUserPermissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid    = "AllowLambdaRoleDecrypt"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_iam_role.next_parameter_set_lambda.arn
+        }
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_kms_alias" "next_parameter_set_lambda_env" {
+  name          = "alias/${local.resource_name_prefix}-next-parameter-set-lambda-env"
+  target_key_id = aws_kms_key.next_parameter_set_lambda_env.key_id
+}
+
 resource "aws_iam_role_policy" "next_parameter_set_lambda" {
   name = "${local.resource_name_prefix}-next-parameter-set-policy"
   role = aws_iam_role.next_parameter_set_lambda.id
@@ -75,7 +120,7 @@ resource "aws_iam_role_policy" "next_parameter_set_lambda" {
         ]
         # Lambda must be able to decrypt the CMK used for encrypted
         # environment variables before it can start the SageMaker call.
-        Resource = "arn:${data.aws_partition.current.partition}:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:key/*"
+        Resource = aws_kms_key.next_parameter_set_lambda_env.arn
       }
     ]
   })
@@ -89,6 +134,10 @@ resource "aws_lambda_function" "next_parameter_set_monitor" {
   filename         = data.archive_file.next_parameter_set_lambda.output_path
   source_code_hash = data.archive_file.next_parameter_set_lambda.output_base64sha256
   timeout          = 120
+
+  # Pin env var encryption to the Terraform-managed key so the execution role
+  # is always authorized to decrypt (see aws_kms_key.next_parameter_set_lambda_env).
+  kms_key_arn = aws_kms_key.next_parameter_set_lambda_env.arn
 
   environment {
     variables = {

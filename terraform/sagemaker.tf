@@ -8,7 +8,7 @@ locals {
   # "model process exited" endpoint creation failures that persisted across
   # multiple different botorch/gpytorch dependency pins on that image.
   sagemaker_container_image = length(trimspace(var.sagemaker_container_image)) > 0 ? var.sagemaker_container_image : data.aws_sagemaker_prebuilt_ecr_image.sklearn.registry_path
-  sagemaker_model_key        = "models/active-learning-endpoint/model.tar.gz"
+  sagemaker_model_key       = "models/active-learning-endpoint/model.tar.gz"
 
   # bucket_name_prefix already ends in "-"; strip it so we don't end up with
   # double dashes when composing other resource names from it.
@@ -28,8 +28,8 @@ locals {
 # found error.
 data "aws_sagemaker_prebuilt_ecr_image" "sklearn" {
   repository_name = "sagemaker-scikit-learn"
-  image_tag        = var.sagemaker_sklearn_image_tag
-  region           = var.aws_region
+  image_tag       = var.sagemaker_sklearn_image_tag
+  region          = var.aws_region
 }
 
 
