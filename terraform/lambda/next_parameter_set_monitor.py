@@ -34,6 +34,20 @@ def _to_plain(value):
     return value
 
 
+def _to_dynamo(value):
+    """Recursively convert Python floats to Decimal so the value can be written
+    with boto3's DynamoDB resource, which rejects float types."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, float):
+        return Decimal(str(value))
+    if isinstance(value, dict):
+        return {k: _to_dynamo(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_to_dynamo(v) for v in value]
+    return value
+
+
 def _normalize_parameter_set(raw):
     if raw is None:
         return None
@@ -268,7 +282,7 @@ def handler(event, context):
     table.update_item(
         Key={"id": participant_id},
         UpdateExpression="SET nextParameterSet = :nextParameterSet",
-        ExpressionAttributeValues={":nextParameterSet": next_parameter_set},
+        ExpressionAttributeValues={":nextParameterSet": _to_dynamo(next_parameter_set)},
     )
 
     return {
