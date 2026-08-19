@@ -42,6 +42,16 @@ data "archive_file" "sagemaker_model" {
   type        = "tar.gz"
   output_path = "${path.module}/../sagemaker/active-learning-endpoint/model.tar.gz"
 
+  # Force world-readable (0644) permissions on every file inside model.tar.gz.
+  # Without this, archive_file's inline-content sources produce tar entries
+  # with owner-only permission bits. Inside the SageMaker container the model
+  # is extracted as root, but the serving process runs as a NON-root user, so
+  # it hits "[Errno 13] Permission denied" when the inference toolkit does
+  # shutil.copytree('/opt/ml/model/code', '/opt/ml/code') at startup - which
+  # crashed the model process ("model process exited") on EVERY image and code
+  # version, independent of the ML logic.
+  output_file_mode = "0644"
+
   source {
     content  = file("${path.module}/../sagemaker/active-learning-endpoint/code/inference.py")
     filename = "code/inference.py"
