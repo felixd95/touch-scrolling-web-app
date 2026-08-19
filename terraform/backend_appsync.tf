@@ -66,6 +66,16 @@ resource "aws_iam_role_policy" "next_parameter_set_lambda" {
           "sagemaker:InvokeEndpoint"
         ]
         Resource = "arn:${data.aws_partition.current.partition}:sagemaker:${var.aws_region}:${data.aws_caller_identity.current.account_id}:endpoint/${var.sagemaker_endpoint_name}"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey"
+        ]
+        # Lambda must be able to decrypt the CMK used for encrypted
+        # environment variables before it can start the SageMaker call.
+        Resource = "arn:${data.aws_partition.current.partition}:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:key/*"
       }
     ]
   })

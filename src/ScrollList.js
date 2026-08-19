@@ -806,8 +806,11 @@ function ScrollList({ participantId }) {
 
   const handleTouchMove = (event) => {
     if (event.touches.length !== 1) return;
-    if (isSearching) event.preventDefault();
 
+    // The list container already uses `touch-action: none` to prevent the
+    // browser's native scroll handling. Calling `preventDefault()` in the React
+    // touchmove handler here is ignored by passive listeners and triggers the
+    // browser warning in DevTools.
     if (lastTouchY === null) return;
 
     const touchY = event.touches[0].clientY;
