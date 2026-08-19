@@ -84,6 +84,21 @@ const normalizeParameterSet = (raw) => {
   };
 };
 
+const parseParameterBlockMetrics = (raw) => {
+  if (!raw) return [];
+
+  let parsed = raw;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  return Array.isArray(parsed) ? parsed : [];
+};
+
 function LoginForm({ onSuccess, onUserInteraction }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -393,7 +408,7 @@ function ParticipantsList({ onBack }) {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay attempts currentParameterSet nextParameterSet } } }`,
+        query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay attempts currentParameterSet nextParameterSet parameterBlockMetrics } } }`,
       }),
     });
 
@@ -406,6 +421,7 @@ function ParticipantsList({ onBack }) {
       ...participant,
       currentParameterSet: normalizeParameterSet(participant.currentParameterSet),
       nextParameterSet: normalizeParameterSet(participant.nextParameterSet),
+      parameterBlockMetrics: parseParameterBlockMetrics(participant.parameterBlockMetrics),
     }));
   }, []);
 
@@ -495,6 +511,7 @@ function ParticipantsList({ onBack }) {
           screenTimePerDay: p.screenTimePerDay,
           currentParameterSet: normalizeParameterSet(p.currentParameterSet),
           nextParameterSet: normalizeParameterSet(p.nextParameterSet),
+          parameterBlockMetrics: parseParameterBlockMetrics(p.parameterBlockMetrics),
           attemptBlocks: parsedAttempts.blocks,
           attempts: parsedAttempts.flat,
         };
@@ -630,6 +647,39 @@ function ParticipantsList({ onBack }) {
               {selectedParticipant.nextParameterSet && (
                 <div style={{ marginBottom: 10, fontSize: 13, color: '#4c5967' }}>
                   Naechster Parametersatz: x1={formatMetric(selectedParticipant.nextParameterSet.x1)}, x2={formatMetric(selectedParticipant.nextParameterSet.x2)}
+                </div>
+              )}
+              {(selectedParticipant.parameterBlockMetrics || []).length > 0 && (
+                <div style={{ marginBottom: 10, padding: 10, border: '1px solid #d1e3f2', borderRadius: 8, background: '#f4f9ff' }}>
+                  <strong style={{ fontSize: 13, color: '#35506b' }}>ML-Metriken pro generiertem Block</strong>
+                  <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
+                    {(selectedParticipant.parameterBlockMetrics || []).map((metric, mi) => (
+                      <div
+                        key={`block-metric-${metric.blockNumber ?? mi}`}
+                        style={{ fontSize: 12, color: '#4c5967', lineHeight: 1.6, borderTop: mi > 0 ? '1px dashed #d1e3f2' : 'none', paddingTop: mi > 0 ? 8 : 0 }}
+                      >
+                        <div style={{ fontWeight: 600, color: '#35506b' }}>
+                          Block {metric.blockNumber ?? (mi + 1)}
+                          {metric.generatedAt ? ` · ${new Date(metric.generatedAt).toLocaleString()}` : ''}
+                        </div>
+                        {metric.completionTimeMs && (
+                          <span>Zeit: ⌀{formatMetric(metric.completionTimeMs.mean)} ms (Median {formatMetric(metric.completionTimeMs.median)} ms, σ {formatMetric(metric.completionTimeMs.std)}) · </span>
+                        )}
+                        {metric.overshoots && (
+                          <span>Overshoots: ⌀{formatMetric(metric.overshoots.mean)} (max {formatMetric(metric.overshoots.max)}) · </span>
+                        )}
+                        {metric.maxOvershootDistancePx && (
+                          <span>max. Overshoot-Distanz: {formatMetric(metric.maxOvershootDistancePx.max)} px · </span>
+                        )}
+                        {Number.isFinite(Number(metric.sagemakerLatencyMs)) && (
+                          <span>Generierung: {formatMetric(metric.sagemakerLatencyMs)} ms · </span>
+                        )}
+                        {Number.isFinite(Number(metric.pooledAttemptCount)) && (
+                          <span>Datenbasis: {metric.pooledAttemptCount} Versuche / {metric.pooledParticipantCount} Teilnehmer</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
               <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
