@@ -74,6 +74,46 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: terraform apply -auto-approve
 
+      # If the apply failed (e.g. the SageMaker endpoint never reached
+      # InService and crashed with "model process exited"), dump the
+      # endpoint's CloudWatch logs directly into the CI output so the actual
+      # container startup error is visible here instead of only in the AWS
+      # console. This is the decisive diagnostic for the repeated endpoint
+      # creation failures.
+      - name: Dump SageMaker endpoint CloudWatch logs (on failure)
+        if: failure()
+        env:
+          SAGEMAKER_ENDPOINT_NAME: touch-scrolling-active-learning-endpoint
+        run: |
+          set +e
+          LOG_GROUP="/aws/sagemaker/Endpoints/${SAGEMAKER_ENDPOINT_NAME}"
+          echo "==================================================================="
+          echo "CloudWatch log group: ${LOG_GROUP}"
+          echo "==================================================================="
+
+          if ! aws logs describe-log-groups \
+              --log-group-name-prefix "${LOG_GROUP}" \
+              --query 'logGroups[].logGroupName' --output text 2>/dev/null \
+              | grep -q "${LOG_GROUP}"; then
+            echo "Log group does not exist yet. The container process most likely"
+            echo "crashed before it could emit any logs (image pull / entrypoint /"
+            echo "model packaging problem), OR SageMaker never got far enough to"
+            echo "create the log group."
+            exit 0
+          fi
+
+          echo "Log streams (most recent first):"
+          aws logs describe-log-streams \
+            --log-group-name "${LOG_GROUP}" \
+            --order-by LastEventTime --descending \
+            --max-items 10 \
+            --query 'logStreams[].logStreamName' --output table
+
+          echo ""
+          echo "----- Tail of all log events from the last 30 minutes -----"
+          aws logs tail "${LOG_GROUP}" --since 30m --format short 2>&1 \
+            || echo "(aws logs tail failed - the CLI may be too old; see console link above)"
+
       - name: Read Terraform Outputs
         id: tf_outputs
         working-directory: ${{ env.TF_DIR }}
