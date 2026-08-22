@@ -1,38 +1,205 @@
 \chapter{System Description}
 
-\section{Apparatus}
+\section{Overview and Design Rationale}
+\label{sec:overview}
 
-\subsection{Web Application and AWS Setup}
+The experimental system is a web-based apparatus for studying touch-driven list scrolling under a \emph{configurable} transfer function. Its purpose is twofold: to present participants with a controlled search-and-select task on a long, continuously scrollable list, and to \emph{adapt} the scrolling dynamics to each participant over the course of a session by means of an online optimization loop. Every part of the system is defined as code and deployed automatically, so that the exact configuration used during data collection is reproducible.
 
-The experimental system consists of a \textbf{React} single-page web application backed by a fully managed, event-driven AWS backend. All infrastructure is defined declaratively as code with \textbf{Terraform} and deployed through a \textbf{GitHub Actions} CI/CD pipeline. On every push to the main branch, the pipeline authenticates against AWS via OpenID Connect (OIDC, i.e.\ without long-lived static credentials), runs \texttt{terraform apply} to reconcile the AWS infrastructure with its version-controlled definition, and then builds and publishes the React frontend. The static frontend build artifacts are hosted in an \textbf{Amazon S3} bucket and served to participants through an \textbf{Amazon CloudFront} content-delivery distribution, which also terminates HTTPS.
+The guiding architectural principle is a strict separation of concerns across three layers. A \emph{presentation} layer -- a React single-page application -- renders the list and takes full programmatic control of touch input and scrolling. A \emph{persistence} layer -- a managed GraphQL API backed by a schemaless document store -- records participants and their completed trial blocks. An \emph{optimization} layer -- a serverless machine-learning backend -- consumes the recorded data on demand and proposes the next transfer-function parameter set. Because the three layers communicate only through a small, well-defined GraphQL interface, each of them is independently deployable and version-controlled (Section~\ref{sec:architecture}).
 
-The application backend is built around \textbf{AWS AppSync}, a managed GraphQL API service, which exposes queries and mutations for participant management (\texttt{createParticipant}, \texttt{updateParticipant}), for storing completed trial blocks (\texttt{appendParticipantAttemptBlock}), and for requesting a new transfer-function parameter set (\texttt{triggerNextParameterSet}). \textbf{Amazon DynamoDB} serves as the persistent, schemaless data store behind this API: each participant is represented as a single item holding demographic fields (name, e-mail, birth date, smartphone ownership, daily screen time), the currently active transfer-function parameter set, the next (candidate) parameter set once available, and the complete history of completed trial blocks stored as a nested JSON (\texttt{AWSJSON}) attribute.
+A second, central design decision concerns the scrolling behaviour itself. Rather than relying on the browser's native momentum scrolling or on a framework's default scroll view, the post-touch (fling) motion is governed by an explicit, parameterized transfer function that was derived directly from the source code of Android's \texttt{OverScroller} class (Section~\ref{sec:transfer-function}). Exposing the constants that are otherwise fixed in that source as tunable parameters turns the qualitative ``feel'' of scrolling into a well-defined numerical search space, which the optimization layer can then adapt per participant (Section~\ref{sec:ml-model}). This coupling between a physically motivated interaction model and a data-driven optimizer is the conceptual core of the system.
 
-Rather than being triggered indirectly through DynamoDB Streams, the machine-learning backend is invoked synchronously as part of the GraphQL request flow: whenever a participant finishes a block of 10 trials, the frontend calls the \texttt{triggerNextParameterSet} mutation, whose AppSync resolver invokes an \textbf{AWS Lambda} function. This Lambda function reads the calling participant's full trial history from DynamoDB, additionally performs a table scan to collect the (anonymized) trial histories of \emph{all other} participants recorded so far, and forwards both as a single JSON payload to an \textbf{Amazon SageMaker} inference endpoint. SageMaker is configured as a \emph{serverless} endpoint (rather than an always-on instance) with a maximum concurrency of 1 and 3072\,MB of memory, so that compute resources -- and cost -- are only allocated for the brief duration of an actual invocation instead of running continuously between experimental sessions. The endpoint executes AWS's managed, prebuilt \textbf{SageMaker Scikit-learn} inference container, into which only a small custom inference script -- packaged as a \texttt{model.tar.gz} model artifact -- is injected; the Gaussian-Process (GP) optimizer itself is implemented on top of \textbf{scikit-learn} (Section~\ref{sec:ml-model} describes the model in detail). The parameter set produced by the model is returned to the Lambda function, written back into DynamoDB as the participant's \texttt{nextParameterSet}, and subsequently retrieved by the frontend once the participant confirms that they are ready to continue with the next block of trials.
+\section{System Architecture}
+\label{sec:architecture}
 
-This architecture is therefore event-driven end to end: raw interaction data are recorded by the frontend, persisted in DynamoDB in blocks of ten trials, evaluated on demand by the Gaussian-Process-based optimizer running on SageMaker, and the resulting new transfer-function parameters are made available to the participant for the subsequent block. This provides a clear separation between the presentation layer (React), the persistence layer (AppSync/DynamoDB), and the optimization logic (Lambda/SageMaker), while keeping every part of the system independently deployable and version-controlled through Terraform.
+The system is event-driven from end to end: raw interaction data are recorded by the frontend, persisted in blocks of ten trials, evaluated on demand by a Gaussian-Process-based optimizer, and the resulting new transfer-function parameters are made available to the participant for the subsequent block. The following subsections describe the four building blocks of this architecture.
 
-In addition to the cloud infrastructure, the transfer-function logic itself was derived from the Android platform source code. In particular, the implementation of Android's \texttt{OverScroller} class was analyzed in order to extract the mathematical behavior of its spline-based fling deceleration model and reimplement it as a parameterized, physically motivated transfer function for the web-based experimental system (see Section~\ref{sec:transfer-function}).
+\subsection{Frontend}
+\label{sec:frontend}
 
-\subsection{Implementation Details}
+The frontend is a \textbf{React} single-page application written in plain \textbf{JavaScript}. Its static build artifacts (HTML, JavaScript, CSS) are hosted in an \textbf{Amazon S3} bucket and delivered to participants through an \textbf{Amazon CloudFront} content-delivery distribution, which also terminates HTTPS. The frontend is responsible for rendering the list, running the custom touch-input and scrolling pipeline (Section~\ref{sec:touch-pipeline}), evaluating the transfer function locally in real time (Section~\ref{sec:transfer-function}), and collecting per-trial measurements that are submitted to the backend one block at a time.
 
-\paragraph{List and scroll container.} The user interface presents a single continuously scrollable list of $N = 330$ entries, numbered consecutively. The list is not paginated in the sense of discrete page breaks or page-navigation controls; instead, the height of each list entry is computed dynamically from the available viewport height so that exactly 15 entries are visible within the scroll container at any given time. This keeps the spatial density of the list, and therefore the visual arrangement participants perceive, consistent across devices and across trials. The list itself is rendered inside a dedicated scroll container whose content is not scrolled using the browser's native scrolling behavior, but is instead translated vertically (via a CSS \texttt{transform: translateY()}) under full programmatic control of the custom touch-input pipeline described below.
+\subsection{Backend and Data Flow}
+\label{sec:backend}
 
-\paragraph{Custom touch-input pipeline.} The frontend is implemented in \textbf{React} using plain \textbf{JavaScript}. To gain full control over the scrolling dynamics, the browser's and React's default scrolling behavior is disabled for the list container, and replaced by a custom pipeline that processes the native \texttt{onTouchStart}, \texttt{onTouchMove}, \texttt{onTouchEnd}, and \texttt{onTouchCancel} events directly. During a touch gesture, every incoming touch-move sample is time-stamped and appended to a rolling buffer (capped at a $100$\,ms time window and at most 20 samples). From this buffer, an instantaneous, exponentially smoothed velocity ($0.8\times$ previous $+\ 0.2\times$ instantaneous) is maintained for real-time drag feedback, while at the end of a gesture a linear-regression estimate of the finger velocity is computed from the buffered position/time samples, which is more robust to jitter than a simple two-point derivative. If this regression-based velocity exceeds a fixed fling threshold, it is passed into the fling/momentum model described in the next paragraph; otherwise the list simply stops at its current position (after being clamped back into the valid scroll bounds if the participant had dragged past the list's edges).
+The application backend is built around \textbf{AWS AppSync}, a managed GraphQL API service, which exposes queries and mutations for participant management (\texttt{createParticipant}, \texttt{updateParticipant}), for storing completed trial blocks (\texttt{appendParticipantAttemptBlock}), and for requesting a new transfer-function parameter set (\texttt{triggerNextParameterSet}). \textbf{Amazon DynamoDB} serves as the persistent, schemaless data store behind this API: each participant is represented as a single item holding demographic fields (name, e-mail, birth date, smartphone ownership, daily screen time), the currently active transfer-function parameter set, the next (candidate) parameter set once available, and the complete history of completed trial blocks stored as a nested JSON (\texttt{AWSJSON}) attribute. Because a participant's entire state lives in one item, reading and appending trial data require no joins and remain a single-item operation.
 
-\paragraph{Transfer function.}
+\subsection{Optimization Backend}
+\label{sec:opt-backend}
+
+Rather than being triggered indirectly through DynamoDB Streams, the machine-learning backend is invoked synchronously as part of the GraphQL request flow: whenever a participant finishes a block of 10 trials, the frontend calls the \texttt{triggerNextParameterSet} mutation, whose AppSync resolver invokes an \textbf{AWS Lambda} function. This Lambda function reads the calling participant's full trial history from DynamoDB, additionally performs a table scan to collect the (anonymized) trial histories of \emph{all other} participants recorded so far, and forwards both as a single JSON payload to an \textbf{Amazon SageMaker} inference endpoint. SageMaker is configured as a \emph{serverless} endpoint (rather than an always-on instance) with a maximum concurrency of 1 and 3072\,MB of memory, so that compute resources -- and cost -- are only allocated for the brief duration of an actual invocation instead of running continuously between experimental sessions. The endpoint executes AWS's managed, prebuilt \textbf{SageMaker Scikit-learn} inference container, into which only a small custom inference script -- packaged as a \texttt{model.tar.gz} model artifact -- is injected; the Gaussian-Process optimizer itself is implemented on top of \textbf{scikit-learn} (Section~\ref{sec:ml-model} describes the model in detail). The parameter set produced by the model is returned to the Lambda function, written back into DynamoDB as the participant's \texttt{nextParameterSet}, and subsequently retrieved by the frontend once the participant confirms that they are ready to continue with the next block of trials.
+
+\subsection{Infrastructure as Code and Deployment}
+\label{sec:iac}
+
+All infrastructure -- the S3 bucket and CloudFront distribution, the AppSync API and its resolvers, the DynamoDB table, the Lambda function, and the SageMaker endpoint -- is defined declaratively as code with \textbf{Terraform} and deployed through a \textbf{GitHub Actions} CI/CD pipeline. On every push to the main branch, the pipeline authenticates against AWS via OpenID Connect (OIDC, i.e.\ without long-lived static credentials), runs \texttt{terraform apply} to reconcile the deployed AWS infrastructure with its version-controlled definition, and then builds and publishes the React frontend. This keeps the presentation, persistence, and optimization layers independently deployable while guaranteeing that the configuration used during data collection is fully reproducible from the repository.
+
+\section{Touch Input and Scrolling Pipeline}
+\label{sec:touch-pipeline}
+
+To obtain full and reproducible control over the scrolling dynamics, the frontend does not use the browser's native scrolling. Instead, it processes raw touch events and drives the list position programmatically, so that the fling behaviour is determined solely by the transfer function of Section~\ref{sec:transfer-function} and not by browser- or device-specific momentum implementations.
+
+\subsection{List and Scroll Container}
+\label{sec:list-container}
+
+The user interface presents a single continuously scrollable list of $N = 330$ entries, numbered consecutively. The list is not paginated in the sense of discrete page breaks or page-navigation controls; instead, the height of each list entry is computed dynamically from the available viewport height so that exactly 15 entries are visible within the scroll container at any given time. This keeps the spatial density of the list, and therefore the visual arrangement participants perceive, consistent across devices and across trials. The list is rendered inside a dedicated scroll container whose content is not moved using the browser's native scrolling behaviour, but is instead translated vertically via a CSS \texttt{transform: translateY()} under full programmatic control of the touch-input pipeline described below.
+
+\subsection{Gesture Processing}
+\label{sec:gesture-processing}
+
+The browser's and React's default scrolling behaviour is disabled for the list container and replaced by a custom pipeline that processes the native \texttt{onTouchStart}, \texttt{onTouchMove}, \texttt{onTouchEnd}, and \texttt{onTouchCancel} events directly. During a touch gesture, every incoming touch-move sample is time-stamped and appended to a rolling buffer that is capped both by a $100$\,ms time window and by at most 20 samples. Two velocity quantities are derived from this buffer. For real-time drag feedback, an instantaneous, exponentially smoothed velocity is maintained as $v \leftarrow 0.8\,v + 0.2\,v_{\text{inst}}$, where $v_{\text{inst}}$ is the momentary two-point velocity between successive samples. For launching a fling, the finger velocity at release is instead estimated from the buffered position/time samples $(t_i, y_i)$ by a degree-two least-squares fit $y(t) = B_0 + B_1 t + B_2 t^2$, with the sample times taken relative to the most recent one so that $t = 0$ at release; the launch velocity is read off as the first-order coefficient,
+\begin{equation}
+  v_0 \;=\; B_1 \;=\; \left.\frac{\mathrm{d}y}{\mathrm{d}t}\right|_{t=0},
+  \label{eq:linreg-velocity}
+\end{equation}
+i.e.\ the instantaneous slope of the fitted parabola at the moment the finger leaves the screen. This is markedly more robust to jitter than a simple two-point derivative and, unlike a straight-line fit, is able to follow the acceleration typically present at the end of a fling gesture. If this velocity exceeds a fixed fling threshold, it is passed (after the clamping described in Section~\ref{sec:param-bounds}) into the fling model of Section~\ref{sec:transfer-function}; otherwise the list simply stops at its current position, after being clamped back into the valid scroll bounds if the participant had dragged past the list's edges.
+
+\paragraph{Relation to Android's \texttt{VelocityTracker}.} In Android, velocity estimation is not part of the \texttt{OverScroller} at all; the scroller receives an already-computed velocity as an input parameter. The estimation is instead performed by a separate class, \texttt{VelocityTracker}, whose native implementation fits a least-squares polynomial to the recent position/time samples and reports a chosen derivative coefficient as the velocity. Its default strategy, labelled \texttt{lsq2}, is exactly the degree-two fit of Equation~\eqref{eq:linreg-velocity}: a quadratic least-squares regression whose velocity is the first-order coefficient $B_1$, evaluated at the most recent sample ($t = 0$). The estimator adopted here is therefore a faithful reimplementation of Android's default method rather than of the simpler first-order variant \texttt{lsq1}, which Android's own source comments rate as ``poor'' (a straight line cannot represent the acceleration present at the end of a fling and hence tends to \emph{underestimate} the release velocity), while rating the quadratic \texttt{lsq2} as ``very good''.
+
+Two implementation details are worth noting. First, whereas Android solves the fit through a QR decomposition (Gram--Schmidt), the frontend solves the equivalent $3\times3$ normal equations directly (Cramer's rule); both yield the same coefficients, and the implementation falls back to the degree-one fit only in the degenerate cases of fewer than three samples or a singular system. Uniform sample weighting and a contributing-sample horizon (the $100$\,ms / 20-sample window) match Android's defaults, and the result is finally clamped to a maximum velocity (Section~\ref{sec:param-bounds}). Second, an estimate that is numerically identical to that of a physical Android device is nonetheless not attainable in the browser, because the browser's \texttt{touchmove} stream differs from Android's \texttt{MotionEvent} pipeline in sampling rate, event batching/coalescing, and timestamp semantics; the fitting \emph{algorithm}, by contrast, is fully deterministic and reproduces Android's method exactly, so any residual discrepancy stems solely from the differing input event streams rather than from the velocity computation itself.
+
+\subsection{Overscroll and Bounds Handling}
+\label{sec:overscroll}
+
+Scrolling is confined to the valid range spanned by the list. When a gesture or a fling would move the content beyond the top or bottom edge, overscrolling is permitted only up to a fixed maximum overscroll distance of $120$\,px and is visually compressed by a fixed resistance factor of $0.35$, so that only $35\,\%$ of the overflow is translated into visible motion. Once the touch is released in an overscrolled state, or once a fling reaches an edge, the content is returned to the nearest valid bound. This edge handling is independent of the transfer-function parameters and corresponds in spirit to the ballistic and spring-back phases of the underlying scroller model (Section~\ref{sec:motion-playback}).
+
+\section{Transfer Function (Fling Model)}
 \label{sec:transfer-function}
-The transfer function governing post-touch (fling) motion was implemented as a physically motivated model directly derived from Android's \texttt{OverScroller} spline-deceleration algorithm, rather than relying on the browser's native momentum scrolling or React Native's default scroll-view behavior. The implementation numerically reconstructs Android's normalized position/time lookup spline (100 samples, built from cubic-Bezier control points parameterized by an inflexion factor and by fixed start/end tension constants of $0.5$ and $1.0$) and uses it, together with a physically derived deceleration model, to compute the total fling distance and duration from the measured launch velocity. Six parameters directly shape this motion profile and constitute the search space of the optimization process described in Section~\ref{sec:ml-model}:
 
-\begin{itemize}
-  \item \texttt{scrollFriction} -- a dimensionless drag coefficient that scales both the fling distance and duration; larger values increase braking and shorten the fling.
-  \item \texttt{x1}, \texttt{x2} -- together define the deceleration rate through the logarithmic relation $\ln(x1)/\ln(x2)$ (mirroring Android's fixed constant $\ln(0.78)/\ln(0.9)$), which shapes how strongly the motion decelerates over the course of the fling.
-  \item \texttt{inflexion} -- the position (in $[0,1]$) at which the spline transitions from the initial high-speed phase into the stronger deceleration phase.
-  \item \texttt{physicalCoeffTuning} -- a tuning multiplier on the physical coefficient that converts the launch velocity (in device-independent pixels per millisecond) into fling distance and duration; this coefficient is otherwise derived from Earth's gravitational acceleration ($9.80665\,\mathrm{m/s^2}$), an assumed screen density of $160\,\mathrm{ppi}\times$ device-pixel-ratio, and a unit-conversion constant of $39.37$.
-  \item \texttt{maxLaunchVelocityPxMs} -- an upper bound (in px/ms) clamped onto the regression-estimated finger velocity before it is used to launch a fling, preventing unrealistically fast motion caused by noisy touch samples.
-\end{itemize}
+The transfer function governing post-touch (fling) motion is a physically motivated model derived directly from Android's \texttt{OverScroller} spline-deceleration algorithm. This section presents the model in full, exactly as it is defined in that source: the physical coefficient and constants, the normalized spline curve, the closed-form fling distance and duration, and the three motion phases (spline, ballistic, and cubic spring-back) used during playback. The derivation is self-contained and is given at the level of detail needed both to reproduce the frontend physics implementation and to understand the parameterization that constitutes the optimization search space (Section~\ref{sec:param-bounds}). Throughout, positions are measured in pixels and velocities in pixels per second, and time is measured in milliseconds unless noted otherwise.
 
-Overscrolling beyond the top or bottom of the list is permitted up to a fixed maximum overscroll distance of 120\,px and is visually compressed by a fixed resistance factor of $0.35$ (i.e.\ only 35\,\% of the overflow is translated into visible motion), independent of the six optimized parameters. Each of the six parameters above is additionally constrained to a fixed, predefined lower and upper bound (Table~\ref{tab:param-bounds}) which was chosen so that all transfer functions generated during the optimization process remain physically plausible and usable within the experimental setting; these bounds are shared verbatim between the frontend physics implementation and the optimization backend (Section~\ref{sec:ml-model}).
+\subsection{Derivation from Android's OverScroller}
+\label{sec:overscroller-derivation}
+
+The model was obtained by analyzing the inner \texttt{SplineOverScroller} class of Android's \texttt{OverScroller}. Its central idea is a strict separation between the \emph{scale} of a fling -- how far and for how long it travels -- and its \emph{shape} -- the temporal profile with which that distance is covered. The scale is computed from a single input, the launch velocity $v_0$, together with a device-specific physical coefficient and a small set of constants; the shape is given by a fixed, dimensionless spline that is identical for every fling. The actual motion is then produced by stretching the shape onto the computed scale. The remainder of this section follows that structure.
+
+More precisely, the model can be read as a chain of transformations
+\begin{equation}
+  v_0
+  \;\xrightarrow[\text{scale}]{\;C,\;\mu,\;\beta,\;r\;}\;
+  (D,\,T)
+  \;\xrightarrow[\text{shape}]{\;p(\tau)\;}\;
+  \big(x(t),\,v(t)\big),
+  \label{eq:sd-pipeline}
+\end{equation}
+in which the launch velocity together with the physical coefficient and constants (Section~\ref{sec:physical-coeff}) yields the scalar pair of total distance $D$ and total duration $T$ (Section~\ref{sec:distance-duration}); the normalized spline $p(\tau)$ (Section~\ref{sec:spline-curve}) supplies the dimensionless shape; and the playback step (Section~\ref{sec:motion-playback}) stretches that shape onto the scale $(D,T)$. A notable consequence of this construction is that the inflexion factor $\beta$ plays a double role: it appears both inside the distance/duration term, where it scales the launch velocity, and, through the derived control ordinates $P_1, P_2$, in the curvature of the spline shape. Scale and shape are therefore not chosen independently but tied together consistently through a single shared constant.
+
+\subsection{Physical Coefficient and Constants}
+\label{sec:physical-coeff}
+
+The model uses a device-specific physical coefficient that converts the abstract launch velocity into a physical fling distance. With Earth's gravitational acceleration $g = 9.80665\,\mathrm{m/s^2}$, a screen-density factor, and two empirical tuning constants, it is defined as
+\begin{equation}
+  C \;=\; g \cdot 39.37 \cdot \mathrm{ppi} \cdot 0.84,
+  \qquad
+  \mathrm{ppi} \;=\; 160 \cdot \rho,
+  \label{eq:sd-physical-coeff}
+\end{equation}
+where $\rho$ is the display density, $39.37$ is the inch-per-metre conversion factor, and $0.84$ is a ``look and feel'' tuning constant. The deceleration behaviour is controlled by a fixed dimensionless deceleration rate
+\begin{equation}
+  r \;=\; \frac{\ln 0.78}{\ln 0.9} \;\approx\; 2.3582 ,
+  \label{eq:sd-decel-rate}
+\end{equation}
+which in the original source is a hard-coded constant. Two further constants are relevant: the inflexion factor $\beta = 0.35$, at which the two tension lines of the spline cross, and the constant gravity value $G = 2000\,\mathrm{px/s^2}$ used in the deceleration and spring-back phases.
+
+\subsection{Normalized Spline Curve}
+\label{sec:spline-curve}
+
+The temporal shape of the motion is a fixed, normalized curve relating elapsed (normalized) time to travelled (normalized) distance. It is defined parametrically through two cubic B\'ezier curves sharing a common parameter $x \in [0,1]$. With the start and end tension constants $S = 0.5$ and $E = 1.0$ and the derived control ordinates
+\begin{equation}
+  P_1 = S\,\beta = 0.175,
+  \qquad
+  P_2 = 1 - E\,(1-\beta) = 0.35,
+  \label{eq:sd-control-points}
+\end{equation}
+the normalized time $\tau$ and the normalized distance $p$ are
+\begin{align}
+  \tau(x) &= 3x(1-x)\big[(1-x)P_1 + x P_2\big] + x^3, \label{eq:sd-spline-time}\\
+  p(x)    &= 3x(1-x)\big[(1-x)S + x\big] + x^3. \label{eq:sd-spline-pos}
+\end{align}
+Eliminating the shared parameter $x$ yields the normalized position-versus-time spline $p(\tau)$, which increases monotonically from $p(0)=0$ to $p(1)=1$. In the implementation this curve is not evaluated symbolically but tabulated once into two lookup arrays of $N+1 = 101$ samples ($N = 100$) and linearly interpolated during playback.
+
+\subsection{Fling Distance and Duration}
+\label{sec:distance-duration}
+
+Given a launch velocity $v_0$ and a fling friction coefficient $\mu$, the source first forms the spline deceleration term $L(v_0) = \ln\!\big(\beta\lvert v_0\rvert / (\mu C)\big)$, from which the total fling distance $D$ and the total spline duration $T$ (in milliseconds) follow in the equivalent power-law forms
+\begin{align}
+  D(v_0) &= \mu\,C \left( \frac{\beta\,\lvert v_0 \rvert}{\mu\,C} \right)^{\!\frac{r}{r-1}}, \label{eq:sd-fling-distance}\\[2pt]
+  T(v_0) &= 1000 \left( \frac{\beta\,\lvert v_0 \rvert}{\mu\,C} \right)^{\!\frac{1}{r-1}}. \label{eq:sd-fling-duration}
+\end{align}
+Because $\tfrac{r}{r-1} > 1$ while $\tfrac{1}{r-1} < 1$, distance grows super-linearly and duration sub-linearly with the launch velocity: a faster fling covers disproportionately more ground while spreading it over a comparatively shorter time. The signed spline distance is $D_s = D(v_0)\,\operatorname{sgn}(v_0)$ and the target position is $x_{\text{start}} + D_s$; if this exceeds the valid range it is clamped to the boundary and the duration is rescaled through the inverse normalized-time spline.
+
+\subsection{Motion Playback: Spline, Ballistic, and Cubic Phases}
+\label{sec:motion-playback}
+
+A fling is played back in up to three successive phases.
+
+\paragraph{Spline phase.} During the normal in-bounds motion, let $t$ be the elapsed time since launch and $\tau = t/T \in [0,1]$ the normalized time. Using the normalized position spline $p(\tau)$ of Equation~\eqref{eq:sd-spline-pos}, the position and velocity are obtained by stretching the normalized curve onto the computed scale,
+\begin{align}
+  x(t) &= x_{\text{start}} + p(\tau)\,D_s, \label{eq:sd-spline-position}\\[2pt]
+  v(t) &= p'(\tau)\,\frac{D_s}{T}\cdot 1000, \label{eq:sd-spline-velocity}
+\end{align}
+where $p'(\tau)$ is the local slope of the normalized spline and the factor $1000$ converts the per-millisecond rate back to pixels per second. In the implementation $p(\tau)$ and its slope are not evaluated symbolically but obtained by linear interpolation between adjacent samples of the tabulated \texttt{SPLINE\_POSITION} array: with $t_{\inf}, t_{\sup}$ the bracketing normalized times and $d_{\inf}, d_{\sup}$ the corresponding normalized positions, the slope is $(d_{\sup}-d_{\inf})/(t_{\sup}-t_{\inf})$ and the position coefficient is $d_{\inf} + (\tau - t_{\inf})\cdot\text{slope}$.
+
+\paragraph{Ballistic (deceleration) phase.} When the spline motion reaches a boundary while still carrying velocity, the scroller switches to a phase of constant deceleration whose sign opposes the motion,
+\begin{equation}
+  a \;=\; \begin{cases} -G, & v > 0,\\ +G, & v \le 0, \end{cases}
+  \label{eq:sd-deceleration-sign}
+\end{equation}
+using the constant gravity value $G = 2000\,\mathrm{px/s^2}$. For a residual boundary velocity $v$, the distance required to stop is $d_{\text{stop}} = v^2/(2\lvert a\rvert)$. If this exceeds the permitted overscroll distance $O$, the deceleration is increased so that the motion stops exactly at $O$,
+\begin{equation}
+  a \;=\; -\operatorname{sgn}(v)\,\frac{v^2}{2\,O},
+  \qquad d_{\text{stop}} = O,
+  \label{eq:sd-over-decel}
+\end{equation}
+and the phase duration is $T_{\text{ball}} = -1000\,v/a$ (ms). Within the phase, with $t$ in seconds, the motion follows uniformly accelerated motion,
+\begin{align}
+  x(t) &= x_{\text{start}} + v\,t + \tfrac{1}{2}\,a\,t^2, \label{eq:sd-ballistic-position}\\[2pt]
+  v(t) &= v + a\,t. \label{eq:sd-ballistic-velocity}
+\end{align}
+
+\paragraph{Cubic spring-back phase.} Finally, an over-scrolled position is returned onto the boundary by a cubic spring-back over the overshoot $O$. With $\tau = t/T_{\text{spring}} \in [0,1]$ and the spring-back duration $T_{\text{spring}} = 1000\sqrt{-2\delta/a}$ (ms) derived from the overshoot $\delta$ and deceleration $a$, the displacement and velocity relative to the start of the phase are
+\begin{align}
+  x(t) &= x_{\text{start}} + \operatorname{sgn}(v)\,O\,\big(3\tau^2 - 2\tau^3\big), \label{eq:sd-cubic-position}\\[2pt]
+  v(t) &= \operatorname{sgn}(v)\,O\,\frac{6}{T_{\text{spring}}}\big(\tau^2 - \tau\big), \label{eq:sd-cubic-velocity}
+\end{align}
+so that the motion starts and ends with zero relative velocity and reaches the boundary exactly at $\tau = 1$. This edge behaviour corresponds to the overscroll and bounds handling of Section~\ref{sec:overscroll}.
+
+\subsection{Parameter Summary}
+\label{sec:overscroller-param-summary}
+
+Table~\ref{tab:overscroller-params} summarizes the symbols introduced above, together with their identifiers in the \texttt{SplineOverScroller} source and their role in the model.
+
+\begin{table}[h]
+  \centering
+  \caption{Parameters and constants of the OverScroller fling model, as defined in the \texttt{SplineOverScroller} source.}
+  \label{tab:overscroller-params}
+  \begin{tabular}{llp{7.2cm}}
+    \toprule
+    Symbol & Source identifier & Meaning \\
+    \midrule
+    $v_0$        & \texttt{mVelocity}         & Initial launch velocity of the fling (px/s). \\
+    $\mu$        & \texttt{mFlingFriction}    & Dimensionless fling friction coefficient; scales both distance and duration (Eq.~\eqref{eq:sd-fling-distance}--\eqref{eq:sd-fling-duration}). \\
+    $C$          & \texttt{mPhysicalCoeff}    & Device-specific physical coefficient converting velocity to distance (Eq.~\eqref{eq:sd-physical-coeff}). \\
+    $\rho$       & \texttt{density}           & Display density used to compute pixels per inch, $\mathrm{ppi}=160\rho$. \\
+    $g$          & \texttt{GRAVITY\_EARTH}    & Earth's gravitational acceleration, $9.80665\,\mathrm{m/s^2}$. \\
+    $r$          & \texttt{DECELERATION\_RATE}& Deceleration rate $\ln 0.78/\ln 0.9 \approx 2.3582$ (Eq.~\eqref{eq:sd-decel-rate}). \\
+    $\beta$      & \texttt{INFLEXION}         & Inflexion factor $0.35$; tension lines cross at $(\beta,1)$. \\
+    $S$          & \texttt{START\_TENSION}    & Start tension $0.5$ of the position spline (Eq.~\eqref{eq:sd-spline-pos}). \\
+    $E$          & \texttt{END\_TENSION}      & End tension $1.0$ of the time spline. \\
+    $P_1, P_2$   & \texttt{P1}, \texttt{P2}   & Derived B\'ezier control ordinates $S\beta$ and $1-E(1-\beta)$ (Eq.~\eqref{eq:sd-control-points}). \\
+    $G$          & \texttt{GRAVITY}           & Constant deceleration $2000\,\mathrm{px/s^2}$ for the ballistic/spring-back phases. \\
+    $N$          & \texttt{NB\_SAMPLES}       & Number of samples ($100$) of the tabulated spline lookup. \\
+    $O$          & \texttt{mOver}             & Maximum permitted overscroll (overshoot) distance. \\
+    $D$          & --                         & Total fling distance (Eq.~\eqref{eq:sd-fling-distance}). \\
+    $T$          & \texttt{mSplineDuration}   & Total spline duration in milliseconds (Eq.~\eqref{eq:sd-fling-duration}). \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Parameterization and Search Space}
+\label{sec:param-bounds}
+
+In the original \texttt{OverScroller}, the quantities introduced above are fixed constants. To make the scrolling behaviour adaptable, six of them are exposed as tunable parameters that constitute the search space of the optimization process (Section~\ref{sec:ml-model}): the fling friction $\mu$ (\texttt{scrollFriction}); the two bases $\texttt{x1}$ and $\texttt{x2}$ that generalize the deceleration rate to $r = \ln(\texttt{x1})/\ln(\texttt{x2})$, mirroring the hard-coded $\ln 0.78/\ln 0.9$ of Equation~\eqref{eq:sd-decel-rate}; the inflexion factor $\beta$ (\texttt{inflexion}); a multiplier on the physical coefficient $C$ of Equation~\eqref{eq:sd-physical-coeff} (\texttt{physicalCoeffTuning}); and an upper bound $\texttt{maxLaunchVelocityPxMs}$ applied to the estimated launch velocity of Equation~\eqref{eq:linreg-velocity} before it enters the model. Each parameter is constrained to a fixed lower and upper bound (Table~\ref{tab:param-bounds}), chosen so that every generated transfer function remains physically plausible and usable; these bounds are shared verbatim between the frontend physics implementation and the optimization backend. The edge behaviour of Section~\ref{sec:overscroll} (maximum overscroll $120$\,px, resistance $0.35$) is held fixed and is not part of the search space.
 
 \begin{table}[h]
   \centering
@@ -52,27 +219,49 @@ Overscrolling beyond the top or bottom of the list is permitted up to a fixed ma
   \end{tabular}
 \end{table}
 
-\paragraph{Machine-learning-based parameter generation.}
+\section{Adaptive Parameter Optimization}
 \label{sec:ml-model}
-Trials are organized into blocks of 10, and a single transfer-function parameter set remains fixed for the duration of one block. For the first three blocks (i.e.\ the first 30 trials) of each participant, the machine-learning backend is not yet used to propose parameters; instead, each of the six parameters is independently sampled uniformly at random from its predefined bounds (Table~\ref{tab:param-bounds}). This warm-up/bootstrap phase serves two purposes: it generates an initial, sufficiently diverse set of observations for the optimization model to learn from, and it avoids relying on an uninitialized or poorly informed model at the very beginning of a session, where no data are yet available.
 
-Only after these first three blocks have been completed does the system switch to model-based parameter generation. The optimization backend treats the problem as \emph{participant-aware} (multi-task) rather than optimizing in isolation for a single individual: whenever a new parameter set is requested, the Lambda function retrieves not only the requesting participant's own trial history but also the (anonymized) trial histories of every other participant recorded so far, and forwards all of them together to the SageMaker endpoint. There, one participant is treated as one \emph{task} in the sense of a multi-task Gaussian Process: a single scikit-learn \texttt{GaussianProcessRegressor} is fitted on the pooled data of all participants, with the integer participant/task identity appended as an additional numeric input feature alongside the six transfer-function parameters. Instead of a dedicated multi-task/co-regionalization (ICM) kernel, an anisotropic (ARD) kernel of the form $\mathrm{ConstantKernel}\times\mathrm{RBF}+\mathrm{WhiteKernel}$ is used, in which every input dimension -- including the task-identity dimension -- receives its own length scale, and whose hyperparameters are fitted by maximizing the marginal log-likelihood (L-BFGS, with two random restarts and target normalization). Letting the task-identity dimension carry its own length scale is what allows the model to learn how strongly participant-level differences should be weighted. This lets the model share statistical strength about the relationship between transfer-function parameters and completion time across participants, rather than fitting a separate, data-starved model per participant. Because each of the 10 fixed target positions within a block (see Section~\ref{sec:task}) can differ systematically in average completion time, one such multi-task GP is fit independently per target position, yielding 10 posterior predictive models per candidate parameter set. 100 candidate parameter sets are drawn uniformly at random from the bounded search space (plus the participant's currently active parameter set as an additional candidate), each of the 10 fitted GPs predicts its posterior mean completion time for every candidate, and the 10 resulting predictions are scalarized into a single score, $\mathrm{score} = \overline{t} + 0.35\, t_{\max} + 0.10\,(t_{\max} - t_{\min})$, where $\overline{t}$ is the mean predicted completion time across the 10 target positions, $t_{\max}$ and $t_{\min}$ are the largest and smallest predicted times, respectively. The candidate minimizing this joint objective -- which penalizes both a high average completion time and a large imbalance in performance across target positions -- is selected as the next block's parameter set. If fewer than two completed blocks of pooled training data are available for a given participant, or if model fitting fails for any reason, the backend falls back to returning the participant's current parameter set unchanged.
+Trials are organized into blocks of 10, and a single transfer-function parameter set remains fixed for the duration of one block. After each block, the system may propose a new parameter set for the next block, gradually adapting the scrolling behaviour to the participant.
 
-\paragraph{SageMaker inference implementation and deployment.} The optimization model is not persisted as a trained artifact; instead, a fresh Gaussian Process is refitted from scratch on every invocation, directly from the trial data contained in the request payload, which keeps the deployment stateless and always consistent with the most recent data. Concretely, the inference logic is implemented as a single Python module exposing the four handler functions expected by the SageMaker inference toolkit (\texttt{model\_fn}, \texttt{input\_fn}, \texttt{predict\_fn}, \texttt{output\_fn}): \texttt{model\_fn} performs no model loading and returns an empty model, while the GP fitting and candidate scoring described above are carried out entirely within \texttt{predict\_fn}. This module is packaged, together with an (empty) requirements file, into a gzip-compressed \texttt{model.tar.gz} archive following SageMaker's \texttt{code/} script-mode layout, uploaded to S3 by Terraform, and loaded into the prebuilt Scikit-learn container at container start via the \texttt{SAGEMAKER\_PROGRAM} and \texttt{SAGEMAKER\_SUBMIT\_DIRECTORY} environment variables. Because the model artifact contains only source code and no learned weights, and because scikit-learn and NumPy are already present in the prebuilt container, no additional Python dependencies have to be installed at cold start. Requests and responses are exchanged as \texttt{application/json}: the request carries the current parameter set and the pooled per-participant trial histories, and the response carries the newly proposed parameter set together with lightweight metadata (the selection strategy that was actually used and the number of pooled observations the decision was based on).
+\subsection{Warm-up and Bootstrap Phase}
+\label{sec:warmup}
 
-\paragraph{Interface elements and progress feedback.} A horizontal progress indicator above the list shows, as a row of 10 pill-shaped segments, how many of the 10 trials belonging to the currently active transfer function have already been completed. Directly above the list, a banner displays the number the participant is currently searching for. Two identical vertical location-feedback tracks are rendered on the left and right edge of the screen, each showing two markers: one fixed at the position of the current target (proportional to its index within the 330-entry list) and one continuously updated to reflect the participant's current scroll position (computed from the on-screen offset of the topmost rendered items). This lets participants continuously orient themselves relative to the target without having to keep the target itself in view while scrolling.
+For the first three blocks (i.e.\ the first 30 trials) of each participant, the machine-learning backend is not yet used to propose parameters; instead, each of the six parameters is independently sampled uniformly at random from its predefined bounds (Table~\ref{tab:param-bounds}). This warm-up/bootstrap phase serves two purposes: it generates an initial, sufficiently diverse set of observations for the optimization model to learn from, and it avoids relying on an uninitialized or poorly informed model at the very beginning of a session, where no data are yet available.
 
-While a trial is in progress, the target entry is visually distinguished from all other (otherwise identically styled) entries by a red border and light red background; once the participant has tapped the correct entry, it briefly switches to a green background before the next trial begins. In addition to the timing data used by the optimizer, several gesture-level quantities are computed in real time during each trial for on-screen feedback and threshold logic purposes, including swipe direction, per-gesture distance and duration, average and maximum swipe speed, the number of direction reversals (``switchbacks''/clutches) within a trial, and whether and by how far the target was overshot. Of these, the total elapsed time until the correct entry is tapped (\texttt{timeMs}), the net scrolled distance during the trial (\texttt{scrollDistance}), and a completion timestamp are recorded and persisted to the backend per trial; these are the quantities used as the optimization objective described above.
+\subsection{Participant-Aware Multi-Task Gaussian Process}
+\label{sec:mtgp}
 
-Trial data belonging to one block are collected locally in the browser and only submitted to the backend once all 10 trials of a block are complete, at which point they are appended atomically to the participant's stored trial history together with the transfer-function parameter set that was active during that block. After a block has been submitted, the participant is shown a waiting screen until a new parameter set has been generated (either through random sampling, during the warm-up phase, or through the Gaussian-Process optimizer thereafter); the next block of trials is then only started once the participant explicitly confirms via a button click, creating a clear separation between successive optimization blocks and ensuring that a new transfer function is only introduced once the backend has produced an updated, validated parameter set.
+Only after these first three blocks have been completed does the system switch to model-based parameter generation. The optimization backend treats the problem as \emph{participant-aware} (multi-task) rather than optimizing in isolation for a single individual: whenever a new parameter set is requested, the Lambda function retrieves not only the requesting participant's own trial history but also the (anonymized) trial histories of every other participant recorded so far, and forwards all of them together to the SageMaker endpoint. There, one participant is treated as one \emph{task} in the sense of a multi-task Gaussian Process: a single scikit-learn \texttt{GaussianProcessRegressor} is fitted on the pooled data of all participants, with the integer participant/task identity appended as an additional numeric input feature alongside the six transfer-function parameters. Instead of a dedicated multi-task/co-regionalization (ICM) kernel, an anisotropic (ARD) kernel of the form $\mathrm{ConstantKernel}\times\mathrm{RBF}+\mathrm{WhiteKernel}$ is used, in which every input dimension -- including the task-identity dimension -- receives its own length scale, and whose hyperparameters are fitted by maximizing the marginal log-likelihood (L-BFGS, with two random restarts and target normalization). Letting the task-identity dimension carry its own length scale is what allows the model to learn how strongly participant-level differences should be weighted. This lets the model share statistical strength about the relationship between transfer-function parameters and completion time across participants, rather than fitting a separate, data-starved model per participant. Because each of the 10 fixed target positions within a block (see Section~\ref{sec:task}) can differ systematically in average completion time, one such multi-task GP is fit independently per target position, yielding 10 posterior predictive models per candidate parameter set.
 
-\subsection{Task}
+\subsection{Candidate Scoring and Selection}
+\label{sec:scoring}
+
+100 candidate parameter sets are drawn uniformly at random from the bounded search space (plus the participant's currently active parameter set as an additional candidate), each of the 10 fitted GPs predicts its posterior mean completion time for every candidate, and the 10 resulting predictions are scalarized into a single score, $\mathrm{score} = \overline{t} + 0.35\, t_{\max} + 0.10\,(t_{\max} - t_{\min})$, where $\overline{t}$ is the mean predicted completion time across the 10 target positions, and $t_{\max}$ and $t_{\min}$ are the largest and smallest predicted times, respectively. The candidate minimizing this joint objective -- which penalizes both a high average completion time and a large imbalance in performance across target positions -- is selected as the next block's parameter set. If fewer than two completed blocks of pooled training data are available for a given participant, or if model fitting fails for any reason, the backend falls back to returning the participant's current parameter set unchanged.
+
+\subsection{SageMaker Inference Implementation and Deployment}
+\label{sec:sagemaker}
+
+The optimization model is not persisted as a trained artifact; instead, a fresh Gaussian Process is refitted from scratch on every invocation, directly from the trial data contained in the request payload, which keeps the deployment stateless and always consistent with the most recent data. Concretely, the inference logic is implemented as a single Python module exposing the four handler functions expected by the SageMaker inference toolkit (\texttt{model\_fn}, \texttt{input\_fn}, \texttt{predict\_fn}, \texttt{output\_fn}): \texttt{model\_fn} performs no model loading and returns an empty model, while the GP fitting and candidate scoring described above are carried out entirely within \texttt{predict\_fn}. This module is packaged, together with an (empty) requirements file, into a gzip-compressed \texttt{model.tar.gz} archive following SageMaker's \texttt{code/} script-mode layout, uploaded to S3 by Terraform, and loaded into the prebuilt Scikit-learn container at container start via the \texttt{SAGEMAKER\_PROGRAM} and \texttt{SAGEMAKER\_SUBMIT\_DIRECTORY} environment variables. Because the model artifact contains only source code and no learned weights, and because scikit-learn and NumPy are already present in the prebuilt container, no additional Python dependencies have to be installed at cold start. Requests and responses are exchanged as \texttt{application/json}: the request carries the current parameter set and the pooled per-participant trial histories, and the response carries the newly proposed parameter set together with lightweight metadata (the selection strategy that was actually used and the number of pooled observations the decision was based on).
+
+\section{Experimental Procedure}
+\label{sec:procedure}
+
+\subsection{Task Design}
 \label{sec:task}
 
 Participants were asked to repeatedly locate and select a specified target entry within the 330-entry list. Ten fixed target positions were used throughout the experiment: entries $30, 60, 90, \dots, 300$, i.e.\ every 30th position starting 30 entries from the top and ending 30 entries from the bottom of the list. This excludes the first and last 30 entries from ever being used as a target, so that every target position is reachable by scrolling in either direction and no target is trivially visible without scrolling.
 
 For each block of trials -- corresponding to one fixed transfer-function parameter set -- all 10 target positions were presented exactly once, in a randomized order that was freshly shuffled at the start of every block. Before the first randomized block, participants completed a single untimed practice trial with a fixed target (list entry 180) in order to familiarize themselves with the touch-scrolling interaction and the location-feedback display; this practice trial is not included in the recorded/optimized trial data.
 
-During a block, the target entry was visually indicated by a red border and background while the trial was in progress (turning green briefly upon successful selection), while all other entries retained their default appearance. Location-feedback tracks on both sides of the screen additionally indicated the participant's current scroll position relative to the target position at all times. Participants proceeded through the 10 randomized targets of a block one after another, with progress tracked by the progress indicator above the list.
+\subsection{Interface Elements and Progress Feedback}
+\label{sec:interface}
 
-Once all 10 trials of a block were completed, the corresponding trial data (completion time, scrolled distance, and target position per trial) were submitted to the backend together with the transfer-function parameters used during that block, and participants waited until an updated parameter set had been generated. The next block -- using the newly generated transfer-function parameters -- could only be started by an explicit button click once the new parameters were confirmed to be available, ensuring that every block was evaluated with a single, well-defined and fully generated transfer function.
+A horizontal progress indicator above the list shows, as a row of 10 pill-shaped segments, how many of the 10 trials belonging to the currently active transfer function have already been completed. Directly above the list, a banner displays the number the participant is currently searching for. Two identical vertical location-feedback tracks are rendered on the left and right edge of the screen, each showing two markers: one fixed at the position of the current target (proportional to its index within the 330-entry list) and one continuously updated to reflect the participant's current scroll position (computed from the on-screen offset of the topmost rendered items). This lets participants continuously orient themselves relative to the target without having to keep the target itself in view while scrolling. While a trial is in progress, the target entry is visually distinguished from all other (otherwise identically styled) entries by a red border and light red background; once the participant has tapped the correct entry, it briefly switches to a green background before the next trial begins.
+
+\subsection{Data Collection and Recorded Metrics}
+\label{sec:data-collection}
+
+In addition to the timing data used by the optimizer, several gesture-level quantities are computed in real time during each trial for on-screen feedback and threshold-logic purposes, including swipe direction, per-gesture distance and duration, average and maximum swipe speed, the number of direction reversals (``switchbacks''/clutches) within a trial, and whether and by how far the target was overshot. Of these, the total elapsed time until the correct entry is tapped (\texttt{timeMs}), the net scrolled distance during the trial (\texttt{scrollDistance}), and a completion timestamp are recorded and persisted to the backend per trial; these are the quantities used as the optimization objective described above.
+
+Trial data belonging to one block are collected locally in the browser and only submitted to the backend once all 10 trials of a block are complete, at which point they are appended atomically to the participant's stored trial history together with the transfer-function parameter set that was active during that block. After a block has been submitted, the participant is shown a waiting screen until a new parameter set has been generated (either through random sampling during the warm-up phase, or through the Gaussian-Process optimizer thereafter); the next block of trials is then only started once the participant explicitly confirms via a button click, creating a clear separation between successive optimization blocks and ensuring that a new transfer function is only introduced once the backend has produced an updated, validated parameter set.

@@ -594,6 +594,60 @@ function ScrollList({ participantId }) {
     return numerator / denominator;
   };
 
+  // Faithful port of Android's default VelocityTracker strategy ("lsq2"):
+  // a degree-2 least-squares fit y(t) = B0 + B1*t + B2*t^2 with time measured
+  // relative to the most recent sample (t = 0), reporting B1 (the instantaneous
+  // slope at release) as the velocity. Uniform sample weighting; the 100 ms /
+  // 20-sample horizon is already enforced by pushTouchSample. Uses the normal
+  // equations (Cramer's rule) instead of QR — mathematically the same result.
+  const getLsq2VelocityPxMs = () => {
+    const samples = touchSamplesRef.current;
+    if (!samples || samples.length < 2) return 0;
+    // A quadratic fit needs at least 3 points; otherwise fall back to lsq1.
+    if (samples.length < 3) return getRegressionVelocityPxMs();
+
+    // Time relative to the newest sample so that B1 is the slope at release.
+    const t0 = samples[samples.length - 1].timeMs;
+
+    let s0 = 0;
+    let s1 = 0;
+    let s2 = 0;
+    let s3 = 0;
+    let s4 = 0;
+    let b0 = 0;
+    let b1 = 0;
+    let b2 = 0;
+    for (const sample of samples) {
+      const t = sample.timeMs - t0;
+      const y = sample.yPx;
+      const t2 = t * t;
+      s0 += 1;
+      s1 += t;
+      s2 += t2;
+      s3 += t2 * t;
+      s4 += t2 * t2;
+      b0 += y;
+      b1 += t * y;
+      b2 += t2 * y;
+    }
+
+    // Normal equations A * [B0, B1, B2]^T = b, solved via Cramer's rule.
+    const det =
+      s0 * (s2 * s4 - s3 * s3) -
+      s1 * (s1 * s4 - s3 * s2) +
+      s2 * (s1 * s3 - s2 * s2);
+
+    // Degenerate configuration (e.g. collinear timestamps): fall back to lsq1.
+    if (Math.abs(det) < 1e-9) return getRegressionVelocityPxMs();
+
+    const numB1 =
+      s0 * (b1 * s4 - b2 * s3) -
+      b0 * (s1 * s4 - s3 * s2) +
+      s2 * (s1 * b2 - b1 * s2);
+
+    return numB1 / det; // px/ms, same unit as getRegressionVelocityPxMs
+  };
+
   const getTargetPositionRatio = () => {
     if (NUM_ITEMS <= 1) return 0;
     return clamp01(targetId / (NUM_ITEMS - 1));
@@ -838,7 +892,7 @@ function ScrollList({ participantId }) {
     const endNow = performance.now();
 
     pushTouchSample(endNow, lastTouchY == null ? 0 : lastTouchY);
-    const fingerVelocityPxMs = getRegressionVelocityPxMs();
+    const fingerVelocityPxMs = getLsq2VelocityPxMs();
 
     const flingVelocityThresholdPxMs = getMinFlingVelocityPxMs();
     const meetsFlingThreshold = isFlingThresholdMet(fingerVelocityPxMs, flingVelocityThresholdPxMs);
@@ -936,7 +990,7 @@ function ScrollList({ participantId }) {
       const decay = Number.isFinite(parsedDecay)
         ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, parsedDecay))
         : DEFAULT_DECAY;
-      const fingerVelocityPxMs = getRegressionVelocityPxMs();
+      const fingerVelocityPxMs = getLsq2VelocityPxMs();
       const flingThresholdPxMs = getMinFlingVelocityPxMs();
       const trialMetrics = trialMetricsRef.current;
       const currentAttempt = {
