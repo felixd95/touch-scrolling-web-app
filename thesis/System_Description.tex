@@ -47,64 +47,51 @@ The user interface presents a single continuously scrollable list of $N = 330$ e
 \subsection{Gesture Processing}
 \label{sec:gesture-processing}
 
-The browser's and React's default scrolling behaviour is disabled for the list container and replaced by a custom pipeline that processes the native \texttt{onTouchStart}, \texttt{onTouchMove}, \texttt{onTouchEnd}, and \texttt{onTouchCancel} events directly. During a touch gesture, every incoming touch-move sample is time-stamped and appended to a rolling buffer that is capped both by a $100$\,ms time window and by at most 20 samples. Two velocity quantities are derived from this buffer. For real-time drag feedback, an instantaneous, exponentially smoothed velocity is maintained as $v \leftarrow 0.8\,v + 0.2\,v_{\text{inst}}$, where $v_{\text{inst}}$ is the momentary two-point velocity between successive samples. For launching a fling, the finger velocity at release is instead estimated from the buffered position/time samples $(t_i, y_i)$ by a degree-two least-squares fit $y(t) = B_0 + B_1 t + B_2 t^2$, with the sample times taken relative to the most recent one so that $t = 0$ at release; the launch velocity is read off as the first-order coefficient,
-\begin{equation}
-  v_0 \;=\; B_1 \;=\; \left.\frac{\mathrm{d}y}{\mathrm{d}t}\right|_{t=0},
-  \label{eq:linreg-velocity}
-\end{equation}
-i.e.\ the instantaneous slope of the fitted parabola at the moment the finger leaves the screen. This is markedly more robust to jitter than a simple two-point derivative and, unlike a straight-line fit, is able to follow the acceleration typically present at the end of a fling gesture. If this velocity exceeds a fixed fling threshold, it is passed (after the clamping described in Section~\ref{sec:param-bounds}) into the fling model of Section~\ref{sec:transfer-function}; otherwise the list simply stops at its current position, after being clamped back into the valid scroll bounds if the participant had dragged past the list's edges.
+The browser's and React's default scrolling behaviour is disabled for the list container and replaced by a custom pipeline that processes the native \texttt{onTouchStart}, \texttt{onTouchMove}, \texttt{onTouchEnd}, and \texttt{onTouchCancel} events directly. During a touch gesture, every touch-move sample is time-stamped and stored in a rolling buffer bounded by a $100$\,ms window and at most 20 samples. For real-time drag feedback the list follows the finger through an exponentially smoothed instantaneous velocity, while for launching a fling the release velocity is estimated from the buffered samples by a degree-two (quadratic) least-squares fit, taking the slope of the fitted curve at the moment of release as the launch velocity. This is more robust to jitter than a two-point derivative and, unlike a straight-line fit, follows the acceleration typically present at the end of a fling. If the estimated velocity exceeds a fixed fling threshold, it is clamped (Section~\ref{sec:param-bounds}) and passed into the fling model of Section~\ref{sec:transfer-function}; otherwise the list stops at its current position, after being clamped back into the valid scroll bounds if the participant had dragged past the list's edges.
 
-\paragraph{Relation to Android's \texttt{VelocityTracker}.} In Android, velocity estimation is not part of the \texttt{OverScroller} at all; the scroller receives an already-computed velocity as an input parameter. The estimation is instead performed by a separate class, \texttt{VelocityTracker}, whose native implementation fits a least-squares polynomial to the recent position/time samples and reports a chosen derivative coefficient as the velocity. Its default strategy, labelled \texttt{lsq2}, is exactly the degree-two fit of Equation~\eqref{eq:linreg-velocity}: a quadratic least-squares regression whose velocity is the first-order coefficient $B_1$, evaluated at the most recent sample ($t = 0$). The estimator adopted here is therefore a faithful reimplementation of Android's default method rather than of the simpler first-order variant \texttt{lsq1}, which Android's own source comments rate as ``poor'' (a straight line cannot represent the acceleration present at the end of a fling and hence tends to \emph{underestimate} the release velocity), while rating the quadratic \texttt{lsq2} as ``very good''.
-
-Two implementation details are worth noting. First, whereas Android solves the fit through a QR decomposition (Gram--Schmidt), the frontend solves the equivalent $3\times3$ normal equations directly (Cramer's rule); both yield the same coefficients, and the implementation falls back to the degree-one fit only in the degenerate cases of fewer than three samples or a singular system. Uniform sample weighting and a contributing-sample horizon (the $100$\,ms / 20-sample window) match Android's defaults, and the result is finally clamped to a maximum velocity (Section~\ref{sec:param-bounds}). Second, an estimate that is numerically identical to that of a physical Android device is nonetheless not attainable in the browser, because the browser's \texttt{touchmove} stream differs from Android's \texttt{MotionEvent} pipeline in sampling rate, event batching/coalescing, and timestamp semantics; the fitting \emph{algorithm}, by contrast, is fully deterministic and reproduces Android's method exactly, so any residual discrepancy stems solely from the differing input event streams rather than from the velocity computation itself.
+This estimator is a faithful reimplementation of the default strategy (\texttt{lsq2}) of Android's \texttt{VelocityTracker}, the class responsible for velocity estimation in Android; the \texttt{OverScroller} itself only receives an already-computed velocity. Android rates this quadratic fit as ``very good'' and the simpler first-order variant (\texttt{lsq1}) as ``poor'', since a straight line cannot capture end-of-gesture acceleration. An estimate numerically identical to that of a physical Android device is not attainable in the browser, because the \texttt{touchmove} event stream differs from Android's \texttt{MotionEvent} pipeline in sampling rate, batching, and timestamp semantics; the fitting algorithm itself, however, reproduces Android's method exactly, so any residual discrepancy stems solely from the differing input event streams.
 
 \subsection{Overscroll and Bounds Handling}
 \label{sec:overscroll}
 
-Scrolling is confined to the valid range spanned by the list. When a gesture or a fling would move the content beyond the top or bottom edge, overscrolling is permitted only up to a fixed maximum overscroll distance of $120$\,px and is visually compressed by a fixed resistance factor of $0.35$, so that only $35\,\%$ of the overflow is translated into visible motion. Once the touch is released in an overscrolled state, or once a fling reaches an edge, the content is returned to the nearest valid bound. This edge handling is independent of the transfer-function parameters and corresponds in spirit to the ballistic and spring-back phases of the underlying scroller model (Section~\ref{sec:motion-playback}).
+Scrolling is confined to the valid range spanned by the list. When a gesture or a fling would move the content beyond the top or bottom edge, overscrolling is permitted only up to a fixed maximum overscroll distance of $120$\,px and is visually compressed by a fixed resistance factor of $0.35$, so that only $35\,\%$ of the overflow is translated into visible motion. Once the touch is released in an overscrolled state, or once a fling reaches an edge, the content is returned to the nearest valid bound. This edge handling is independent of the transfer-function parameters and corresponds in spirit to the ballistic and spring-back phases of the underlying scroller model (Section~\ref{sec:ballistic-phase}).
 
 \section{Transfer Function (Fling Model)}
 \label{sec:transfer-function}
 
 The transfer function governing post-touch (fling) motion is a physically motivated model derived directly from Android's \texttt{OverScroller} spline-deceleration algorithm. This section presents the model in full, exactly as it is defined in that source: the physical coefficient and constants, the normalized spline curve, the closed-form fling distance and duration, and the three motion phases (spline, ballistic, and cubic spring-back) used during playback. The derivation is self-contained and is given at the level of detail needed both to reproduce the frontend physics implementation and to understand the parameterization that constitutes the optimization search space (Section~\ref{sec:param-bounds}). Throughout, positions are measured in pixels and velocities in pixels per second, and time is measured in milliseconds unless noted otherwise.
 
-\subsection{Derivation from Android's OverScroller}
-\label{sec:overscroller-derivation}
+\subsection{Fling Phase}
+\label{sec:fling-phase}
 
-The model was obtained by analyzing the inner \texttt{SplineOverScroller} class of Android's \texttt{OverScroller}. Its central idea is a strict separation between the \emph{scale} of a fling -- how far and for how long it travels -- and its \emph{shape} -- the temporal profile with which that distance is covered. The scale is computed from a single input, the launch velocity $v_0$, together with a device-specific physical coefficient and a small set of constants; the shape is given by a fixed, dimensionless spline that is identical for every fling. The actual motion is then produced by stretching the shape onto the computed scale. The remainder of this section follows that structure.
+The fling phase is the normal, in-bounds momentum motion that follows a flick gesture. It is built on a strict separation between the \emph{scale} of a fling -- how far and how long it travels, computed from the launch velocity and a few constants -- and its \emph{shape} -- the fixed, dimensionless temporal profile with which that distance is covered. Playback then simply stretches the shape onto the computed scale.
 
-More precisely, the model can be read as a chain of transformations
-\begin{equation}
-  v_0
-  \;\xrightarrow[\text{scale}]{\;C,\;\mu,\;\beta,\;r\;}\;
-  (D,\,T)
-  \;\xrightarrow[\text{shape}]{\;p(\tau)\;}\;
-  \big(x(t),\,v(t)\big),
-  \label{eq:sd-pipeline}
-\end{equation}
-in which the launch velocity together with the physical coefficient and constants (Section~\ref{sec:physical-coeff}) yields the scalar pair of total distance $D$ and total duration $T$ (Section~\ref{sec:distance-duration}); the normalized spline $p(\tau)$ (Section~\ref{sec:spline-curve}) supplies the dimensionless shape; and the playback step (Section~\ref{sec:motion-playback}) stretches that shape onto the scale $(D,T)$. A notable consequence of this construction is that the inflexion factor $\beta$ plays a double role: it appears both inside the distance/duration term, where it scales the launch velocity, and, through the derived control ordinates $P_1, P_2$, in the curvature of the spline shape. Scale and shape are therefore not chosen independently but tied together consistently through a single shared constant.
+\subsubsection{Scale: Physical Coefficient, Fling Distance, and Duration}
+\label{sec:fling-scale}
 
-\subsection{Physical Coefficient and Constants}
-\label{sec:physical-coeff}
-
-The model uses a device-specific physical coefficient that converts the abstract launch velocity into a physical fling distance. With Earth's gravitational acceleration $g = 9.80665\,\mathrm{m/s^2}$, a screen-density factor, and two empirical tuning constants, it is defined as
+The scale converts the launch velocity $v_0$ into a total travel distance $D$ and a total duration $T$. It relies on a device-specific physical coefficient
 \begin{equation}
   C \;=\; g \cdot 39.37 \cdot \mathrm{ppi} \cdot 0.84,
   \qquad
   \mathrm{ppi} \;=\; 160 \cdot \rho,
   \label{eq:sd-physical-coeff}
 \end{equation}
-where $\rho$ is the display density, $39.37$ is the inch-per-metre conversion factor, and $0.84$ is a ``look and feel'' tuning constant. The deceleration behaviour is controlled by a fixed dimensionless deceleration rate
+and on a fixed dimensionless deceleration rate
 \begin{equation}
-  r \;=\; \frac{\ln 0.78}{\ln 0.9} \;\approx\; 2.3582 ,
+  r \;=\; \frac{\ln 0.78}{\ln 0.9} \;\approx\; 2.3582 .
   \label{eq:sd-decel-rate}
 \end{equation}
-which in the original source is a hard-coded constant. Two further constants are relevant: the inflexion factor $\beta = 0.35$, at which the two tension lines of the spline cross, and the constant gravity value $G = 2000\,\mathrm{px/s^2}$ used in the deceleration and spring-back phases.
+Given a fling friction coefficient $\mu$, the distance and the duration (the latter in milliseconds) follow in closed form as
+\begin{align}
+  D(v_0) &= \mu\,C \left( \frac{\beta\,\lvert v_0 \rvert}{\mu\,C} \right)^{\!\frac{r}{r-1}}, \label{eq:sd-fling-distance}\\[2pt]
+  T(v_0) &= 1000 \left( \frac{\beta\,\lvert v_0 \rvert}{\mu\,C} \right)^{\!\frac{1}{r-1}}. \label{eq:sd-fling-duration}
+\end{align}
+The parameters are: $v_0$, the launch velocity (px/s) estimated in Section~\ref{sec:gesture-processing}; $g = 9.80665\,\mathrm{m/s^2}$, Earth's gravitational acceleration; $\rho$, the display density, giving $\mathrm{ppi} = 160\rho$ pixels per inch, with $39.37$ the inch-per-metre conversion factor and $0.84$ a ``look and feel'' tuning constant; $\mu$, the dimensionless fling friction, which scales both distance and duration; $r \approx 2.3582$, the fixed deceleration rate; and $\beta = 0.35$, the inflexion factor. Because $\tfrac{r}{r-1} > 1$ while $\tfrac{1}{r-1} < 1$, distance grows super-linearly and duration sub-linearly with $v_0$: a faster fling covers disproportionately more ground while spreading it over a comparatively shorter time. The signed distance is $D_s = D(v_0)\,\operatorname{sgn}(v_0)$ and the target position is $x_{\text{start}} + D_s$; if this leaves the valid range it is clamped to the boundary and the duration is rescaled through the inverse normalized-time spline.
 
-\subsection{Normalized Spline Curve}
+\subsubsection{Spline Curve and Playback}
 \label{sec:spline-curve}
 
-The temporal shape of the motion is a fixed, normalized curve relating elapsed (normalized) time to travelled (normalized) distance. It is defined parametrically through two cubic B\'ezier curves sharing a common parameter $x \in [0,1]$. With the start and end tension constants $S = 0.5$ and $E = 1.0$ and the derived control ordinates
+The shape is a fixed, normalized curve relating elapsed (normalized) time to travelled (normalized) distance, defined parametrically through two cubic B\'ezier curves sharing a common parameter $x \in [0,1]$. With the start and end tension constants $S = 0.5$ and $E = 1.0$ and the derived control ordinates
 \begin{equation}
   P_1 = S\,\beta = 0.175,
   \qquad
@@ -116,90 +103,53 @@ the normalized time $\tau$ and the normalized distance $p$ are
   \tau(x) &= 3x(1-x)\big[(1-x)P_1 + x P_2\big] + x^3, \label{eq:sd-spline-time}\\
   p(x)    &= 3x(1-x)\big[(1-x)S + x\big] + x^3. \label{eq:sd-spline-pos}
 \end{align}
-Eliminating the shared parameter $x$ yields the normalized position-versus-time spline $p(\tau)$, which increases monotonically from $p(0)=0$ to $p(1)=1$. In the implementation this curve is not evaluated symbolically but tabulated once into two lookup arrays of $N+1 = 101$ samples ($N = 100$) and linearly interpolated during playback.
-
-\subsection{Fling Distance and Duration}
-\label{sec:distance-duration}
-
-Given a launch velocity $v_0$ and a fling friction coefficient $\mu$, the source first forms the spline deceleration term $L(v_0) = \ln\!\big(\beta\lvert v_0\rvert / (\mu C)\big)$, from which the total fling distance $D$ and the total spline duration $T$ (in milliseconds) follow in the equivalent power-law forms
-\begin{align}
-  D(v_0) &= \mu\,C \left( \frac{\beta\,\lvert v_0 \rvert}{\mu\,C} \right)^{\!\frac{r}{r-1}}, \label{eq:sd-fling-distance}\\[2pt]
-  T(v_0) &= 1000 \left( \frac{\beta\,\lvert v_0 \rvert}{\mu\,C} \right)^{\!\frac{1}{r-1}}. \label{eq:sd-fling-duration}
-\end{align}
-Because $\tfrac{r}{r-1} > 1$ while $\tfrac{1}{r-1} < 1$, distance grows super-linearly and duration sub-linearly with the launch velocity: a faster fling covers disproportionately more ground while spreading it over a comparatively shorter time. The signed spline distance is $D_s = D(v_0)\,\operatorname{sgn}(v_0)$ and the target position is $x_{\text{start}} + D_s$; if this exceeds the valid range it is clamped to the boundary and the duration is rescaled through the inverse normalized-time spline.
-
-\subsection{Motion Playback: Spline, Ballistic, and Cubic Phases}
-\label{sec:motion-playback}
-
-A fling is played back in up to three successive phases.
-
-\paragraph{Spline phase.} During the normal in-bounds motion, let $t$ be the elapsed time since launch and $\tau = t/T \in [0,1]$ the normalized time. Using the normalized position spline $p(\tau)$ of Equation~\eqref{eq:sd-spline-pos}, the position and velocity are obtained by stretching the normalized curve onto the computed scale,
+Eliminating $x$ yields the normalized position-versus-time spline $p(\tau)$, which increases monotonically from $p(0)=0$ to $p(1)=1$. In the implementation this curve is not evaluated symbolically but tabulated once into two lookup arrays of $N+1 = 101$ samples ($N = 100$) and linearly interpolated during playback. During playback, with elapsed time $t$ and normalized time $\tau = t/T \in [0,1]$, the position and velocity are obtained by stretching the normalized curve onto the computed scale,
 \begin{align}
   x(t) &= x_{\text{start}} + p(\tau)\,D_s, \label{eq:sd-spline-position}\\[2pt]
-  v(t) &= p'(\tau)\,\frac{D_s}{T}\cdot 1000, \label{eq:sd-spline-velocity}
+  v(t) &= p'(\tau)\,\frac{D_s}{T}\cdot 1000. \label{eq:sd-spline-velocity}
 \end{align}
-where $p'(\tau)$ is the local slope of the normalized spline and the factor $1000$ converts the per-millisecond rate back to pixels per second. In the implementation $p(\tau)$ and its slope are not evaluated symbolically but obtained by linear interpolation between adjacent samples of the tabulated \texttt{SPLINE\_POSITION} array: with $t_{\inf}, t_{\sup}$ the bracketing normalized times and $d_{\inf}, d_{\sup}$ the corresponding normalized positions, the slope is $(d_{\sup}-d_{\inf})/(t_{\sup}-t_{\inf})$ and the position coefficient is $d_{\inf} + (\tau - t_{\inf})\cdot\text{slope}$.
+The parameters are: $S = 0.5$ and $E = 1.0$, the start and end tension constants that set how steep the curve is at each end; $P_1$ and $P_2$, the inner B\'ezier control ordinates derived from $S$, $E$ and $\beta$; $x$, the shared B\'ezier parameter; $N = 100$, the number of tabulated samples; $p(\tau)$ and its slope $p'(\tau)$, read from the tables by linear interpolation; and $D_s$, $T$, the signed distance and duration scale factors from Section~\ref{sec:fling-scale}, with the factor $1000$ converting the per-millisecond rate back to pixels per second. The inflexion factor $\beta$ thus plays a double role: besides scaling the launch velocity in Equations~\eqref{eq:sd-fling-distance}--\eqref{eq:sd-fling-duration}, it also shapes the spline curvature through $P_1$ and $P_2$.
 
-\paragraph{Ballistic (deceleration) phase.} When the spline motion reaches a boundary while still carrying velocity, the scroller switches to a phase of constant deceleration whose sign opposes the motion,
+\subsection{Ballistic Phase}
+\label{sec:ballistic-phase}
+
+The ballistic phase takes over when the spline motion reaches a boundary while still carrying velocity -- that is, when a fling hits the top or bottom edge of the list. It replaces the spline shape by a simple constant-deceleration (uniformly accelerated) motion that brings the content to rest, possibly after a short overshoot beyond the edge. The deceleration opposes the current motion,
 \begin{equation}
   a \;=\; \begin{cases} -G, & v > 0,\\ +G, & v \le 0, \end{cases}
   \label{eq:sd-deceleration-sign}
 \end{equation}
-using the constant gravity value $G = 2000\,\mathrm{px/s^2}$. For a residual boundary velocity $v$, the distance required to stop is $d_{\text{stop}} = v^2/(2\lvert a\rvert)$. If this exceeds the permitted overscroll distance $O$, the deceleration is increased so that the motion stops exactly at $O$,
+with the constant gravity value $G = 2000\,\mathrm{px/s^2}$. For a residual boundary velocity $v$ the stopping distance is $d_{\text{stop}} = v^2/(2\lvert a\rvert)$; if it exceeds the permitted overscroll distance $O$, the deceleration is increased so that the motion stops exactly at $O$,
 \begin{equation}
   a \;=\; -\operatorname{sgn}(v)\,\frac{v^2}{2\,O},
   \qquad d_{\text{stop}} = O,
   \label{eq:sd-over-decel}
 \end{equation}
-and the phase duration is $T_{\text{ball}} = -1000\,v/a$ (ms). Within the phase, with $t$ in seconds, the motion follows uniformly accelerated motion,
+and the phase lasts $T_{\text{ball}} = -1000\,v/a$ milliseconds. Within the phase, with $t$ in seconds, the motion is uniformly accelerated,
 \begin{align}
   x(t) &= x_{\text{start}} + v\,t + \tfrac{1}{2}\,a\,t^2, \label{eq:sd-ballistic-position}\\[2pt]
   v(t) &= v + a\,t. \label{eq:sd-ballistic-velocity}
 \end{align}
+The parameters are: $v$, the residual velocity at the moment the boundary is reached; $a$, the signed deceleration; $G = 2000\,\mathrm{px/s^2}$, the constant background deceleration; $O$, the maximum permitted overscroll distance; $d_{\text{stop}}$, the resulting stopping distance; and $T_{\text{ball}}$, the phase duration.
 
-\paragraph{Cubic spring-back phase.} Finally, an over-scrolled position is returned onto the boundary by a cubic spring-back over the overshoot $O$. With $\tau = t/T_{\text{spring}} \in [0,1]$ and the spring-back duration $T_{\text{spring}} = 1000\sqrt{-2\delta/a}$ (ms) derived from the overshoot $\delta$ and deceleration $a$, the displacement and velocity relative to the start of the phase are
+\subsection{Cubic Spring-Back Phase}
+\label{sec:cubic-phase}
+
+The cubic spring-back phase returns an over-scrolled position smoothly onto the boundary, so that content released or flung past an edge eases back into the valid range instead of snapping. Over the overshoot $O$, with normalized phase time $\tau = t/T_{\text{spring}} \in [0,1]$, the displacement and velocity relative to the start of the phase are
 \begin{align}
   x(t) &= x_{\text{start}} + \operatorname{sgn}(v)\,O\,\big(3\tau^2 - 2\tau^3\big), \label{eq:sd-cubic-position}\\[2pt]
   v(t) &= \operatorname{sgn}(v)\,O\,\frac{6}{T_{\text{spring}}}\big(\tau^2 - \tau\big), \label{eq:sd-cubic-velocity}
 \end{align}
-so that the motion starts and ends with zero relative velocity and reaches the boundary exactly at $\tau = 1$. This edge behaviour corresponds to the overscroll and bounds handling of Section~\ref{sec:overscroll}.
-
-\subsection{Parameter Summary}
-\label{sec:overscroller-param-summary}
-
-Table~\ref{tab:overscroller-params} summarizes the symbols introduced above, together with their identifiers in the \texttt{SplineOverScroller} source and their role in the model.
-
-\begin{table}[h]
-  \centering
-  \caption{Parameters and constants of the OverScroller fling model, as defined in the \texttt{SplineOverScroller} source.}
-  \label{tab:overscroller-params}
-  \begin{tabular}{llp{7.2cm}}
-    \toprule
-    Symbol & Source identifier & Meaning \\
-    \midrule
-    $v_0$        & \texttt{mVelocity}         & Initial launch velocity of the fling (px/s). \\
-    $\mu$        & \texttt{mFlingFriction}    & Dimensionless fling friction coefficient; scales both distance and duration (Eq.~\eqref{eq:sd-fling-distance}--\eqref{eq:sd-fling-duration}). \\
-    $C$          & \texttt{mPhysicalCoeff}    & Device-specific physical coefficient converting velocity to distance (Eq.~\eqref{eq:sd-physical-coeff}). \\
-    $\rho$       & \texttt{density}           & Display density used to compute pixels per inch, $\mathrm{ppi}=160\rho$. \\
-    $g$          & \texttt{GRAVITY\_EARTH}    & Earth's gravitational acceleration, $9.80665\,\mathrm{m/s^2}$. \\
-    $r$          & \texttt{DECELERATION\_RATE}& Deceleration rate $\ln 0.78/\ln 0.9 \approx 2.3582$ (Eq.~\eqref{eq:sd-decel-rate}). \\
-    $\beta$      & \texttt{INFLEXION}         & Inflexion factor $0.35$; tension lines cross at $(\beta,1)$. \\
-    $S$          & \texttt{START\_TENSION}    & Start tension $0.5$ of the position spline (Eq.~\eqref{eq:sd-spline-pos}). \\
-    $E$          & \texttt{END\_TENSION}      & End tension $1.0$ of the time spline. \\
-    $P_1, P_2$   & \texttt{P1}, \texttt{P2}   & Derived B\'ezier control ordinates $S\beta$ and $1-E(1-\beta)$ (Eq.~\eqref{eq:sd-control-points}). \\
-    $G$          & \texttt{GRAVITY}           & Constant deceleration $2000\,\mathrm{px/s^2}$ for the ballistic/spring-back phases. \\
-    $N$          & \texttt{NB\_SAMPLES}       & Number of samples ($100$) of the tabulated spline lookup. \\
-    $O$          & \texttt{mOver}             & Maximum permitted overscroll (overshoot) distance. \\
-    $D$          & --                         & Total fling distance (Eq.~\eqref{eq:sd-fling-distance}). \\
-    $T$          & \texttt{mSplineDuration}   & Total spline duration in milliseconds (Eq.~\eqref{eq:sd-fling-duration}). \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+with the spring-back duration
+\begin{equation}
+  T_{\text{spring}} \;=\; 1000\,\sqrt{-2\delta/a} \quad (\mathrm{ms}).
+  \label{eq:sd-spring-duration}
+\end{equation}
+The parameters are: $O$, the overshoot amplitude; $\delta$, the over-scroll distance still to be recovered; $a$, the deceleration from Equation~\eqref{eq:sd-deceleration-sign}; $\tau$, the normalized phase time; and $T_{\text{spring}}$, the resulting phase duration. The smooth-step polynomial $3\tau^2 - 2\tau^3$ guarantees zero relative velocity at both ends, so the motion starts and ends at rest and reaches the boundary exactly at $\tau = 1$.
 
 \subsection{Parameterization and Search Space}
 \label{sec:param-bounds}
 
-In the original \texttt{OverScroller}, the quantities introduced above are fixed constants. To make the scrolling behaviour adaptable, six of them are exposed as tunable parameters that constitute the search space of the optimization process (Section~\ref{sec:ml-model}): the fling friction $\mu$ (\texttt{scrollFriction}); the two bases $\texttt{x1}$ and $\texttt{x2}$ that generalize the deceleration rate to $r = \ln(\texttt{x1})/\ln(\texttt{x2})$, mirroring the hard-coded $\ln 0.78/\ln 0.9$ of Equation~\eqref{eq:sd-decel-rate}; the inflexion factor $\beta$ (\texttt{inflexion}); a multiplier on the physical coefficient $C$ of Equation~\eqref{eq:sd-physical-coeff} (\texttt{physicalCoeffTuning}); and an upper bound $\texttt{maxLaunchVelocityPxMs}$ applied to the estimated launch velocity of Equation~\eqref{eq:linreg-velocity} before it enters the model. Each parameter is constrained to a fixed lower and upper bound (Table~\ref{tab:param-bounds}), chosen so that every generated transfer function remains physically plausible and usable; these bounds are shared verbatim between the frontend physics implementation and the optimization backend. The edge behaviour of Section~\ref{sec:overscroll} (maximum overscroll $120$\,px, resistance $0.35$) is held fixed and is not part of the search space.
+In the original \texttt{OverScroller}, the quantities introduced above are fixed constants. To make the scrolling behaviour adaptable, six of them are exposed as tunable parameters that constitute the search space of the optimization process (Section~\ref{sec:ml-model}): the fling friction $\mu$ (\texttt{scrollFriction}); the two bases $\texttt{x1}$ and $\texttt{x2}$ that generalize the deceleration rate to $r = \ln(\texttt{x1})/\ln(\texttt{x2})$, mirroring the hard-coded $\ln 0.78/\ln 0.9$ of Equation~\eqref{eq:sd-decel-rate}; the inflexion factor $\beta$ (\texttt{inflexion}); a multiplier on the physical coefficient $C$ of Equation~\eqref{eq:sd-physical-coeff} (\texttt{physicalCoeffTuning}); and an upper bound $\texttt{maxLaunchVelocityPxMs}$ applied to the estimated launch velocity (Section~\ref{sec:gesture-processing}) before it enters the model. Each parameter is constrained to a fixed lower and upper bound (Table~\ref{tab:param-bounds}), chosen so that every generated transfer function remains physically plausible and usable; these bounds are shared verbatim between the frontend physics implementation and the optimization backend. The edge behaviour of Section~\ref{sec:overscroll} (maximum overscroll $120$\,px, resistance $0.35$) is held fixed and is not part of the search space.
 
 \begin{table}[h]
   \centering
