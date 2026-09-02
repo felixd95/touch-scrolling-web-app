@@ -1,26 +1,26 @@
 // Physical earth gravity in m/s^2. Used to approximate Android's physical model.
 const ANDROID_GRAVITY_EARTH_FIXED = 9.80665;
+// Fixed display density used in fling-scale physical coefficient.
+const ANDROID_FIXED_PPI = 460;
+// Android's look-and-feel tuning constant used in the physical coefficient C.
+const ANDROID_PHYSICAL_COEFF_TUNING_FIXED = 0.84;
 // Cubic Bezier control tension at the beginning of the spline curve.
 const ANDROID_START_TENSION_FIXED = 0.5;
 // Cubic Bezier control tension at the end of the spline curve.
 const ANDROID_END_TENSION_FIXED = 1.0;
+// Android default deceleration rate r = ln(0.78) / ln(0.9).
+const ANDROID_DECELERATION_RATE_FIXED = Math.log(0.78) / Math.log(0.9);
 
 export const FLING_PHYSICS_CONFIG = {
   // Dimensionless drag factor used by Android's fling equations.
   // Higher values increase braking and shorten fling distance.
   scrollFriction: 0.015,
-  // Numerator base for deceleration rate: ln(x1) / ln(x2).
-  // Together with x2 this controls the curve steepness.
-  x1: 0.78,
-  // Denominator base for deceleration rate: ln(x1) / ln(x2).
-  // Must stay > 0 and != 1 to keep the logarithm stable.
-  x2: 0.9,
+  // Dimensionless deceleration rate r used in D(v0), T(v0).
+  // Must stay > 1 to keep exponents well-defined.
+  decelerationRate: ANDROID_DECELERATION_RATE_FIXED,
   // Android inflexion factor that shifts where the spline transitions
   // from fast initial movement to stronger deceleration.
   inflexion: 0.35,
-  // Device-physics tuning multiplier used in physical coefficient.
-  // Scales how aggressively velocity maps to distance/duration.
-  physicalCoeffTuning: 0.84,
   // Absolute launch-velocity cap in px/ms to prevent unrealistic
   // flings from noisy touch data.
   maxLaunchVelocityPxMs: 40,
@@ -31,32 +31,19 @@ export const FLING_PHYSICS_BOUNDS = {
     min: 0.005,
     max: 0.05,
   },
-  x1: {
-    min: 0.6,
-    max: 0.92,
-  },
-  x2: {
-    min: 0.8,
-    max: 0.98,
+  decelerationRate: {
+    min: 1.2,
+    max: 4.0,
   },
   inflexion: {
     min: 0.15,
     max: 0.65,
   },
-  physicalCoeffTuning: {
-    min: 0.5,
-    max: 1.5,
-  },
-  maxLaunchVelocityPxMs: {
-    min: 20,
-    max: 80,
-  },
 };
 
 const getDecelerationRate = () => {
-  // Matches Android formula: DECELERATION_RATE = ln(0.78) / ln(0.9)
-  // but parameterized via x1 and x2.
-  return Math.log(FLING_PHYSICS_CONFIG.x1) / Math.log(FLING_PHYSICS_CONFIG.x2);
+  const rate = Number(FLING_PHYSICS_CONFIG.decelerationRate);
+  return Number.isFinite(rate) && rate > 1 ? rate : ANDROID_DECELERATION_RATE_FIXED;
 };
 
 // Precomputed Bezier control points derived from inflexion/tension.
@@ -118,15 +105,20 @@ const buildAndroidSplineTable = () => {
 export const ANDROID_SPLINE_TABLE = buildAndroidSplineTable();
 
 export const getAndroidPhysicalCoeff = (devicePixelRatio = 1) => {
-  const safeDpr = Number.isFinite(devicePixelRatio) ? devicePixelRatio : 1;
-  const ppi = safeDpr * 160;
-  return ANDROID_GRAVITY_EARTH_FIXED * 39.37 * ppi * FLING_PHYSICS_CONFIG.physicalCoeffTuning;
+  void devicePixelRatio;
+  return ANDROID_GRAVITY_EARTH_FIXED
+    * 39.37
+    * ANDROID_FIXED_PPI
+    * ANDROID_PHYSICAL_COEFF_TUNING_FIXED;
 };
 
 export const getAndroidSplineDeceleration = (velocityPxPerSec, physicalCoeff) => {
+  const friction = Number(FLING_PHYSICS_CONFIG.scrollFriction);
+  const inflexion = Number(FLING_PHYSICS_CONFIG.inflexion);
+  if (!(friction > 0) || !(inflexion > 0) || !(physicalCoeff > 0)) return Number.NEGATIVE_INFINITY;
   return Math.log(
-    (FLING_PHYSICS_CONFIG.inflexion * Math.abs(velocityPxPerSec))
-      / (FLING_PHYSICS_CONFIG.scrollFriction * physicalCoeff)
+    (inflexion * Math.abs(velocityPxPerSec))
+      / (friction * physicalCoeff)
   );
 };
 
@@ -135,12 +127,15 @@ export const getAndroidSplineFlingDistancePx = (velocityPxPerSec, physicalCoeff)
   const effectiveCoeff = Number.isFinite(physicalCoeff)
     ? physicalCoeff
     : getAndroidPhysicalCoeff(typeof window !== 'undefined' ? window.devicePixelRatio : 1);
-  const deceleration = getAndroidSplineDeceleration(velocityPxPerSec, effectiveCoeff);
+  const friction = Number(FLING_PHYSICS_CONFIG.scrollFriction);
+  const inflexion = Number(FLING_PHYSICS_CONFIG.inflexion);
   const decelerationRate = getDecelerationRate();
-  const decelMinusOne = decelerationRate - 1;
-  return FLING_PHYSICS_CONFIG.scrollFriction * effectiveCoeff * Math.exp(
-    (decelerationRate / decelMinusOne) * deceleration
-  );
+  if (!(friction > 0) || !(inflexion > 0) || !(effectiveCoeff > 0) || !(decelerationRate > 1)) return 0;
+
+  const ratio = (inflexion * Math.abs(velocityPxPerSec)) / (friction * effectiveCoeff);
+  if (!(ratio > 0)) return 0;
+
+  return friction * effectiveCoeff * Math.pow(ratio, decelerationRate / (decelerationRate - 1));
 };
 
 export const getAndroidSplineFlingDurationMs = (velocityPxPerSec, physicalCoeff) => {
@@ -148,10 +143,15 @@ export const getAndroidSplineFlingDurationMs = (velocityPxPerSec, physicalCoeff)
   const effectiveCoeff = Number.isFinite(physicalCoeff)
     ? physicalCoeff
     : getAndroidPhysicalCoeff(typeof window !== 'undefined' ? window.devicePixelRatio : 1);
-  const deceleration = getAndroidSplineDeceleration(velocityPxPerSec, effectiveCoeff);
+  const friction = Number(FLING_PHYSICS_CONFIG.scrollFriction);
+  const inflexion = Number(FLING_PHYSICS_CONFIG.inflexion);
   const decelerationRate = getDecelerationRate();
-  const decelMinusOne = decelerationRate - 1;
-  return 1000 * Math.exp(deceleration / decelMinusOne);
+  if (!(friction > 0) || !(inflexion > 0) || !(effectiveCoeff > 0) || !(decelerationRate > 1)) return 0;
+
+  const ratio = (inflexion * Math.abs(velocityPxPerSec)) / (friction * effectiveCoeff);
+  if (!(ratio > 0)) return 0;
+
+  return 1000 * Math.pow(ratio, 1 / (decelerationRate - 1));
 };
 
 export const getScrollBounds = (contentHeight, containerHeight) => {

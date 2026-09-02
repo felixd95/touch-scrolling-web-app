@@ -27,6 +27,7 @@ const RANDOM_BOOTSTRAP_ATTEMPT_LIMIT = RUNS_PER_BLOCK * 3;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
 const FIXED_TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
+const DEFAULT_DECELERATION_RATE = Math.log(0.78) / Math.log(0.9);
 
 const createShuffledTargetNumbers = () => {
   const shuffled = [...FIXED_TARGET_NUMBERS];
@@ -41,10 +42,8 @@ const createShuffledTargetNumbers = () => {
 
 const DEFAULT_PARAMETER_SET = {
   scrollFriction: String(FLING_PHYSICS_CONFIG.scrollFriction),
-  x1: String(FLING_PHYSICS_CONFIG.x1),
-  x2: String(FLING_PHYSICS_CONFIG.x2),
+  decelerationRate: String(FLING_PHYSICS_CONFIG.decelerationRate),
   inflexion: String(FLING_PHYSICS_CONFIG.inflexion),
-  physicalCoeffTuning: String(FLING_PHYSICS_CONFIG.physicalCoeffTuning),
   maxLaunchVelocityPxMs: String(FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs),
   decay: '0.98',
   flickDistanceThreshold: '6',
@@ -57,26 +56,14 @@ const createRandomParameterSet = (attemptCount = 0) => ({
     FLING_PHYSICS_BOUNDS.scrollFriction.min,
     FLING_PHYSICS_BOUNDS.scrollFriction.max,
   ).toFixed(5)),
-  x1: Number(getRandomInRange(
-    FLING_PHYSICS_BOUNDS.x1.min,
-    FLING_PHYSICS_BOUNDS.x1.max,
-  ).toFixed(3)),
-  x2: Number(getRandomInRange(
-    FLING_PHYSICS_BOUNDS.x2.min,
-    FLING_PHYSICS_BOUNDS.x2.max,
+  decelerationRate: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.decelerationRate.min,
+    FLING_PHYSICS_BOUNDS.decelerationRate.max,
   ).toFixed(3)),
   inflexion: Number(getRandomInRange(
     FLING_PHYSICS_BOUNDS.inflexion.min,
     FLING_PHYSICS_BOUNDS.inflexion.max,
   ).toFixed(3)),
-  physicalCoeffTuning: Number(getRandomInRange(
-    FLING_PHYSICS_BOUNDS.physicalCoeffTuning.min,
-    FLING_PHYSICS_BOUNDS.physicalCoeffTuning.max,
-  ).toFixed(3)),
-  maxLaunchVelocityPxMs: Number(getRandomInRange(
-    FLING_PHYSICS_BOUNDS.maxLaunchVelocityPxMs.min,
-    FLING_PHYSICS_BOUNDS.maxLaunchVelocityPxMs.max,
-  ).toFixed(2)),
   blockSize: RUNS_PER_BLOCK,
   status: 'ready',
   source: 'random-initial-parameter-set',
@@ -166,8 +153,7 @@ function ScrollList({ participantId }) {
   const [translateY, setTranslateY] = useState(0);
   const [lastTouchY, setLastTouchY] = useState(null);
   const [containerHeight, setContainerHeight] = useState(0);
-  const [x1Input, setX1Input] = useState('1');
-  const [x2Input, setX2Input] = useState('1');
+  const [decelerationRateInput, setDecelerationRateInput] = useState('1');
   const [decayInput, setDecayInput] = useState('0.98');
   const [, setFlickDistanceThresholdInput] = useState('6');
   const [, setRoundCompleted] = useState(false);
@@ -236,41 +222,45 @@ function ScrollList({ participantId }) {
       : normalizedParameterSet;
 
     const parsedScrollFriction = Number(parameterSet.scrollFriction);
-    const parsedX1 = Number(parameterSet.x1 ?? parameterSet.a);
-    const parsedX2 = Number(parameterSet.x2 ?? parameterSet.b);
     const parsedInflexion = Number(parameterSet.inflexion);
-    const parsedPhysicalCoeffTuning = Number(parameterSet.physicalCoeffTuning);
+
+    let parsedDecelerationRate = Number(parameterSet.decelerationRate);
+    if (!Number.isFinite(parsedDecelerationRate)) {
+      const parsedX1 = Number(parameterSet.x1 ?? parameterSet.a);
+      const parsedX2 = Number(parameterSet.x2 ?? parameterSet.b);
+      if (Number.isFinite(parsedX1) && Number.isFinite(parsedX2) && parsedX1 > 0 && parsedX2 > 0 && parsedX2 !== 1) {
+        parsedDecelerationRate = Math.log(parsedX1) / Math.log(parsedX2);
+      }
+    }
+
     const parsedMaxLaunchVelocityPxMs = Number(parameterSet.maxLaunchVelocityPxMs);
 
     const hasCompletePhysicsConfig = [
       parsedScrollFriction,
-      parsedX1,
-      parsedX2,
       parsedInflexion,
-      parsedPhysicalCoeffTuning,
-      parsedMaxLaunchVelocityPxMs,
+      parsedDecelerationRate,
     ].every((value) => Number.isFinite(value));
 
     if (!hasCompletePhysicsConfig) return false;
 
     FLING_PHYSICS_CONFIG.scrollFriction = parsedScrollFriction;
-    FLING_PHYSICS_CONFIG.x1 = parsedX1;
-    FLING_PHYSICS_CONFIG.x2 = parsedX2;
+    FLING_PHYSICS_CONFIG.decelerationRate = parsedDecelerationRate > 1
+      ? parsedDecelerationRate
+      : DEFAULT_DECELERATION_RATE;
     FLING_PHYSICS_CONFIG.inflexion = parsedInflexion;
-    FLING_PHYSICS_CONFIG.physicalCoeffTuning = parsedPhysicalCoeffTuning;
-    FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs = parsedMaxLaunchVelocityPxMs;
+    if (Number.isFinite(parsedMaxLaunchVelocityPxMs)) {
+      FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs = parsedMaxLaunchVelocityPxMs;
+    }
 
-    const rawX1 = parameterSet.x1 ?? parameterSet.a;
-    const rawX2 = parameterSet.x2 ?? parameterSet.b;
-
-    setX1Input(toInputString(rawX1, DEFAULT_PARAMETER_SET.x1));
-    setX2Input(toInputString(rawX2, DEFAULT_PARAMETER_SET.x2));
+    setDecelerationRateInput(
+      toInputString(parsedDecelerationRate, DEFAULT_PARAMETER_SET.decelerationRate)
+    );
     setDecayInput(toInputString(parameterSet.decay, DEFAULT_PARAMETER_SET.decay));
     setFlickDistanceThresholdInput(
       toInputString(parameterSet.flickDistanceThreshold, DEFAULT_PARAMETER_SET.flickDistanceThreshold)
     );
     return true;
-  }, [setX1Input, setX2Input, setDecayInput, setFlickDistanceThresholdInput]);
+  }, [setDecelerationRateInput, setDecayInput, setFlickDistanceThresholdInput]);
 
   const loadParticipantState = useCallback(async () => {
     if (!participantId) return null;
@@ -824,15 +814,15 @@ function ScrollList({ participantId }) {
     touchSamplesRef.current = [];
     pushTouchSample(now, touchY);
 
-    const parsedX1 = parseFloat(x1Input);
+    const parsedDecelerationRate = parseFloat(decelerationRateInput);
     const canStartNewBlock = multiplierTarget === null;
 
-    if (canStartNewBlock && !(parsedX1 >= 0)) {
+    if (canStartNewBlock && !(parsedDecelerationRate >= 0)) {
       return;
     }
 
     if (!isSearching && runCount < RUNS_PER_BLOCK) {
-      const mult = canStartNewBlock ? parsedX1 : multiplierTarget;
+      const mult = canStartNewBlock ? parsedDecelerationRate : multiplierTarget;
       if (canStartNewBlock) {
         setMultiplierTarget(mult);
       }
@@ -847,7 +837,12 @@ function ScrollList({ participantId }) {
       beginTrialMetrics(translateY);
     }
 
-    if (isSearching || (!isSearching && runCount < RUNS_PER_BLOCK && !(canStartNewBlock && !(parsedX1 >= 0)))) {
+    if (
+      isSearching
+      || (!isSearching
+        && runCount < RUNS_PER_BLOCK
+        && !(canStartNewBlock && !(parsedDecelerationRate >= 0)))
+    ) {
       touchStatsRef.current = {
         active: true,
         startTime: now,
@@ -984,8 +979,9 @@ function ScrollList({ participantId }) {
       const totalTime = endTime - startTime;
       const scrollDistance = Math.abs(translateY - startTranslateY);
       const timestamp = new Date().toISOString();
-      const x1 = activeMultiplier != null ? activeMultiplier : (parseFloat(x1Input) >= 0 ? parseFloat(x1Input) : 0.1);
-      const x2 = parseFloat(x2Input) >= 0 ? parseFloat(x2Input) : 0.5;
+      const decelerationRate = activeMultiplier != null
+        ? activeMultiplier
+        : (parseFloat(decelerationRateInput) >= 0 ? parseFloat(decelerationRateInput) : 0.1);
       const parsedDecay = parseFloat(decayInput);
       const decay = Number.isFinite(parsedDecay)
         ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, parsedDecay))
@@ -1032,16 +1028,13 @@ function ScrollList({ participantId }) {
           blockAttempts: nextPendingBlockAttempts,
           blockParameterSet: {
             scrollFriction: FLING_PHYSICS_CONFIG.scrollFriction,
-            x1: FLING_PHYSICS_CONFIG.x1,
-            x2: FLING_PHYSICS_CONFIG.x2,
+            decelerationRate: FLING_PHYSICS_CONFIG.decelerationRate,
             inflexion: FLING_PHYSICS_CONFIG.inflexion,
-            physicalCoeffTuning: FLING_PHYSICS_CONFIG.physicalCoeffTuning,
             maxLaunchVelocityPxMs: FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs,
             decay,
             fingerVelocityPxMs,
             flingThresholdPxMs,
-            x1InputValue: x1,
-            x2InputValue: x2,
+            decelerationRateInputValue: decelerationRate,
           },
         });
 

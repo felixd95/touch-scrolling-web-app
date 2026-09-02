@@ -24,22 +24,16 @@ print("DEBUG inference.py: all imports completed successfully", flush=True)
 
 REQUIRED_KEYS = (
     "scrollFriction",
-    "x1",
-    "x2",
+    "decelerationRate",
     "inflexion",
-    "physicalCoeffTuning",
-    "maxLaunchVelocityPxMs",
 )
 
 TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300]
 
 DEFAULT_PARAMETER_SET = {
     "scrollFriction": 0.015,
-    "x1": 0.78,
-    "x2": 0.9,
+    "decelerationRate": float(np.log(0.78) / np.log(0.9)),
     "inflexion": 0.35,
-    "physicalCoeffTuning": 0.84,
-    "maxLaunchVelocityPxMs": 40.0,
 }
 
 # Search space for every parameter actively optimized by the GP policy.
@@ -47,11 +41,8 @@ DEFAULT_PARAMETER_SET = {
 # candidates the model proposes always stay within physically valid ranges.
 PARAMETER_BOUNDS = {
     "scrollFriction": (0.005, 0.05),
-    "x1": (0.6, 0.92),
-    "x2": (0.8, 0.98),
+    "decelerationRate": (1.2, 4.0),
     "inflexion": (0.15, 0.65),
-    "physicalCoeffTuning": (0.5, 1.5),
-    "maxLaunchVelocityPxMs": (20.0, 80.0),
 }
 
 # Bounds passed to scikit-learn's kernel hyperparameter optimizer (L-BFGS on
@@ -92,6 +83,22 @@ def _normalize_current_params(payload: Dict[str, Any]) -> Dict[str, float]:
         except (TypeError, ValueError):
             normalized[key] = float(DEFAULT_PARAMETER_SET[key])
 
+    if not (normalized["decelerationRate"] > 1):
+        legacy_x1 = candidate.get("x1", candidate.get("a"))
+        legacy_x2 = candidate.get("x2", candidate.get("b"))
+        try:
+            x1 = float(legacy_x1)
+            x2 = float(legacy_x2)
+            if x1 > 0 and x2 > 0 and x2 != 1:
+                derived = float(np.log(x1) / np.log(x2))
+                if derived > 1:
+                    normalized["decelerationRate"] = derived
+        except (TypeError, ValueError):
+            pass
+
+    if not (normalized["decelerationRate"] > 1):
+        normalized["decelerationRate"] = float(DEFAULT_PARAMETER_SET["decelerationRate"])
+
     return normalized
 
 
@@ -120,18 +127,35 @@ def _normalize_recent_data(raw_recent_data: Any) -> List[Dict[str, Any]]:
         if not paper_params and isinstance(item.get("blockParameterSet"), dict):
             paper_params = item.get("blockParameterSet")
 
-        legacy_aliases = {"x1": "a", "x2": "b"}
         params = {}
         for key in REQUIRED_KEYS:
-            value = paper_params.get(key)
-            if value is None and key in legacy_aliases:
-                value = paper_params.get(legacy_aliases[key])
+            if key == "decelerationRate":
+                value = paper_params.get("decelerationRate")
+                if value is None:
+                    legacy_x1 = paper_params.get("x1", paper_params.get("a"))
+                    legacy_x2 = paper_params.get("x2", paper_params.get("b"))
+                    try:
+                        x1 = float(legacy_x1)
+                        x2 = float(legacy_x2)
+                        if x1 > 0 and x2 > 0 and x2 != 1:
+                            value = float(np.log(x1) / np.log(x2))
+                    except (TypeError, ValueError):
+                        value = None
+            else:
+                value = paper_params.get(key)
+
             if value is None:
                 value = DEFAULT_PARAMETER_SET[key]
+
             try:
-                params[key] = float(value)
+                parsed_value = float(value)
             except (TypeError, ValueError):
-                params[key] = float(DEFAULT_PARAMETER_SET[key])
+                parsed_value = float(DEFAULT_PARAMETER_SET[key])
+
+            if key == "decelerationRate" and not (parsed_value > 1):
+                parsed_value = float(DEFAULT_PARAMETER_SET[key])
+
+            params[key] = parsed_value
 
         target_number = item.get("targetNumber")
         block_index = item.get("blockIndex")
@@ -262,8 +286,8 @@ def _build_task_training_data(
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
     target_index: int,
 ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
-    """Build the (scrollFriction, x1, x2, inflexion, physicalCoeffTuning,
-    maxLaunchVelocityPxMs, task_id) -> time training arrays for one of the
+    """Build the (scrollFriction, decelerationRate, inflexion, task_id) ->
+    time training arrays for one of the
     10 target-number objectives, pooling observations across participants."""
     rows_x = []
     rows_y = []

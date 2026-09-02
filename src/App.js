@@ -5,6 +5,7 @@ import { FLING_PHYSICS_BOUNDS } from './scrollPhysics/overScrollerPhysics';
 import './App.css';
 
 const RUNS_PER_BLOCK = 10;
+const DEFAULT_DECELERATION_RATE = Math.log(0.78) / Math.log(0.9);
 
 const getRandomParameterInRange = (min, max) => min + Math.random() * (max - min);
 
@@ -13,26 +14,14 @@ const createRandomParameterSet = (attemptCount = 0) => ({
     FLING_PHYSICS_BOUNDS.scrollFriction.min,
     FLING_PHYSICS_BOUNDS.scrollFriction.max,
   ).toFixed(5)),
-  x1: Number(getRandomParameterInRange(
-    FLING_PHYSICS_BOUNDS.x1.min,
-    FLING_PHYSICS_BOUNDS.x1.max,
-  ).toFixed(3)),
-  x2: Number(getRandomParameterInRange(
-    FLING_PHYSICS_BOUNDS.x2.min,
-    FLING_PHYSICS_BOUNDS.x2.max,
+  decelerationRate: Number(getRandomParameterInRange(
+    FLING_PHYSICS_BOUNDS.decelerationRate.min,
+    FLING_PHYSICS_BOUNDS.decelerationRate.max,
   ).toFixed(3)),
   inflexion: Number(getRandomParameterInRange(
     FLING_PHYSICS_BOUNDS.inflexion.min,
     FLING_PHYSICS_BOUNDS.inflexion.max,
   ).toFixed(3)),
-  physicalCoeffTuning: Number(getRandomParameterInRange(
-    FLING_PHYSICS_BOUNDS.physicalCoeffTuning.min,
-    FLING_PHYSICS_BOUNDS.physicalCoeffTuning.max,
-  ).toFixed(3)),
-  maxLaunchVelocityPxMs: Number(getRandomParameterInRange(
-    FLING_PHYSICS_BOUNDS.maxLaunchVelocityPxMs.min,
-    FLING_PHYSICS_BOUNDS.maxLaunchVelocityPxMs.max,
-  ).toFixed(2)),
   blockSize: RUNS_PER_BLOCK,
   status: 'ready',
   source: 'random-initial-parameter-set',
@@ -42,11 +31,8 @@ const createRandomParameterSet = (attemptCount = 0) => ({
 
 const DEFAULT_NEXT_PARAMETER_SET = {
   scrollFriction: 0.015,
-  x1: 0.78,
-  x2: 0.9,
+  decelerationRate: DEFAULT_DECELERATION_RATE,
   inflexion: 0.35,
-  physicalCoeffTuning: 0.84,
-  maxLaunchVelocityPxMs: 40,
   blockSize: RUNS_PER_BLOCK,
   flickDistanceThreshold: 6,
   status: 'ready',
@@ -74,10 +60,23 @@ const normalizeParameterSet = (raw) => {
     ? parsed.parameters
     : parsed;
 
+  let decelerationRate = Number(source.decelerationRate);
+  if (!Number.isFinite(decelerationRate)) {
+    const x1 = Number(source.x1 ?? source.a);
+    const x2 = Number(source.x2 ?? source.b);
+    if (Number.isFinite(x1) && Number.isFinite(x2) && x1 > 0 && x2 > 0 && x2 !== 1) {
+      decelerationRate = Math.log(x1) / Math.log(x2);
+    }
+  }
+  if (!(Number.isFinite(decelerationRate) && decelerationRate > 1)) {
+    decelerationRate = DEFAULT_NEXT_PARAMETER_SET.decelerationRate;
+  }
+
   return {
     ...parsed,
-    x1: Number(source.x1 ?? source.a ?? DEFAULT_NEXT_PARAMETER_SET.x1),
-    x2: Number(source.x2 ?? source.b ?? DEFAULT_NEXT_PARAMETER_SET.x2),
+    scrollFriction: Number(source.scrollFriction ?? DEFAULT_NEXT_PARAMETER_SET.scrollFriction),
+    inflexion: Number(source.inflexion ?? DEFAULT_NEXT_PARAMETER_SET.inflexion),
+    decelerationRate,
     flickDistanceThreshold: Number(
       source.flickDistanceThreshold ?? DEFAULT_NEXT_PARAMETER_SET.flickDistanceThreshold
     ),
@@ -172,11 +171,8 @@ function ParticipantsList({ onBack }) {
 
     return [
       `scrollFriction=${formatMetric(parameterSet.scrollFriction, 4)}`,
-      `x1=${formatMetric(parameterSet.x1, 3)}`,
-      `x2=${formatMetric(parameterSet.x2, 3)}`,
       `inflexion=${formatMetric(parameterSet.inflexion, 3)}`,
-      `physicalCoeffTuning=${formatMetric(parameterSet.physicalCoeffTuning, 3)}`,
-      `maxLaunchVelocity=${formatMetric(parameterSet.maxLaunchVelocityPxMs, 2)}`,
+      `decelerationRate=${formatMetric(parameterSet.decelerationRate, 3)}`,
     ].join(', ');
   };
 
@@ -185,11 +181,8 @@ function ParticipantsList({ onBack }) {
 
     return [
       { label: 'scrollFriction', value: formatMetric(parameterSet.scrollFriction, 4) },
-      { label: 'x1', value: formatMetric(parameterSet.x1, 3) },
-      { label: 'x2', value: formatMetric(parameterSet.x2, 3) },
       { label: 'inflexion', value: formatMetric(parameterSet.inflexion, 3) },
-      { label: 'physicalCoeffTuning', value: formatMetric(parameterSet.physicalCoeffTuning, 3) },
-      { label: 'maxLaunchVelocity', value: formatMetric(parameterSet.maxLaunchVelocityPxMs, 2) },
+      { label: 'decelerationRate', value: formatMetric(parameterSet.decelerationRate, 3) },
     ];
   };
 
@@ -641,12 +634,12 @@ function ParticipantsList({ onBack }) {
               <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
               {selectedParticipant.currentParameterSet && (
                 <div style={{ marginBottom: 6, fontSize: 13, color: '#4c5967' }}>
-                  Aktueller Parametersatz: x1={formatMetric(selectedParticipant.currentParameterSet.x1)}, x2={formatMetric(selectedParticipant.currentParameterSet.x2)}
+                  Aktueller Parametersatz: mu={formatMetric(selectedParticipant.currentParameterSet.scrollFriction, 4)}, beta={formatMetric(selectedParticipant.currentParameterSet.inflexion, 3)}, r={formatMetric(selectedParticipant.currentParameterSet.decelerationRate, 3)}
                 </div>
               )}
               {selectedParticipant.nextParameterSet && (
                 <div style={{ marginBottom: 10, fontSize: 13, color: '#4c5967' }}>
-                  Naechster Parametersatz: x1={formatMetric(selectedParticipant.nextParameterSet.x1)}, x2={formatMetric(selectedParticipant.nextParameterSet.x2)}
+                  Naechster Parametersatz: mu={formatMetric(selectedParticipant.nextParameterSet.scrollFriction, 4)}, beta={formatMetric(selectedParticipant.nextParameterSet.inflexion, 3)}, r={formatMetric(selectedParticipant.nextParameterSet.decelerationRate, 3)}
                 </div>
               )}
               {(selectedParticipant.parameterBlockMetrics || []).length > 0 && (
