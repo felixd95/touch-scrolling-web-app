@@ -1,9 +1,5 @@
-# inference.py only needs numpy + scikit-learn, both of which are already
-# pre-installed in the official SageMaker Scikit-learn container (see
-# terraform/sagemaker.tf's aws_sagemaker_prebuilt_ecr_image data source), so
-# nothing needs to be pip-installed here. This intentionally eliminates the
-# entire runtime "pip install heavy ML deps at cold start" step - a
-# previously suspected cause of repeated "model process exited" endpoint
-# creation failures with the PyTorch DLC image and botorch/gpytorch.
+botorch>=0.11.0,<0.13.0
+gpytorch>=1.11.0,<1.13.0
+torch>=2.1.0,<2.5.0
 
 

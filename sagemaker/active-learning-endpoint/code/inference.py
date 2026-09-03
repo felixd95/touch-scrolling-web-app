@@ -1,26 +1,28 @@
 import json
-import random
-import sys
-import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
-# Debug breadcrumbs: SageMaker's serverless health check ("/ping") never
-# calls predict_fn(), so if CreateEndpoint fails with "model process
-# exited" the crash must be happening here at import time (or in
-# model_fn() below). These prints are flushed immediately so they show up
-# in CloudWatch even if the process crashes right after.
 print("DEBUG inference.py: starting imports", flush=True)
 
 import numpy as np  # noqa: E402
 
 print(f"DEBUG inference.py: numpy imported, version={np.__version__}", flush=True)
 
-import sklearn  # noqa: E402
-from sklearn.gaussian_process import GaussianProcessRegressor  # noqa: E402
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel, WhiteKernel  # noqa: E402
+import torch  # noqa: E402
+from botorch.acquisition.multi_objective.logei import (  # noqa: E402
+    qLogNoisyExpectedHypervolumeImprovement,
+)
+from botorch.fit import fit_gpytorch_mll  # noqa: E402
+from botorch.models import ModelListGP, SingleTaskGP  # noqa: E402
+from botorch.models.transforms.outcome import Standardize  # noqa: E402
+from botorch.optim import optimize_acqf  # noqa: E402
+from gpytorch.mlls.sum_marginal_log_likelihood import (  # noqa: E402
+    SumMarginalLogLikelihood,
+)
 
-print(f"DEBUG inference.py: scikit-learn imported, version={sklearn.__version__}", flush=True)
-print("DEBUG inference.py: all imports completed successfully", flush=True)
+print(f"DEBUG inference.py: torch imported, version={torch.__version__}", flush=True)
+print("DEBUG inference.py: botorch imports completed successfully", flush=True)
+
+print("DEBUG inference.py: all imports completed", flush=True)
 
 REQUIRED_KEYS = (
     "scrollFriction",
@@ -36,25 +38,16 @@ DEFAULT_PARAMETER_SET = {
     "inflexion": 0.35,
 }
 
-# Search space for every parameter actively optimized by the GP policy.
-# Mirrors src/scrollPhysics/overScrollerPhysics.js FLING_PHYSICS_BOUNDS so the
-# candidates the model proposes always stay within physically valid ranges.
 PARAMETER_BOUNDS = {
     "scrollFriction": (0.005, 0.05),
     "decelerationRate": (1.2, 4.0),
     "inflexion": (0.15, 0.65),
 }
 
-# Bounds passed to scikit-learn's kernel hyperparameter optimizer (L-BFGS on
-# the marginal log-likelihood, run internally by GaussianProcessRegressor.fit).
-GP_LENGTH_SCALE_BOUNDS = (1e-2, 1e3)
+MIN_OBSERVATIONS_FOR_BO = 2
 
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
-    # No persisted model artifact is required: a fresh Gaussian Process
-    # (task = participant, included as an extra input feature) is fitted
-    # with scikit-learn on every invocation from the data supplied in the
-    # request body.
     print(f"DEBUG inference.py: model_fn called with model_dir={model_dir}", flush=True)
     return {}
 
@@ -183,7 +176,6 @@ def _normalize_recent_data(raw_recent_data: Any) -> List[Dict[str, Any]]:
 
 
 def _build_block_observations(recent_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Create one training observation per completed block with a 10-dim time vector."""
     if not recent_data:
         return []
 
@@ -234,26 +226,10 @@ def _build_block_observations(recent_data: List[Dict[str, Any]]) -> List[Dict[st
     return observations
 
 
-def _generate_candidate_parameters(current: Dict[str, float], num_candidates: int = 100) -> List[Dict[str, float]]:
-    candidates = []
-    for _ in range(num_candidates):
-        candidate = current.copy()
-        for key in REQUIRED_KEYS:
-            low, high = PARAMETER_BOUNDS[key]
-            candidate[key] = random.uniform(low, high)
-        candidates.append(candidate)
-    candidates.append(dict(current))
-    return candidates
-
-
 def _normalize_participants_data(
     raw_participants_data: Any,
     current_participant_id: Optional[str],
 ) -> Tuple[Dict[int, List[Dict[str, Any]]], Optional[int]]:
-    """Group every participant's attempts into per-block observations and
-    assign each participant a stable integer task id for the multi-task GP.
-    Returns (blocks_by_task_id, current_participant_task_id).
-    """
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]] = {}
     current_task_id = None
 
@@ -282,80 +258,111 @@ def _normalize_participants_data(
     return blocks_by_task_id, current_task_id
 
 
-def _build_task_training_data(
+def _build_multiobjective_training_data(
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
-    target_index: int,
 ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
-    """Build the (scrollFriction, decelerationRate, inflexion, task_id) ->
-    time training arrays for one of the
-    10 target-number objectives, pooling observations across participants."""
-    rows_x = []
-    rows_y = []
+    rows_x: List[List[float]] = []
+    rows_y: List[List[float]] = []
 
     for task_id, blocks in blocks_by_task_id.items():
         for block in blocks:
             rows_x.append([*block["x"], float(task_id)])
-            rows_y.append(block["timeVector"][target_index])
+            rows_y.append(block["timeVector"])
 
     if not rows_x:
         return None, None
 
-    train_x = np.array(rows_x, dtype=float)
-    train_y = np.array(rows_y, dtype=float)
-    return train_x, train_y
+    return np.array(rows_x, dtype=float), np.array(rows_y, dtype=float)
 
 
-def _fit_gp(train_x: np.ndarray, train_y: np.ndarray) -> GaussianProcessRegressor:
-    """Fit a simple scikit-learn Gaussian Process. The task (participant) id
-    is included as an extra numeric input column alongside the physics
-    parameters, with its own ARD length scale in the RBF kernel, so the GP
-    can learn how much weight to give participant-level differences without
-    needing a dedicated multi-task/coregionalization kernel."""
-    num_dims = train_x.shape[1]
-    kernel = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(
-        length_scale=np.ones(num_dims), length_scale_bounds=GP_LENGTH_SCALE_BOUNDS
-    ) + WhiteKernel(noise_level=1.0, noise_level_bounds=(1e-5, 1e2))
-
-    gp = GaussianProcessRegressor(kernel=kernel, normalize_y=True, n_restarts_optimizer=2)
-    gp.fit(train_x, train_y)
-    return gp
+def _clip_param(value: float, key: str) -> float:
+    low, high = PARAMETER_BOUNDS[key]
+    return float(np.clip(value, low, high))
 
 
-def _select_best_candidate_index(
+def _compute_ref_point_for_maximization(train_objectives: "torch.Tensor") -> List[float]:
+    mins = train_objectives.min(dim=0).values
+    maxs = train_objectives.max(dim=0).values
+    span = (maxs - mins).clamp_min(1e-6)
+    ref = mins - 0.1 * span
+    return ref.detach().cpu().tolist()
+
+
+def _select_candidate_with_qlognehvi(
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
-    candidate_params: List[Dict[str, float]],
     current_task_id: int,
-) -> Optional[int]:
-    """Fit one multi-task GP per target-time objective and scalarize the 10
-    posterior-mean predictions (mean + weighted worst-case + spread) across
-    every candidate, returning the index of the best candidate."""
-    candidate_x = np.array(
-        [[*(c[key] for key in REQUIRED_KEYS), float(current_task_id)] for c in candidate_params],
-        dtype=float,
+) -> Dict[str, float]:
+
+    train_x_np, train_y_np = _build_multiobjective_training_data(blocks_by_task_id)
+    if train_x_np is None or train_y_np is None:
+        raise ValueError("No training data available for qLogNEHVI.")
+    if train_x_np.shape[0] < MIN_OBSERVATIONS_FOR_BO:
+        raise ValueError(
+            f"Not enough observations for qLogNEHVI: {train_x_np.shape[0]} < {MIN_OBSERVATIONS_FOR_BO}."
+        )
+
+    dtype = torch.double
+    device = torch.device("cpu")
+
+    train_x = torch.tensor(train_x_np, dtype=dtype, device=device)
+    # We minimize completion times. qLogNEHVI maximizes objectives, so negate.
+    train_obj = -torch.tensor(train_y_np, dtype=dtype, device=device)
+
+    models = []
+    for objective_idx in range(train_obj.shape[1]):
+        y_i = train_obj[:, objective_idx : objective_idx + 1]
+        models.append(
+            SingleTaskGP(
+                train_X=train_x,
+                train_Y=y_i,
+                outcome_transform=Standardize(m=1),
+            )
+        )
+
+    model = ModelListGP(*models)
+    mll = SumMarginalLogLikelihood(model.likelihood, model)
+    fit_gpytorch_mll(mll)
+
+    param_lows = [PARAMETER_BOUNDS[key][0] for key in REQUIRED_KEYS]
+    param_highs = [PARAMETER_BOUNDS[key][1] for key in REQUIRED_KEYS]
+    task_col = train_x[:, -1]
+    task_low = float(task_col.min().item())
+    task_high = float(task_col.max().item())
+
+    bounds = torch.tensor(
+        [param_lows + [task_low], param_highs + [task_high]],
+        dtype=dtype,
+        device=device,
     )
 
-    predicted_times = []
-    for target_index in range(len(TARGET_NUMBERS)):
-        train_x, train_y = _build_task_training_data(blocks_by_task_id, target_index)
-        if train_x is None or train_x.shape[0] < 2:
-            return None
+    ref_point = _compute_ref_point_for_maximization(train_obj)
+    acquisition = qLogNoisyExpectedHypervolumeImprovement(
+        model=model,
+        ref_point=ref_point,
+        X_baseline=train_x,
+        prune_baseline=True,
+    )
 
-        gp = _fit_gp(train_x, train_y)
-        predicted_times.append(gp.predict(candidate_x))
+    candidate, _ = optimize_acqf(
+        acq_function=acquisition,
+        bounds=bounds,
+        q=1,
+        num_restarts=8,
+        raw_samples=128,
+        fixed_features={len(REQUIRED_KEYS): float(current_task_id)},
+        options={"batch_limit": 4, "maxiter": 100},
+    )
 
-    stacked_times = np.stack(predicted_times, axis=0)  # (10 objectives, num_candidates)
-    mean_time = stacked_times.mean(axis=0)
-    max_time = stacked_times.max(axis=0)
-    min_time = stacked_times.min(axis=0)
-    spread = max_time - min_time
-
-    # Joint objective: minimize average time, worst-case time, and imbalance across targets.
-    score = mean_time + 0.35 * max_time + 0.10 * spread
-    return int(np.argmin(score))
+    candidate_np = candidate.detach().cpu().numpy()[0]
+    return {
+        "scrollFriction": _clip_param(float(candidate_np[0]), "scrollFriction"),
+        "decelerationRate": _clip_param(float(candidate_np[1]), "decelerationRate"),
+        "inflexion": _clip_param(float(candidate_np[2]), "inflexion"),
+    }
 
 
 def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, Any]:
-    current = _normalize_current_params(input_data)
+    _normalize_current_params(input_data)
     current_participant_id = input_data.get("participantId")
 
     blocks_by_task_id, current_task_id = _normalize_participants_data(
@@ -363,28 +370,21 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
     )
     total_block_observations = sum(len(blocks) for blocks in blocks_by_task_id.values())
 
-    best_candidate = current
-    strategy = "fallback-current-parameters"
+    if current_task_id is None:
+        raise ValueError("Current participant not found in normalized participantsData.")
+    if total_block_observations < MIN_OBSERVATIONS_FOR_BO:
+        raise ValueError(
+            f"Not enough block observations for qLogNEHVI: {total_block_observations} < {MIN_OBSERVATIONS_FOR_BO}."
+        )
 
-    if total_block_observations >= 2 and current_task_id is not None:
-        candidates = _generate_candidate_parameters(current, num_candidates=100)
-
-        try:
-            best_index = _select_best_candidate_index(blocks_by_task_id, candidates, current_task_id)
-            if best_index is not None:
-                best_candidate = candidates[best_index]
-                strategy = "sklearn-gp-multi-objective-10-target-times"
-        except Exception as error:
-            print(f"DEBUG inference.py: multi-task GP fit failed: {error!r}", flush=True)
-            traceback.print_exc(file=sys.stdout)
-            sys.stdout.flush()
-            best_candidate = current
+    best_candidate = _select_candidate_with_qlognehvi(blocks_by_task_id, current_task_id)
+    strategy = "botorch-qlognehvi-multi-objective-10-target-times"
 
     return {
         "parameters": best_candidate,
         "modelMetadata": {
             "strategy": strategy,
-            "version": "v2",
+            "version": "v3-botorch-qlognehvi",
             "participantCount": len(blocks_by_task_id),
             "totalBlockObservations": total_block_observations,
         },
