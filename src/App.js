@@ -166,6 +166,11 @@ function ParticipantsList({ onBack }) {
     return Number(value).toFixed(digits);
   };
 
+  const formatIntegerMetric = (value) => {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
+    return String(Math.trunc(Number(value)));
+  };
+
   const formatBlockParameterSummary = (parameterSet) => {
     if (!parameterSet || typeof parameterSet !== 'object') return 'Keine Parameter gespeichert';
 
@@ -669,6 +674,31 @@ function ParticipantsList({ onBack }) {
                         )}
                         {Number.isFinite(Number(metric.pooledAttemptCount)) && (
                           <span>Datenbasis: {metric.pooledAttemptCount} Versuche / {metric.pooledParticipantCount} Teilnehmer</span>
+                        )}
+                        {metric.model && (
+                          <div style={{ marginTop: 4 }}>
+                            {Number.isFinite(Number(metric.model.acquisitionValue)) && (
+                              <span>Acq: {formatMetric(metric.model.acquisitionValue, 5)} · </span>
+                            )}
+                            {Number.isFinite(Number(metric.model.candidateRankApprox)) && Number.isFinite(Number(metric.model.candidateRankProbeCount)) && (
+                              <span>Candidate-Rank: {formatIntegerMetric(metric.model.candidateRankApprox)}/{formatIntegerMetric(metric.model.candidateRankProbeCount)} · </span>
+                            )}
+                            {Array.isArray(metric.model.refPoint) && metric.model.refPoint.length > 0 && (
+                              <span>ref_point: [{metric.model.refPoint.map((value) => formatMetric(value, 2)).join(', ')}] · </span>
+                            )}
+                            {metric.model.strategy && (
+                              <span>Strategie: {metric.model.strategy} · </span>
+                            )}
+                            {metric.model.version && (
+                              <span>Version: {metric.model.version} · </span>
+                            )}
+                            {Number.isFinite(Number(metric.model.trainingRowCount)) && (
+                              <span>Trainingszeilen: {formatIntegerMetric(metric.model.trainingRowCount)} · </span>
+                            )}
+                            {Number.isFinite(Number(metric.model.objectiveCount)) && (
+                              <span>Objectives: {formatIntegerMetric(metric.model.objectiveCount)}</span>
+                            )}
+                          </div>
                         )}
                       </div>
                     ))}

@@ -134,6 +134,46 @@ def _build_block_metrics(
             value = raw_prediction.get(score_key)
             if isinstance(value, (int, float)) and not isinstance(value, bool):
                 model_diagnostics[score_key] = float(value)
+
+        inference_diagnostics = raw_prediction.get("inferenceDiagnostics")
+        if isinstance(inference_diagnostics, dict):
+            for key in (
+                "acquisitionValue",
+                "candidateRankApprox",
+                "candidateRankProbeCount",
+                "fixedTaskId",
+                "trainingRowCount",
+                "objectiveCount",
+            ):
+                value = inference_diagnostics.get(key)
+                if isinstance(value, (int, float)) and not isinstance(value, bool):
+                    model_diagnostics[key] = float(value)
+
+            ref_point = inference_diagnostics.get("refPoint")
+            if isinstance(ref_point, list):
+                numeric_ref_point = []
+                for value in ref_point:
+                    if isinstance(value, (int, float)) and not isinstance(value, bool):
+                        numeric_ref_point.append(float(value))
+                if numeric_ref_point:
+                    model_diagnostics["refPoint"] = numeric_ref_point
+
+        model_metadata = raw_prediction.get("modelMetadata")
+        if isinstance(model_metadata, dict):
+            strategy = model_metadata.get("strategy")
+            version = model_metadata.get("version")
+            participant_count = model_metadata.get("participantCount")
+            total_block_observations = model_metadata.get("totalBlockObservations")
+
+            if isinstance(strategy, str) and strategy:
+                model_diagnostics["strategy"] = strategy
+            if isinstance(version, str) and version:
+                model_diagnostics["version"] = version
+            if isinstance(participant_count, (int, float)) and not isinstance(participant_count, bool):
+                model_diagnostics["participantCount"] = float(participant_count)
+            if isinstance(total_block_observations, (int, float)) and not isinstance(total_block_observations, bool):
+                model_diagnostics["totalBlockObservations"] = float(total_block_observations)
+
         if model_diagnostics:
             metrics["model"] = model_diagnostics
 

@@ -291,7 +291,7 @@ def _compute_ref_point_for_maximization(train_objectives: "torch.Tensor") -> Lis
 def _select_candidate_with_qlognehvi(
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
     current_task_id: int,
-) -> Dict[str, float]:
+) -> Tuple[Dict[str, float], Dict[str, Any]]:
 
     train_x_np, train_y_np = _build_multiobjective_training_data(blocks_by_task_id)
     if train_x_np is None or train_y_np is None:
@@ -353,12 +353,39 @@ def _select_candidate_with_qlognehvi(
         options={"batch_limit": 4, "maxiter": 100},
     )
 
+    candidate_batch = candidate.unsqueeze(0)
+    acquisition_value = float(acquisition(candidate_batch).detach().cpu().item())
+
+    # Approximate the candidate rank by comparing against random probes under the
+    # same fixed participant task feature.
+    probe_count = 64
+    probe = torch.rand((probe_count, len(REQUIRED_KEYS) + 1), dtype=dtype, device=device)
+    lower = bounds[0]
+    upper = bounds[1]
+    probe = lower + (upper - lower) * probe
+    probe[:, len(REQUIRED_KEYS)] = float(current_task_id)
+    probe_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy().tolist()
+    better_count = sum(1 for value in probe_values if value > acquisition_value)
+    candidate_rank_approx = int(better_count + 1)
+
     candidate_np = candidate.detach().cpu().numpy()[0]
-    return {
+    parameters = {
         "scrollFriction": _clip_param(float(candidate_np[0]), "scrollFriction"),
         "decelerationRate": _clip_param(float(candidate_np[1]), "decelerationRate"),
         "inflexion": _clip_param(float(candidate_np[2]), "inflexion"),
     }
+
+    diagnostics = {
+        "acquisitionValue": acquisition_value,
+        "candidateRankApprox": candidate_rank_approx,
+        "candidateRankProbeCount": probe_count,
+        "refPoint": ref_point,
+        "fixedTaskId": int(current_task_id),
+        "trainingRowCount": int(train_x.shape[0]),
+        "objectiveCount": int(train_obj.shape[1]),
+    }
+
+    return parameters, diagnostics
 
 
 def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, Any]:
@@ -377,11 +404,14 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
             f"Not enough block observations for qLogNEHVI: {total_block_observations} < {MIN_OBSERVATIONS_FOR_BO}."
         )
 
-    best_candidate = _select_candidate_with_qlognehvi(blocks_by_task_id, current_task_id)
+    best_candidate, diagnostics = _select_candidate_with_qlognehvi(
+        blocks_by_task_id, current_task_id
+    )
     strategy = "botorch-qlognehvi-multi-objective-10-target-times"
 
     return {
         "parameters": best_candidate,
+        "inferenceDiagnostics": diagnostics,
         "modelMetadata": {
             "strategy": strategy,
             "version": "v3-botorch-qlognehvi",
