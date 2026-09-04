@@ -11,11 +11,8 @@ RUNS_PER_BLOCK = 10
 
 DEFAULT_PARAMETER_SET = {
     "scrollFriction": 0.015,
-    "x1": 0.78,
-    "x2": 0.9,
+    "decelerationRate": float(math.log(0.78) / math.log(0.9)),
     "inflexion": 0.35,
-    "physicalCoeffTuning": 0.84,
-    "maxLaunchVelocityPxMs": 40.0,
 }
 
 REQUIRED_KEYS = tuple(DEFAULT_PARAMETER_SET.keys())
@@ -195,12 +192,41 @@ def _normalize_parameter_set(raw):
     candidate = raw.get("parameters") if isinstance(raw.get("parameters"), dict) else raw
 
     normalized = {}
-    for key, default in DEFAULT_PARAMETER_SET.items():
-        value = candidate.get(key, default)
+
+    # scrollFriction
+    try:
+        normalized["scrollFriction"] = float(candidate.get("scrollFriction", DEFAULT_PARAMETER_SET["scrollFriction"]))
+    except Exception:
+        return None
+
+    # inflexion
+    try:
+        normalized["inflexion"] = float(candidate.get("inflexion", DEFAULT_PARAMETER_SET["inflexion"]))
+    except Exception:
+        return None
+
+    # decelerationRate with legacy fallback from x1/x2 or a/b
+    deceleration_rate = candidate.get("decelerationRate")
+    try:
+        deceleration_rate = float(deceleration_rate)
+    except Exception:
+        deceleration_rate = None
+
+    if not (isinstance(deceleration_rate, float) and deceleration_rate > 1):
         try:
-            normalized[key] = float(value)
+            x1 = float(candidate.get("x1", candidate.get("a")))
+            x2 = float(candidate.get("x2", candidate.get("b")))
+            if x1 > 0 and x2 > 0 and x2 != 1:
+                derived = float(math.log(x1) / math.log(x2))
+                if derived > 1:
+                    deceleration_rate = derived
         except Exception:
-            return None
+            deceleration_rate = None
+
+    if not (isinstance(deceleration_rate, float) and deceleration_rate > 1):
+        deceleration_rate = float(DEFAULT_PARAMETER_SET["decelerationRate"])
+
+    normalized["decelerationRate"] = deceleration_rate
 
     return normalized
 
