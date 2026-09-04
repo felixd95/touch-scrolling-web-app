@@ -21,9 +21,6 @@ export const FLING_PHYSICS_CONFIG = {
   // Android inflexion factor that shifts where the spline transitions
   // from fast initial movement to stronger deceleration.
   inflexion: 0.35,
-  // Absolute launch-velocity cap in px/ms to prevent unrealistic
-  // flings from noisy touch data.
-  maxLaunchVelocityPxMs: 40,
 };
 
 export const FLING_PHYSICS_BOUNDS = {

@@ -4,7 +4,6 @@ import outputs from './backend_config.json';
 import {
   getMinFlingVelocityPxMs,
   isFlingThresholdMet,
-  clampFlingVelocityPxMs,
 } from './scrollPhysics/flingThreshold';
 import {
   FLING_PHYSICS_CONFIG,
@@ -44,7 +43,6 @@ const DEFAULT_PARAMETER_SET = {
   scrollFriction: String(FLING_PHYSICS_CONFIG.scrollFriction),
   decelerationRate: String(FLING_PHYSICS_CONFIG.decelerationRate),
   inflexion: String(FLING_PHYSICS_CONFIG.inflexion),
-  maxLaunchVelocityPxMs: String(FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs),
   decay: '0.98',
   flickDistanceThreshold: '6',
 };
@@ -144,7 +142,8 @@ const normalizeAttemptBlocks = (rawAttempts) => {
 const countAttemptsInBlocks = (blocks) =>
   blocks.reduce((sum, block) => sum + (Array.isArray(block?.attempts) ? block.attempts.length : 0), 0);
 
-function ScrollList({ participantId }) {
+function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
+  const isTestMode = mode === 'test';
   const [targetSequence, setTargetSequence] = useState(() => createShuffledTargetNumbers());
   const [targetIndex, setTargetIndex] = useState(0);
   const [practiceRunCompleted, setPracticeRunCompleted] = useState(false);
@@ -168,6 +167,9 @@ function ScrollList({ participantId }) {
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [nextParameterSet, setNextParameterSet] = useState(null);
   const [pendingBlockAttempts, setPendingBlockAttempts] = useState([]);
+  const [testScrollFriction, setTestScrollFriction] = useState(() => Number(FLING_PHYSICS_CONFIG.scrollFriction));
+  const [testDecelerationRate, setTestDecelerationRate] = useState(() => Number(FLING_PHYSICS_CONFIG.decelerationRate));
+  const [testInflexion, setTestInflexion] = useState(() => Number(FLING_PHYSICS_CONFIG.inflexion));
 
   const targetNumber = practiceRunCompleted
     ? (targetSequence[targetIndex] ?? targetSequence[0] ?? FIXED_TARGET_NUMBERS[0])
@@ -233,8 +235,6 @@ function ScrollList({ participantId }) {
       }
     }
 
-    const parsedMaxLaunchVelocityPxMs = Number(parameterSet.maxLaunchVelocityPxMs);
-
     const hasCompletePhysicsConfig = [
       parsedScrollFriction,
       parsedInflexion,
@@ -248,9 +248,6 @@ function ScrollList({ participantId }) {
       ? parsedDecelerationRate
       : DEFAULT_DECELERATION_RATE;
     FLING_PHYSICS_CONFIG.inflexion = parsedInflexion;
-    if (Number.isFinite(parsedMaxLaunchVelocityPxMs)) {
-      FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs = parsedMaxLaunchVelocityPxMs;
-    }
 
     setDecelerationRateInput(
       toInputString(parsedDecelerationRate, DEFAULT_PARAMETER_SET.decelerationRate)
@@ -263,7 +260,7 @@ function ScrollList({ participantId }) {
   }, [setDecelerationRateInput, setDecayInput, setFlickDistanceThresholdInput]);
 
   const loadParticipantState = useCallback(async () => {
-    if (!participantId) return null;
+    if (isTestMode || !participantId) return null;
 
     const resp = await fetch(outputs.data.url, {
       method: 'POST',
@@ -276,9 +273,11 @@ function ScrollList({ participantId }) {
 
     const json = await resp.json();
     return json.data?.listParticipants?.items?.[0] || null;
-  }, [participantId]);
+  }, [participantId, isTestMode]);
 
   const triggerNextParameterSetUpdate = async (attemptCount) => {
+    if (isTestMode || !participantId) return null;
+
     const resp = await fetch(outputs.data.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
@@ -299,7 +298,7 @@ function ScrollList({ participantId }) {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const updateParticipantParameterSets = async (updatedSets) => {
-    if (!participantId) return null;
+    if (isTestMode || !participantId) return null;
 
     const resp = await fetch(outputs.data.url, {
       method: 'POST',
@@ -319,6 +318,8 @@ function ScrollList({ participantId }) {
   };
 
   const synchronizeNextParameterSet = async (attemptCount) => {
+    if (isTestMode) return false;
+
     const immediateParameterSet = await triggerNextParameterSetUpdate(attemptCount);
     if (immediateParameterSet) {
       setNextParameterSet(immediateParameterSet);
@@ -347,6 +348,7 @@ function ScrollList({ participantId }) {
   };
 
   const handleRefreshParameterStatus = async () => {
+    if (isTestMode) return;
     if (!participantId) return;
 
     setAwaitingNextParameterSet(true);
@@ -384,6 +386,14 @@ function ScrollList({ participantId }) {
 
   useEffect(() => {
     const loadParticipantParameters = async () => {
+      if (isTestMode) {
+        setNextParameterSet(null);
+        setAwaitingNextParameterSet(false);
+        setAwaitingBlockStartConfirmation(false);
+        setParametersReadyForNextBlock(true);
+        setParameterSyncError('');
+        return;
+      }
       if (!participantId) return;
 
       try {
@@ -410,7 +420,40 @@ function ScrollList({ participantId }) {
     };
 
     loadParticipantParameters();
-  }, [participantId, applyCurrentParameterSet, loadParticipantState]);
+  }, [participantId, applyCurrentParameterSet, loadParticipantState, isTestMode]);
+
+  useEffect(() => {
+    if (!isTestMode) return;
+
+    const clampedScrollFriction = Math.max(
+      FLING_PHYSICS_BOUNDS.scrollFriction.min,
+      Math.min(FLING_PHYSICS_BOUNDS.scrollFriction.max, Number(testScrollFriction))
+    );
+    const clampedDecelerationRate = Math.max(
+      FLING_PHYSICS_BOUNDS.decelerationRate.min,
+      Math.min(FLING_PHYSICS_BOUNDS.decelerationRate.max, Number(testDecelerationRate))
+    );
+    const clampedInflexion = Math.max(
+      FLING_PHYSICS_BOUNDS.inflexion.min,
+      Math.min(FLING_PHYSICS_BOUNDS.inflexion.max, Number(testInflexion))
+    );
+
+    FLING_PHYSICS_CONFIG.scrollFriction = clampedScrollFriction;
+    FLING_PHYSICS_CONFIG.decelerationRate = clampedDecelerationRate;
+    FLING_PHYSICS_CONFIG.inflexion = clampedInflexion;
+
+    setDecelerationRateInput(String(clampedDecelerationRate));
+    setDecayInput(DEFAULT_PARAMETER_SET.decay);
+    setFlickDistanceThresholdInput(DEFAULT_PARAMETER_SET.flickDistanceThreshold);
+  }, [
+    isTestMode,
+    testScrollFriction,
+    testDecelerationRate,
+    testInflexion,
+    setDecelerationRateInput,
+    setDecayInput,
+    setFlickDistanceThresholdInput,
+  ]);
 
   useEffect(() => {
     translateYRef.current = translateY;
@@ -896,7 +939,6 @@ function ScrollList({ participantId }) {
     if (meetsFlingThreshold) {
       launchVelocity = fingerVelocityPxMs;
     }
-    launchVelocity = clampFlingVelocityPxMs(launchVelocity, FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs);
 
     if (touchStatsRef.current.active && trialMetricsRef.current) {
       const gestureDurationMs = Math.max(endNow - touchStatsRef.current.startTime, 1);
@@ -1023,6 +1065,17 @@ function ScrollList({ participantId }) {
       touchStatsRef.current.active = false;
 
       if (runBlockFinished) {
+        if (isTestMode) {
+          setPendingBlockAttempts([]);
+          setAwaitingNextParameterSet(false);
+          setAwaitingBlockStartConfirmation(false);
+          setParametersReadyForNextBlock(true);
+          setParameterSyncError('');
+          setMultiplierTarget(null);
+          setRunCount(0);
+          return;
+        }
+
         saveOutcome = await saveResult({
           participantId,
           blockAttempts: nextPendingBlockAttempts,
@@ -1030,7 +1083,6 @@ function ScrollList({ participantId }) {
             scrollFriction: FLING_PHYSICS_CONFIG.scrollFriction,
             decelerationRate: FLING_PHYSICS_CONFIG.decelerationRate,
             inflexion: FLING_PHYSICS_CONFIG.inflexion,
-            maxLaunchVelocityPxMs: FLING_PHYSICS_CONFIG.maxLaunchVelocityPxMs,
             decay,
             fingerVelocityPxMs,
             flingThresholdPxMs,
@@ -1128,7 +1180,7 @@ function ScrollList({ participantId }) {
 
   const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
-  const showParameterDialog = awaitingNextParameterSet || awaitingBlockStartConfirmation || Boolean(parameterSyncError);
+  const showParameterDialog = !isTestMode && (awaitingNextParameterSet || awaitingBlockStartConfirmation || Boolean(parameterSyncError));
   const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
@@ -1154,6 +1206,35 @@ function ScrollList({ participantId }) {
 
   return (
     <div className="scroll-list-wrapper" style={wrapperStyle}>
+      {isTestMode && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            zIndex: 6,
+            display: 'flex',
+            gap: 8,
+            alignItems: 'center',
+          }}
+        >
+          <button type="button" className="nav-button" onClick={onExitTestEnvironment}>Zurück</button>
+          <span
+            style={{
+              background: 'rgba(255,255,255,0.92)',
+              border: '1px solid #dfe7ee',
+              borderRadius: 999,
+              padding: '6px 10px',
+              color: '#1f2f3d',
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            Testumgebung (ohne DB/Inference)
+          </span>
+        </div>
+      )}
+
       <div className="safe-area-progress" aria-label={`Fortschritt ${completedRunsForProgress} von ${RUNS_PER_BLOCK}`}>
         <div className="safe-area-progress-track" role="img" aria-hidden="true">
           {Array.from({ length: RUNS_PER_BLOCK }, (_, index) => (
@@ -1234,6 +1315,63 @@ function ScrollList({ participantId }) {
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {isTestMode && (
+        <div
+          style={{
+            position: 'absolute',
+            left: 12,
+            right: 12,
+            bottom: 12,
+            zIndex: 7,
+            background: 'rgba(255, 255, 255, 0.94)',
+            border: '1px solid #d8e2ec',
+            borderRadius: 12,
+            padding: 10,
+            display: 'grid',
+            gap: 8,
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2f3d' }}>Parameter (live)</div>
+
+          <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
+            scrollFriction: {Number(testScrollFriction).toFixed(5)}
+            <input
+              type="range"
+              min={FLING_PHYSICS_BOUNDS.scrollFriction.min}
+              max={FLING_PHYSICS_BOUNDS.scrollFriction.max}
+              step="0.0005"
+              value={testScrollFriction}
+              onChange={(event) => setTestScrollFriction(Number(event.target.value))}
+            />
+          </label>
+
+          <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
+            decelerationRate: {Number(testDecelerationRate).toFixed(3)}
+            <input
+              type="range"
+              min={FLING_PHYSICS_BOUNDS.decelerationRate.min}
+              max={FLING_PHYSICS_BOUNDS.decelerationRate.max}
+              step="0.01"
+              value={testDecelerationRate}
+              onChange={(event) => setTestDecelerationRate(Number(event.target.value))}
+            />
+          </label>
+
+          <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
+            inflexion: {Number(testInflexion).toFixed(3)}
+            <input
+              type="range"
+              min={FLING_PHYSICS_BOUNDS.inflexion.min}
+              max={FLING_PHYSICS_BOUNDS.inflexion.max}
+              step="0.001"
+              value={testInflexion}
+              onChange={(event) => setTestInflexion(Number(event.target.value))}
+            />
+          </label>
+
         </div>
       )}
     </div>

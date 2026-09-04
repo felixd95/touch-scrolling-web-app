@@ -10,8 +10,3 @@ export const isFlingThresholdMet = (velocityPxMs, thresholdPxMs) => {
     : getMinFlingVelocityPxMs();
   return Math.abs(velocityPxMs) >= effectiveThreshold;
 };
-
-export const clampFlingVelocityPxMs = (velocityPxMs, maxVelocityPxMs) => {
-  const effectiveMax = Number.isFinite(maxVelocityPxMs) ? maxVelocityPxMs : 0;
-  return Math.max(-effectiveMax, Math.min(effectiveMax, velocityPxMs));
-};

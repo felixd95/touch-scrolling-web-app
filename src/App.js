@@ -860,7 +860,7 @@ function ParticipantsList({ onBack }) {
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'form' oder 'scrolllist'
+  const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'form', 'scrolllist', 'test'
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -984,6 +984,9 @@ function App() {
             <button className="nav-button" onClick={() => setCurrentPage('list')}>
               Teilnehmer anzeigen
             </button>
+            <button className="nav-button" onClick={() => setCurrentPage('test')} style={{ background: '#455a64' }}>
+              Zur Testumgebung
+            </button>
           </div>
         </div>
       ) : currentPage === 'login' ? (
@@ -1081,12 +1084,12 @@ function App() {
               {status && <p>{status}</p>}
             </form>
         </div>
+      ) : currentPage === 'list' ? (
+        <ParticipantsList onBack={() => setCurrentPage('landing')} />
+      ) : currentPage === 'test' ? (
+        <ScrollList mode="test" onExitTestEnvironment={() => setCurrentPage('landing')} />
       ) : (
-        currentPage === 'list' ? (
-          <ParticipantsList onBack={() => setCurrentPage('landing')} />
-          ) : (
-          <ScrollList participantId={participantId} />
-        )
+        <ScrollList participantId={participantId} />
       )}
     </main>
   );
