@@ -399,10 +399,18 @@ def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, part
 
     parsed = json.loads(raw)
     normalized = _normalize_parameter_set(parsed)
-    if not normalized:
-        raise RuntimeError("SageMaker response missing required parameter fields")
 
-    return normalized, parsed, sagemaker_latency_ms
+    if normalized:
+        generated_params = normalized
+    elif isinstance(parsed, dict):
+        if isinstance(parsed.get("parameters"), dict):
+            generated_params = _to_plain(parsed.get("parameters"))
+        else:
+            generated_params = _to_plain(parsed)
+    else:
+        generated_params = {"rawValue": _to_plain(parsed)}
+
+    return generated_params, parsed, sagemaker_latency_ms
 
 
 def _build_next_parameter_set(attempt_count, generated_params):
