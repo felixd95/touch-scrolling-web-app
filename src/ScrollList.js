@@ -24,6 +24,8 @@ const NUM_ITEMS = 330;
 const ITEMS_PER_SCREEN = 15;
 const RUNS_PER_BLOCK = 10;
 const RANDOM_BOOTSTRAP_ATTEMPT_LIMIT = RUNS_PER_BLOCK * 3;
+const NEXT_PARAMETER_POLL_INITIAL_MS = 2000;
+const NEXT_PARAMETER_POLL_MAX_MS = 10000;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
 const ANDROID_MAX_SAMPLES = 20;
 const FIXED_TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
@@ -98,6 +100,12 @@ const normalizeAttemptBlocks = (rawAttempts) => {
     } catch (error) {
       return [];
     }
+  }
+
+  if (!Array.isArray(parsed) && parsed && typeof parsed === 'object') {
+    parsed = Object.keys(parsed)
+      .sort((a, b) => Number(a) - Number(b))
+      .map((key) => parsed[key]);
   }
 
   if (!Array.isArray(parsed) || parsed.length === 0) return [];
@@ -346,8 +354,10 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       console.warn('triggerNextParameterSet returned an error; continue polling participant state', error);
     }
 
+    let pollIntervalMs = NEXT_PARAMETER_POLL_INITIAL_MS;
+
     while (true) {
-      await wait(500);
+      await wait(pollIntervalMs);
       try {
         const participant = await loadParticipantState();
         const nextSet = normalizeParameterSet(participant?.nextParameterSet);
@@ -355,8 +365,17 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
           setNextParameterSet(nextSet);
           return true;
         }
+
+        pollIntervalMs = Math.min(
+          NEXT_PARAMETER_POLL_MAX_MS,
+          Math.round(pollIntervalMs * 1.25)
+        );
       } catch (error) {
         console.warn('Error while polling participant nextParameterSet; retrying', error);
+        pollIntervalMs = Math.min(
+          NEXT_PARAMETER_POLL_MAX_MS,
+          Math.round(pollIntervalMs * 1.5)
+        );
       }
     }
   };
@@ -567,8 +586,11 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       }
 
       const updatedAttempts = appendJson.data?.appendParticipantAttemptBlock?.attempts;
-      const attemptsAfterAppend = updatedAttempts
+      const parsedAttemptsAfterAppend = updatedAttempts
         ? countAttemptsInBlocks(normalizeAttemptBlocks(updatedAttempts))
+        : 0;
+      const attemptsAfterAppend = parsedAttemptsAfterAppend > 0
+        ? parsedAttemptsAfterAppend
         : attemptsBeforeAppend + blockAttempts.length;
 
       return { attemptsCount: attemptsAfterAppend, savedRemotely: true };
