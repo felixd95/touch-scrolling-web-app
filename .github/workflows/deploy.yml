@@ -70,6 +70,36 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: terraform validate
 
+      - name: Import existing Lambda log group into Terraform state (if needed)
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          set -euo pipefail
+
+          if terraform state show aws_cloudwatch_log_group.next_parameter_set_monitor >/dev/null 2>&1; then
+            echo "CloudWatch log group already tracked in Terraform state."
+            exit 0
+          fi
+
+          FUNCTION_NAME=$(terraform state show aws_lambda_function.next_parameter_set_monitor \
+            | awk -F' = ' '/function_name/ {gsub(/"/, "", $2); print $2; exit}')
+
+          if [ -z "${FUNCTION_NAME}" ]; then
+            echo "Could not determine Lambda function name from Terraform state. Skipping import."
+            exit 0
+          fi
+
+          LOG_GROUP_NAME="/aws/lambda/${FUNCTION_NAME}"
+
+          if aws logs describe-log-groups \
+            --log-group-name-prefix "${LOG_GROUP_NAME}" \
+            --query 'logGroups[?logGroupName==`'"${LOG_GROUP_NAME}"'`].logGroupName' \
+            --output text | grep -q "${LOG_GROUP_NAME}"; then
+            echo "Importing existing log group ${LOG_GROUP_NAME} into Terraform state..."
+            terraform import aws_cloudwatch_log_group.next_parameter_set_monitor "${LOG_GROUP_NAME}"
+          else
+            echo "No pre-existing log group found for ${LOG_GROUP_NAME}. Terraform will create it."
+          fi
+
       # SageMaker's DeleteEndpoint API is asynchronous and the fixed-name
       # endpoint frequently gets stuck in a "Failed" state after a crashed
       # create. When Terraform then tries to destroy-and-recreate it in the
