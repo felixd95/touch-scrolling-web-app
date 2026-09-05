@@ -170,6 +170,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
   const [testScrollFriction, setTestScrollFriction] = useState(() => Number(FLING_PHYSICS_CONFIG.scrollFriction));
   const [testDecelerationRate, setTestDecelerationRate] = useState(() => Number(FLING_PHYSICS_CONFIG.decelerationRate));
   const [testInflexion, setTestInflexion] = useState(() => Number(FLING_PHYSICS_CONFIG.inflexion));
+  const [isTestParameterPopupOpen, setIsTestParameterPopupOpen] = useState(false);
 
   const targetNumber = practiceRunCompleted
     ? (targetSequence[targetIndex] ?? targetSequence[0] ?? FIXED_TARGET_NUMBERS[0])
@@ -441,6 +442,14 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
     FLING_PHYSICS_CONFIG.scrollFriction = clampedScrollFriction;
     FLING_PHYSICS_CONFIG.decelerationRate = clampedDecelerationRate;
     FLING_PHYSICS_CONFIG.inflexion = clampedInflexion;
+
+    // Ensure parameter changes are immediately noticeable in test mode.
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    velocityRef.current = 0;
+    residualVelocityRef.current = 0;
 
     setDecelerationRateInput(String(clampedDecelerationRate));
     setDecayInput(DEFAULT_PARAMETER_SET.decay);
@@ -1214,37 +1223,26 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
             left: 12,
             zIndex: 6,
             display: 'flex',
-            gap: 8,
+            gap: 0,
             alignItems: 'center',
           }}
         >
           <button type="button" className="nav-button" onClick={onExitTestEnvironment}>Zurück</button>
-          <span
-            style={{
-              background: 'rgba(255,255,255,0.92)',
-              border: '1px solid #dfe7ee',
-              borderRadius: 999,
-              padding: '6px 10px',
-              color: '#1f2f3d',
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            Testumgebung (ohne DB/Inference)
-          </span>
         </div>
       )}
 
-      <div className="safe-area-progress" aria-label={`Fortschritt ${completedRunsForProgress} von ${RUNS_PER_BLOCK}`}>
-        <div className="safe-area-progress-track" role="img" aria-hidden="true">
-          {Array.from({ length: RUNS_PER_BLOCK }, (_, index) => (
-            <span
-              key={`progress-pill-${index}`}
-              className={`safe-area-progress-pill ${index < completedRunsForProgress ? 'is-complete' : ''}`}
-            />
-          ))}
+      {!isTestMode && (
+        <div className="safe-area-progress" aria-label={`Fortschritt ${completedRunsForProgress} von ${RUNS_PER_BLOCK}`}>
+          <div className="safe-area-progress-track" role="img" aria-hidden="true">
+            {Array.from({ length: RUNS_PER_BLOCK }, (_, index) => (
+              <span
+                key={`progress-pill-${index}`}
+                className={`safe-area-progress-pill ${index < completedRunsForProgress ? 'is-complete' : ''}`}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="target-banner">
         <span className="target-banner-label">Find:</span>
@@ -1319,60 +1317,75 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       )}
 
       {isTestMode && (
-        <div
-          style={{
-            position: 'absolute',
-            left: 12,
-            right: 12,
-            bottom: 12,
-            zIndex: 7,
-            background: 'rgba(255, 255, 255, 0.94)',
-            border: '1px solid #d8e2ec',
-            borderRadius: 12,
-            padding: 10,
-            display: 'grid',
-            gap: 8,
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#1f2f3d' }}>Parameter (live)</div>
+        <>
+          <button
+            type="button"
+            className="test-parameter-trigger"
+            onClick={() => setIsTestParameterPopupOpen(true)}
+          >
+            Parameter
+          </button>
 
-          <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
-            scrollFriction: {Number(testScrollFriction).toFixed(5)}
-            <input
-              type="range"
-              min={FLING_PHYSICS_BOUNDS.scrollFriction.min}
-              max={FLING_PHYSICS_BOUNDS.scrollFriction.max}
-              step="0.0005"
-              value={testScrollFriction}
-              onChange={(event) => setTestScrollFriction(Number(event.target.value))}
-            />
-          </label>
+          {isTestParameterPopupOpen && (
+            <div
+              className="test-parameter-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="test-parameter-popup-title"
+              onClick={() => setIsTestParameterPopupOpen(false)}
+            >
+              <div className="test-parameter-dialog" onClick={(event) => event.stopPropagation()}>
+                <div className="test-parameter-dialog-header">
+                  <h3 id="test-parameter-popup-title">Parameter</h3>
+                  <button
+                    type="button"
+                    className="test-parameter-close"
+                    onClick={() => setIsTestParameterPopupOpen(false)}
+                    aria-label="Popup schließen"
+                  >
+                    ×
+                  </button>
+                </div>
 
-          <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
-            decelerationRate: {Number(testDecelerationRate).toFixed(3)}
-            <input
-              type="range"
-              min={FLING_PHYSICS_BOUNDS.decelerationRate.min}
-              max={FLING_PHYSICS_BOUNDS.decelerationRate.max}
-              step="0.01"
-              value={testDecelerationRate}
-              onChange={(event) => setTestDecelerationRate(Number(event.target.value))}
-            />
-          </label>
+                <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
+                  scrollFriction: {Number(testScrollFriction).toFixed(5)}
+                  <input
+                    type="range"
+                    min={FLING_PHYSICS_BOUNDS.scrollFriction.min}
+                    max={FLING_PHYSICS_BOUNDS.scrollFriction.max}
+                    step="0.0005"
+                    value={testScrollFriction}
+                    onChange={(event) => setTestScrollFriction(Number(event.target.value))}
+                  />
+                </label>
 
-          <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
-            inflexion: {Number(testInflexion).toFixed(3)}
-            <input
-              type="range"
-              min={FLING_PHYSICS_BOUNDS.inflexion.min}
-              max={FLING_PHYSICS_BOUNDS.inflexion.max}
-              step="0.001"
-              value={testInflexion}
-              onChange={(event) => setTestInflexion(Number(event.target.value))}
-            />
-          </label>
+                <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
+                  decelerationRate: {Number(testDecelerationRate).toFixed(3)}
+                  <input
+                    type="range"
+                    min={FLING_PHYSICS_BOUNDS.decelerationRate.min}
+                    max={FLING_PHYSICS_BOUNDS.decelerationRate.max}
+                    step="0.01"
+                    value={testDecelerationRate}
+                    onChange={(event) => setTestDecelerationRate(Number(event.target.value))}
+                  />
+                </label>
 
-        </div>
+                <label style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 600 }}>
+                  inflexion: {Number(testInflexion).toFixed(3)}
+                  <input
+                    type="range"
+                    min={FLING_PHYSICS_BOUNDS.inflexion.min}
+                    max={FLING_PHYSICS_BOUNDS.inflexion.max}
+                    step="0.001"
+                    value={testInflexion}
+                    onChange={(event) => setTestInflexion(Number(event.target.value))}
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
