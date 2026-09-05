@@ -205,23 +205,12 @@ def _normalize_parameter_set(raw):
     except Exception:
         return None
 
-    # decelerationRate with legacy fallback from x1/x2 or a/b
+    # decelerationRate
     deceleration_rate = candidate.get("decelerationRate")
     try:
         deceleration_rate = float(deceleration_rate)
     except Exception:
         deceleration_rate = None
-
-    if not (isinstance(deceleration_rate, float) and deceleration_rate > 1):
-        try:
-            x1 = float(candidate.get("x1", candidate.get("a")))
-            x2 = float(candidate.get("x2", candidate.get("b")))
-            if x1 > 0 and x2 > 0 and x2 != 1:
-                derived = float(math.log(x1) / math.log(x2))
-                if derived > 1:
-                    deceleration_rate = derived
-        except Exception:
-            deceleration_rate = None
 
     if not (isinstance(deceleration_rate, float) and deceleration_rate > 1):
         deceleration_rate = float(DEFAULT_PARAMETER_SET["decelerationRate"])
@@ -254,6 +243,25 @@ def _flatten_attempts_for_ml(raw_attempts):
     if not isinstance(raw_attempts, list):
         return []
 
+    def _extract_required_paper_params(source):
+        if not isinstance(source, dict):
+            return None
+
+        extracted = {}
+        for key in REQUIRED_KEYS:
+            value = source.get(key)
+            try:
+                parsed = float(value)
+            except Exception:
+                return None
+
+            if key == "decelerationRate" and not (parsed > 1):
+                return None
+
+            extracted[key] = parsed
+
+        return extracted
+
     # New format: [{runNumber, parameterSet, attempts:[...]}]
     looks_like_blocks = any(
         isinstance(entry, dict) and isinstance(entry.get("attempts"), list)
@@ -267,6 +275,7 @@ def _flatten_attempts_for_ml(raw_attempts):
 
             run_number = block_entry.get("runNumber")
             parameter_set = block_entry.get("parameterSet")
+            block_paper_params = _extract_required_paper_params(parameter_set)
             attempts = block_entry.get("attempts")
             if not isinstance(attempts, list):
                 continue
@@ -275,21 +284,40 @@ def _flatten_attempts_for_ml(raw_attempts):
                 if not isinstance(attempt, dict):
                     continue
 
+                attempt_paper_params = _extract_required_paper_params(attempt.get("paperParams"))
+                effective_paper_params = attempt_paper_params or block_paper_params
+                if effective_paper_params is None:
+                    continue
+
                 flattened.append(
                     {
                         **attempt,
                         "blockIndex": attempt.get("blockIndex") if attempt.get("blockIndex") is not None else run_number,
                         "attemptInBlock": attempt.get("attemptInBlock") if attempt.get("attemptInBlock") is not None else (idx + 1),
-                        "blockParameterSet": attempt.get("blockParameterSet") if isinstance(attempt.get("blockParameterSet"), dict) else parameter_set,
-                        # Keep compatibility for inference parser that reads paperParams.
-                        "paperParams": attempt.get("paperParams") if isinstance(attempt.get("paperParams"), dict) else parameter_set,
+                        "paperParams": effective_paper_params,
                     }
                 )
 
         return flattened
 
-    # Legacy format: already a flat attempts list.
-    return [entry for entry in raw_attempts if isinstance(entry, dict)]
+    # Legacy format: flatten and attach canonical paperParams if available.
+    flattened = []
+    for entry in raw_attempts:
+        if not isinstance(entry, dict):
+            continue
+
+        paper_params = _extract_required_paper_params(entry.get("paperParams"))
+        if paper_params is None:
+            paper_params = _extract_required_paper_params(entry.get("blockParameterSet"))
+        if paper_params is None:
+            continue
+
+        flattened.append({
+            **entry,
+            "paperParams": paper_params,
+        })
+
+    return flattened
 
 
 def _load_participant_state(table_name, participant_id):
@@ -416,8 +444,8 @@ def handler(event, context):
             f"expected at least {attempt_count}, got {len(flat_attempts)}"
         )
 
-    # Pass all completed attempts up to the current attempt count to the ML pipeline.
-    all_attempt_data = flat_attempts[:attempt_count]
+    # Pass all available attempts with associated parameter triplets to the ML pipeline.
+    all_attempt_data = flat_attempts
     if len(all_attempt_data) < attempt_count:
         raise ValueError(
             f"Not enough stored attempts for participant {participant_id}: "

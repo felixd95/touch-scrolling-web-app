@@ -77,19 +77,6 @@ def _normalize_current_params(payload: Dict[str, Any]) -> Dict[str, float]:
             normalized[key] = float(DEFAULT_PARAMETER_SET[key])
 
     if not (normalized["decelerationRate"] > 1):
-        legacy_x1 = candidate.get("x1", candidate.get("a"))
-        legacy_x2 = candidate.get("x2", candidate.get("b"))
-        try:
-            x1 = float(legacy_x1)
-            x2 = float(legacy_x2)
-            if x1 > 0 and x2 > 0 and x2 != 1:
-                derived = float(np.log(x1) / np.log(x2))
-                if derived > 1:
-                    normalized["decelerationRate"] = derived
-        except (TypeError, ValueError):
-            pass
-
-    if not (normalized["decelerationRate"] > 1):
         normalized["decelerationRate"] = float(DEFAULT_PARAMETER_SET["decelerationRate"])
 
     return normalized
@@ -117,25 +104,9 @@ def _normalize_recent_data(raw_recent_data: Any) -> List[Dict[str, Any]]:
         if not isinstance(paper_params, dict):
             paper_params = {}
 
-        if not paper_params and isinstance(item.get("blockParameterSet"), dict):
-            paper_params = item.get("blockParameterSet")
-
         params = {}
         for key in REQUIRED_KEYS:
-            if key == "decelerationRate":
-                value = paper_params.get("decelerationRate")
-                if value is None:
-                    legacy_x1 = paper_params.get("x1", paper_params.get("a"))
-                    legacy_x2 = paper_params.get("x2", paper_params.get("b"))
-                    try:
-                        x1 = float(legacy_x1)
-                        x2 = float(legacy_x2)
-                        if x1 > 0 and x2 > 0 and x2 != 1:
-                            value = float(np.log(x1) / np.log(x2))
-                    except (TypeError, ValueError):
-                        value = None
-            else:
-                value = paper_params.get(key)
+            value = paper_params.get(key)
 
             if value is None:
                 value = DEFAULT_PARAMETER_SET[key]
