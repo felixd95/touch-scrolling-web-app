@@ -2,6 +2,7 @@ import json
 import math
 import os
 import time
+import traceback
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -427,66 +428,43 @@ def _build_next_parameter_set(attempt_count, generated_params):
     }
 
 
-def handler(event, context):
-    table_name = os.environ.get("PARTICIPANT_TABLE_NAME")
-    if not table_name:
-        raise RuntimeError("Missing PARTICIPANT_TABLE_NAME environment variable")
+def _build_failure_next_parameter_set(participant_id, attempt_count, stage, error, extra=None):
+    safe_attempt_count = int(attempt_count) if isinstance(attempt_count, int) else 0
+    completed_block_count = math.floor(safe_attempt_count / RUNS_PER_BLOCK) if safe_attempt_count >= 0 else 0
+    payload = {
+        "status": "error",
+        "source": "terraform-appsync-sagemaker-active-learning-error",
+        "participantId": participant_id,
+        "attemptCount": safe_attempt_count,
+        "generatedFromAttemptCount": completed_block_count * RUNS_PER_BLOCK,
+        "completedBlockCount": completed_block_count,
+        "blockSize": RUNS_PER_BLOCK,
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "errorStage": stage,
+        "errorType": type(error).__name__,
+        "errorMessage": str(error),
+        "traceback": traceback.format_exc(),
+    }
+    if isinstance(extra, dict) and extra:
+        payload["debug"] = _to_plain(extra)
+    return payload
 
-    args = (event or {}).get("arguments") or {}
-    participant_id = args.get("participantId")
-    attempt_count = int(args.get("attemptCount", 0))
 
-    if not participant_id:
-        raise ValueError("Missing participantId")
+def _store_failure_state(table_name, participant_id, failure_payload):
+    if not table_name or not participant_id:
+        return
 
-    if attempt_count <= 0 or attempt_count % RUNS_PER_BLOCK != 0:
-        raise ValueError(f"attemptCount must be an exact multiple of {RUNS_PER_BLOCK}")
-
-    participant_state = _load_participant_state(table_name, participant_id)
-    attempts = participant_state.get("attempts", [])
-    flat_attempts = _flatten_attempts_for_ml(attempts)
-
-    if len(flat_attempts) < attempt_count:
-        raise ValueError(
-            f"Not enough attempts stored for participant {participant_id}: "
-            f"expected at least {attempt_count}, got {len(flat_attempts)}"
-        )
-
-    # Pass all available attempts with associated parameter triplets to the ML pipeline.
-    all_attempt_data = flat_attempts
-    if len(all_attempt_data) < attempt_count:
-        raise ValueError(
-            f"Not enough stored attempts for participant {participant_id}: "
-            f"expected {attempt_count}, got {len(all_attempt_data)}"
-        )
-
-    current_params = (
-        _normalize_parameter_set(participant_state.get("currentParameterSet"))
-        or _normalize_parameter_set(participant_state.get("nextParameterSet"))
-        or dict(DEFAULT_PARAMETER_SET)
-    )
-
-    other_participants_data = _scan_other_participants_data(table_name, exclude_participant_id=participant_id)
-    participants_data = other_participants_data + [
-        {"participantId": participant_id, "attempts": all_attempt_data}
-    ]
-
-    generated_params, raw_prediction, sagemaker_latency_ms = _invoke_sagemaker(
-        participant_id, attempt_count, current_params, participants_data
-    )
-    next_parameter_set = _build_next_parameter_set(attempt_count, generated_params)
-
-    pooled_attempt_count = sum(len(entry.get("attempts", [])) for entry in participants_data)
-    block_metrics = _build_block_metrics(
-        attempt_count=attempt_count,
-        participant_attempts=all_attempt_data,
-        tested_parameter_set=current_params,
-        generated_parameter_set=generated_params,
-        raw_prediction=raw_prediction,
-        sagemaker_latency_ms=sagemaker_latency_ms,
-        pooled_participant_count=len(participants_data),
-        pooled_attempt_count=pooled_attempt_count,
-    )
+    metrics_entry = {
+        "generatedAt": failure_payload.get("generatedAt"),
+        "generatedFromAttemptCount": failure_payload.get("generatedFromAttemptCount"),
+        "blockNumber": failure_payload.get("completedBlockCount"),
+        "status": "error",
+        "error": {
+            "stage": failure_payload.get("errorStage"),
+            "type": failure_payload.get("errorType"),
+            "message": failure_payload.get("errorMessage"),
+        },
+    }
 
     table = dynamodb.Table(table_name)
     table.update_item(
@@ -496,12 +474,117 @@ def handler(event, context):
             "parameterBlockMetrics = list_append(if_not_exists(parameterBlockMetrics, :empty), :metrics)"
         ),
         ExpressionAttributeValues={
-            ":nextParameterSet": _to_dynamo(next_parameter_set),
-            ":metrics": _to_dynamo([block_metrics]),
+            ":nextParameterSet": _to_dynamo(failure_payload),
+            ":metrics": _to_dynamo([metrics_entry]),
             ":empty": [],
         },
     )
 
-    return {
-        "nextParameterSet": json.dumps(next_parameter_set)
+
+def handler(event, context):
+    table_name = os.environ.get("PARTICIPANT_TABLE_NAME")
+    args = (event or {}).get("arguments") or {}
+    participant_id = args.get("participantId")
+    attempt_count_raw = args.get("attemptCount", 0)
+    stage = "init"
+    debug_payload = {
+        "hasTableName": bool(table_name),
+        "rawAttemptCount": attempt_count_raw,
     }
+
+    try:
+        if not table_name:
+            raise RuntimeError("Missing PARTICIPANT_TABLE_NAME environment variable")
+
+        stage = "parse-arguments"
+        attempt_count = int(attempt_count_raw)
+
+        if not participant_id:
+            raise ValueError("Missing participantId")
+
+        if attempt_count <= 0 or attempt_count % RUNS_PER_BLOCK != 0:
+            raise ValueError(f"attemptCount must be an exact multiple of {RUNS_PER_BLOCK}")
+
+        stage = "load-participant-state"
+        participant_state = _load_participant_state(table_name, participant_id)
+        attempts = participant_state.get("attempts", [])
+        flat_attempts = _flatten_attempts_for_ml(attempts)
+        debug_payload["storedAttemptCount"] = len(flat_attempts)
+
+        if len(flat_attempts) < attempt_count:
+            raise ValueError(
+                f"Not enough attempts stored for participant {participant_id}: "
+                f"expected at least {attempt_count}, got {len(flat_attempts)}"
+            )
+
+        stage = "prepare-ml-payload"
+        all_attempt_data = flat_attempts
+        current_params = (
+            _normalize_parameter_set(participant_state.get("currentParameterSet"))
+            or _normalize_parameter_set(participant_state.get("nextParameterSet"))
+            or dict(DEFAULT_PARAMETER_SET)
+        )
+
+        other_participants_data = _scan_other_participants_data(table_name, exclude_participant_id=participant_id)
+        participants_data = other_participants_data + [
+            {"participantId": participant_id, "attempts": all_attempt_data}
+        ]
+        debug_payload["pooledParticipantCount"] = len(participants_data)
+        debug_payload["pooledAttemptCount"] = sum(len(entry.get("attempts", [])) for entry in participants_data)
+
+        stage = "invoke-sagemaker"
+        generated_params, raw_prediction, sagemaker_latency_ms = _invoke_sagemaker(
+            participant_id, attempt_count, current_params, participants_data
+        )
+        next_parameter_set = _build_next_parameter_set(attempt_count, generated_params)
+
+        stage = "build-metrics"
+        block_metrics = _build_block_metrics(
+            attempt_count=attempt_count,
+            participant_attempts=all_attempt_data,
+            tested_parameter_set=current_params,
+            generated_parameter_set=generated_params,
+            raw_prediction=raw_prediction,
+            sagemaker_latency_ms=sagemaker_latency_ms,
+            pooled_participant_count=len(participants_data),
+            pooled_attempt_count=debug_payload["pooledAttemptCount"],
+        )
+
+        stage = "store-success-state"
+        table = dynamodb.Table(table_name)
+        table.update_item(
+            Key={"id": participant_id},
+            UpdateExpression=(
+                "SET nextParameterSet = :nextParameterSet, "
+                "parameterBlockMetrics = list_append(if_not_exists(parameterBlockMetrics, :empty), :metrics)"
+            ),
+            ExpressionAttributeValues={
+                ":nextParameterSet": _to_dynamo(next_parameter_set),
+                ":metrics": _to_dynamo([block_metrics]),
+                ":empty": [],
+            },
+        )
+
+        return {
+            "nextParameterSet": json.dumps(next_parameter_set)
+        }
+    except Exception as error:
+        failure_payload = _build_failure_next_parameter_set(
+            participant_id=participant_id,
+            attempt_count=int(attempt_count_raw) if str(attempt_count_raw).isdigit() else 0,
+            stage=stage,
+            error=error,
+            extra=debug_payload,
+        )
+
+        try:
+            _store_failure_state(table_name, participant_id, failure_payload)
+        except Exception as store_error:
+            failure_payload["persistenceError"] = {
+                "type": type(store_error).__name__,
+                "message": str(store_error),
+            }
+
+        return {
+            "nextParameterSet": json.dumps(failure_payload)
+        }
