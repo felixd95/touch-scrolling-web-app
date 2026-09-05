@@ -77,6 +77,17 @@ const getAttemptCount = (value) => {
 
 const isBootstrapPhase = (attemptCount) => getAttemptCount(attemptCount) < RANDOM_BOOTSTRAP_ATTEMPT_LIMIT;
 
+const isNextParameterSetForAttemptCount = (parameterSet, expectedAttemptCount) => {
+  if (!parameterSet || typeof parameterSet !== 'object') return false;
+
+  const generatedFromAttemptCount = Number(parameterSet.generatedFromAttemptCount);
+  if (!Number.isFinite(generatedFromAttemptCount)) {
+    return false;
+  }
+
+  return generatedFromAttemptCount === getAttemptCount(expectedAttemptCount);
+};
+
 const normalizeAttemptBlocks = (rawAttempts) => {
   if (!rawAttempts) return [];
 
@@ -325,7 +336,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
 
     try {
       const immediateParameterSet = await triggerNextParameterSetUpdate(attemptCount);
-      if (immediateParameterSet) {
+      if (isNextParameterSetForAttemptCount(immediateParameterSet, attemptCount)) {
         setNextParameterSet(immediateParameterSet);
         return true;
       }
@@ -340,7 +351,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       try {
         const participant = await loadParticipantState();
         const nextSet = normalizeParameterSet(participant?.nextParameterSet);
-        if (nextSet) {
+        if (isNextParameterSetForAttemptCount(nextSet, attemptCount)) {
           setNextParameterSet(nextSet);
           return true;
         }
