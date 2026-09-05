@@ -1,6 +1,7 @@
 import json
 from typing import Any, Dict, List, Optional, Tuple
 
+import gpytorch  # noqa: E402
 import numpy as np  # noqa: E402
 
 import torch  # noqa: E402
@@ -36,6 +37,18 @@ PARAMETER_BOUNDS = {
 }
 
 MIN_OBSERVATIONS_FOR_BO = 2
+MAX_BLOCKS_PER_PARTICIPANT = 5
+
+# Coarse search settings to keep endpoint latency stable.
+BO_NUM_RESTARTS = 3
+BO_RAW_SAMPLES = 32
+BO_MAXITER = 30
+BO_PROBE_COUNT = 16
+
+# Numerical stability configuration for GP fitting.
+DEDUPLICATION_ROUND_DECIMALS = 6
+OBSERVATION_NOISE_FLOOR = 1e-4
+CHOLESKY_JITTER = 1e-3
 
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
@@ -207,6 +220,8 @@ def _normalize_participants_data(
 
         recent_data = _normalize_recent_data(entry.get("attempts"))
         blocks = _build_block_observations(recent_data)
+        if len(blocks) > MAX_BLOCKS_PER_PARTICIPANT:
+            blocks = blocks[-MAX_BLOCKS_PER_PARTICIPANT:]
         if not blocks:
             continue
 
@@ -234,6 +249,30 @@ def _build_multiobjective_training_data(
         return None, None
 
     return np.array(rows_x, dtype=float), np.array(rows_y, dtype=float)
+
+
+def _deduplicate_training_rows(
+    train_x_np: np.ndarray,
+    train_y_np: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, int]:
+    # Repeated/near-identical X rows can make K nearly singular. Collapse
+    # duplicates by averaging Y per rounded X key.
+    buckets: Dict[Tuple[float, ...], List[np.ndarray]] = {}
+    for idx in range(train_x_np.shape[0]):
+        key = tuple(np.round(train_x_np[idx], DEDUPLICATION_ROUND_DECIMALS).tolist())
+        buckets.setdefault(key, []).append(train_y_np[idx])
+
+    dedup_x: List[List[float]] = []
+    dedup_y: List[List[float]] = []
+    for key, rows in buckets.items():
+        dedup_x.append(list(key))
+        dedup_y.append(np.mean(np.stack(rows, axis=0), axis=0).tolist())
+
+    return (
+        np.array(dedup_x, dtype=float),
+        np.array(dedup_y, dtype=float),
+        int(train_x_np.shape[0] - len(dedup_x)),
+    )
 
 
 def _clip_param(value: float, key: str) -> float:
@@ -301,6 +340,8 @@ def _select_candidate_with_qlognehvi(
     train_x_np, train_y_np = _build_multiobjective_training_data(blocks_by_task_id)
     if train_x_np is None or train_y_np is None:
         raise ValueError("No training data available for qLogNEHVI.")
+
+    train_x_np, train_y_np, collapsed_row_count = _deduplicate_training_rows(train_x_np, train_y_np)
     if train_x_np.shape[0] < MIN_OBSERVATIONS_FOR_BO:
         raise ValueError(
             f"Not enough observations for qLogNEHVI: {train_x_np.shape[0]} < {MIN_OBSERVATIONS_FOR_BO}."
@@ -318,17 +359,20 @@ def _select_candidate_with_qlognehvi(
     models = []
     for objective_idx in range(train_obj.shape[1]):
         y_i = train_obj[:, objective_idx : objective_idx + 1]
+        yvar_i = torch.full_like(y_i, OBSERVATION_NOISE_FLOOR)
         models.append(
             SingleTaskGP(
                 train_X=train_x,
                 train_Y=y_i,
+                train_Yvar=yvar_i,
                 outcome_transform=Standardize(m=1),
             )
         )
 
     model = ModelListGP(*models)
     mll = SumMarginalLogLikelihood(model.likelihood, model)
-    fit_gpytorch_mll(mll)
+    with gpytorch.settings.cholesky_jitter(CHOLESKY_JITTER):
+        fit_gpytorch_mll(mll)
 
     bounds = torch.tensor(
         [[0.0] * (len(REQUIRED_KEYS) + 1), [1.0] * (len(REQUIRED_KEYS) + 1)],
@@ -357,10 +401,10 @@ def _select_candidate_with_qlognehvi(
         acq_function=acquisition,
         bounds=bounds,
         q=1,
-        num_restarts=8,
-        raw_samples=128,
+        num_restarts=BO_NUM_RESTARTS,
+        raw_samples=BO_RAW_SAMPLES,
         fixed_features={len(REQUIRED_KEYS): fixed_task_feature},
-        options={"batch_limit": 4, "maxiter": 100},
+        options={"batch_limit": 2, "maxiter": BO_MAXITER},
     )
 
     candidate_batch = candidate.unsqueeze(0)
@@ -368,7 +412,7 @@ def _select_candidate_with_qlognehvi(
 
     # Approximate the candidate rank by comparing against random probes under the
     # same fixed participant task feature.
-    probe_count = 64
+    probe_count = BO_PROBE_COUNT
     probe = torch.rand((probe_count, len(REQUIRED_KEYS) + 1), dtype=dtype, device=device)
     lower = bounds[0]
     upper = bounds[1]
@@ -394,7 +438,20 @@ def _select_candidate_with_qlognehvi(
             "task": task_scale,
         },
         "trainingRowCount": int(train_x.shape[0]),
+        "collapsedDuplicateRowCount": collapsed_row_count,
         "objectiveCount": int(train_obj.shape[1]),
+        "numericalStability": {
+            "deduplicationRoundDecimals": DEDUPLICATION_ROUND_DECIMALS,
+            "observationNoiseFloor": OBSERVATION_NOISE_FLOOR,
+            "choleskyJitter": CHOLESKY_JITTER,
+        },
+        "searchConfig": {
+            "numRestarts": BO_NUM_RESTARTS,
+            "rawSamples": BO_RAW_SAMPLES,
+            "maxIter": BO_MAXITER,
+            "probeCount": BO_PROBE_COUNT,
+            "maxBlocksPerParticipant": MAX_BLOCKS_PER_PARTICIPANT,
+        },
     }
 
     return parameters, diagnostics
