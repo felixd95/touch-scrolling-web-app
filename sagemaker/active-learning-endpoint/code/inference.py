@@ -1,11 +1,7 @@
 import json
 from typing import Any, Dict, List, Optional, Tuple
 
-print("DEBUG inference.py: starting imports", flush=True)
-
 import numpy as np  # noqa: E402
-
-print(f"DEBUG inference.py: numpy imported, version={np.__version__}", flush=True)
 
 import torch  # noqa: E402
 from botorch.acquisition.multi_objective.logei import (  # noqa: E402
@@ -18,11 +14,6 @@ from botorch.optim import optimize_acqf  # noqa: E402
 from gpytorch.mlls.sum_marginal_log_likelihood import (  # noqa: E402
     SumMarginalLogLikelihood,
 )
-
-print(f"DEBUG inference.py: torch imported, version={torch.__version__}", flush=True)
-print("DEBUG inference.py: botorch imports completed successfully", flush=True)
-
-print("DEBUG inference.py: all imports completed", flush=True)
 
 REQUIRED_KEYS = (
     "scrollFriction",
@@ -48,7 +39,6 @@ MIN_OBSERVATIONS_FOR_BO = 2
 
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
-    print(f"DEBUG inference.py: model_fn called with model_dir={model_dir}", flush=True)
     return {}
 
 
@@ -251,6 +241,50 @@ def _clip_param(value: float, key: str) -> float:
     return float(np.clip(value, low, high))
 
 
+def _normalize_train_x_to_unit_cube(
+    train_x_np: np.ndarray,
+) -> Tuple[np.ndarray, Dict[str, Any]]:
+    x = train_x_np.copy()
+    scales: Dict[str, Any] = {
+        "params": {},
+        "task": {},
+    }
+
+    for dim, key in enumerate(REQUIRED_KEYS):
+        low, high = PARAMETER_BOUNDS[key]
+        span = max(high - low, 1e-9)
+        x[:, dim] = (x[:, dim] - low) / span
+        x[:, dim] = np.clip(x[:, dim], 0.0, 1.0)
+        scales["params"][key] = {"low": float(low), "high": float(high), "span": float(span)}
+
+    task_low = float(np.min(train_x_np[:, -1]))
+    task_high = float(np.max(train_x_np[:, -1]))
+    task_span = max(task_high - task_low, 1e-9)
+    if task_high > task_low:
+        x[:, -1] = (x[:, -1] - task_low) / task_span
+        x[:, -1] = np.clip(x[:, -1], 0.0, 1.0)
+    else:
+        x[:, -1] = 0.0
+
+    scales["task"] = {
+        "low": task_low,
+        "high": task_high,
+        "span": float(task_span),
+        "isDegenerate": bool(task_high <= task_low),
+    }
+
+    return x, scales
+
+
+def _denormalize_candidate_params(candidate_norm: np.ndarray, scales: Dict[str, Any]) -> Dict[str, float]:
+    params = {}
+    for dim, key in enumerate(REQUIRED_KEYS):
+        scale = scales["params"][key]
+        value = float(scale["low"] + float(candidate_norm[dim]) * float(scale["span"]))
+        params[key] = _clip_param(value, key)
+    return params
+
+
 def _compute_ref_point_for_maximization(train_objectives: "torch.Tensor") -> List[float]:
     mins = train_objectives.min(dim=0).values
     maxs = train_objectives.max(dim=0).values
@@ -272,10 +306,12 @@ def _select_candidate_with_qlognehvi(
             f"Not enough observations for qLogNEHVI: {train_x_np.shape[0]} < {MIN_OBSERVATIONS_FOR_BO}."
         )
 
+    train_x_norm_np, input_scales = _normalize_train_x_to_unit_cube(train_x_np)
+
     dtype = torch.double
     device = torch.device("cpu")
 
-    train_x = torch.tensor(train_x_np, dtype=dtype, device=device)
+    train_x = torch.tensor(train_x_norm_np, dtype=dtype, device=device)
     # We minimize completion times. qLogNEHVI maximizes objectives, so negate.
     train_obj = -torch.tensor(train_y_np, dtype=dtype, device=device)
 
@@ -294,17 +330,20 @@ def _select_candidate_with_qlognehvi(
     mll = SumMarginalLogLikelihood(model.likelihood, model)
     fit_gpytorch_mll(mll)
 
-    param_lows = [PARAMETER_BOUNDS[key][0] for key in REQUIRED_KEYS]
-    param_highs = [PARAMETER_BOUNDS[key][1] for key in REQUIRED_KEYS]
-    task_col = train_x[:, -1]
-    task_low = float(task_col.min().item())
-    task_high = float(task_col.max().item())
-
     bounds = torch.tensor(
-        [param_lows + [task_low], param_highs + [task_high]],
+        [[0.0] * (len(REQUIRED_KEYS) + 1), [1.0] * (len(REQUIRED_KEYS) + 1)],
         dtype=dtype,
         device=device,
     )
+
+    task_scale = input_scales["task"]
+    if task_scale.get("isDegenerate"):
+        fixed_task_feature = 0.0
+    else:
+        fixed_task_feature = float(
+            (float(current_task_id) - float(task_scale["low"])) / float(task_scale["span"])
+        )
+        fixed_task_feature = float(np.clip(fixed_task_feature, 0.0, 1.0))
 
     ref_point = _compute_ref_point_for_maximization(train_obj)
     acquisition = qLogNoisyExpectedHypervolumeImprovement(
@@ -320,7 +359,7 @@ def _select_candidate_with_qlognehvi(
         q=1,
         num_restarts=8,
         raw_samples=128,
-        fixed_features={len(REQUIRED_KEYS): float(current_task_id)},
+        fixed_features={len(REQUIRED_KEYS): fixed_task_feature},
         options={"batch_limit": 4, "maxiter": 100},
     )
 
@@ -334,17 +373,13 @@ def _select_candidate_with_qlognehvi(
     lower = bounds[0]
     upper = bounds[1]
     probe = lower + (upper - lower) * probe
-    probe[:, len(REQUIRED_KEYS)] = float(current_task_id)
+    probe[:, len(REQUIRED_KEYS)] = fixed_task_feature
     probe_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy().tolist()
     better_count = sum(1 for value in probe_values if value > acquisition_value)
     candidate_rank_approx = int(better_count + 1)
 
     candidate_np = candidate.detach().cpu().numpy()[0]
-    parameters = {
-        "scrollFriction": _clip_param(float(candidate_np[0]), "scrollFriction"),
-        "decelerationRate": _clip_param(float(candidate_np[1]), "decelerationRate"),
-        "inflexion": _clip_param(float(candidate_np[2]), "inflexion"),
-    }
+    parameters = _denormalize_candidate_params(candidate_np, input_scales)
 
     diagnostics = {
         "acquisitionValue": acquisition_value,
@@ -352,6 +387,12 @@ def _select_candidate_with_qlognehvi(
         "candidateRankProbeCount": probe_count,
         "refPoint": ref_point,
         "fixedTaskId": int(current_task_id),
+        "fixedTaskFeatureNormalized": fixed_task_feature,
+        "inputNormalization": {
+            "type": "min-max-unit-cube",
+            "parameterBounds": PARAMETER_BOUNDS,
+            "task": task_scale,
+        },
         "trainingRowCount": int(train_x.shape[0]),
         "objectiveCount": int(train_obj.shape[1]),
     }

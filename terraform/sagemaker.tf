@@ -188,17 +188,13 @@ resource "aws_sagemaker_model" "active_learning" {
 resource "aws_sagemaker_endpoint_configuration" "active_learning" {
   name_prefix = local.sagemaker_endpoint_config_prefix
 
-  # Serverless Inference: no instance runs idle between requests (billed only
-  # for the compute actually used per invocation), which fits an experiment
-  # that gets triggered occasionally rather than needing an always-on host.
+  # Provisioned endpoint to provide more stable compute capacity for BoTorch
+  # optimization workloads that can exceed serverless worker time budgets.
   production_variants {
     variant_name = "AllTraffic"
     model_name   = aws_sagemaker_model.active_learning.name
-
-    serverless_config {
-      max_concurrency   = var.sagemaker_serverless_max_concurrency
-      memory_size_in_mb = var.sagemaker_serverless_memory_size_mb
-    }
+    instance_type = var.sagemaker_instance_type
+    initial_instance_count = var.sagemaker_instance_count
   }
 
   tags = var.tags

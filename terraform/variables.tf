@@ -113,6 +113,18 @@ variable "sagemaker_serverless_max_concurrency" {
   default     = 1
 }
 
+variable "sagemaker_instance_type" {
+  description = "Instance type for provisioned SageMaker endpoint compute capacity"
+  type        = string
+  default     = "ml.m5.xlarge"
+}
+
+variable "sagemaker_instance_count" {
+  description = "Number of provisioned instances for SageMaker endpoint"
+  type        = number
+  default     = 1
+}
+
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)
