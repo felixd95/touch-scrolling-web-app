@@ -3,7 +3,6 @@ import './ScrollList.css';
 import outputs from './backend_config.json';
 import {
   clampFlingVelocityPxMs,
-  getMinFlingVelocityPxMs,
   isFlingThresholdMet,
 } from './scrollPhysics/flingThreshold';
 import {
