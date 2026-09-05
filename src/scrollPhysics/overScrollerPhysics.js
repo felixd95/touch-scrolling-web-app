@@ -43,10 +43,18 @@ const getDecelerationRate = () => {
   return Number.isFinite(rate) && rate > 1 ? rate : ANDROID_DECELERATION_RATE_FIXED;
 };
 
-// Precomputed Bezier control points derived from inflexion/tension.
-// They are used to generate the normalized position/time spline table.
-const ANDROID_P1 = ANDROID_START_TENSION_FIXED * FLING_PHYSICS_CONFIG.inflexion;
-const ANDROID_P2 = 1.0 - ANDROID_END_TENSION_FIXED * (1.0 - FLING_PHYSICS_CONFIG.inflexion);
+const getEffectiveInflexion = () => {
+  const inflexion = Number(FLING_PHYSICS_CONFIG.inflexion);
+  return Number.isFinite(inflexion) ? inflexion : 0.35;
+};
+
+const getSplineControlPoints = () => {
+  const inflexion = getEffectiveInflexion();
+  return {
+    p1: ANDROID_START_TENSION_FIXED * inflexion,
+    p2: 1.0 - ANDROID_END_TENSION_FIXED * (1.0 - inflexion),
+  };
+};
 
 // Number of lookup samples for the spline table (0..100).
 export const ANDROID_SPLINE_SAMPLES = 100;
@@ -56,6 +64,7 @@ export const OVER_SCROLL_DISTANCE_PX = 120;
 export const OVERSCROLL_RESISTANCE = 0.35;
 
 const buildAndroidSplineTable = () => {
+  const { p1, p2 } = getSplineControlPoints();
   const position = new Array(ANDROID_SPLINE_SAMPLES + 1).fill(0);
   const time = new Array(ANDROID_SPLINE_SAMPLES + 1).fill(0);
 
@@ -72,7 +81,7 @@ const buildAndroidSplineTable = () => {
     while (true) {
       x = xMin + (xMax - xMin) / 2;
       coef = 3 * x * (1 - x);
-      tx = coef * ((1 - x) * ANDROID_P1 + x * ANDROID_P2) + x * x * x;
+      tx = coef * ((1 - x) * p1 + x * p2) + x * x * x;
       if (Math.abs(tx - alpha) < 1e-5) break;
       if (tx > alpha) xMax = x;
       else xMin = x;
@@ -90,7 +99,7 @@ const buildAndroidSplineTable = () => {
       if (dy > alpha) yMax = y;
       else yMin = y;
     }
-    time[i] = coef * ((1 - y) * ANDROID_P1 + y * ANDROID_P2) + y * y * y;
+    time[i] = coef * ((1 - y) * p1 + y * p2) + y * y * y;
   }
 
   position[ANDROID_SPLINE_SAMPLES] = 1;
@@ -99,7 +108,12 @@ const buildAndroidSplineTable = () => {
   return { position, time };
 };
 
-export const ANDROID_SPLINE_TABLE = buildAndroidSplineTable();
+export let ANDROID_SPLINE_TABLE = buildAndroidSplineTable();
+
+export const rebuildAndroidSplineTableFromConfig = () => {
+  ANDROID_SPLINE_TABLE = buildAndroidSplineTable();
+  return ANDROID_SPLINE_TABLE;
+};
 
 export const getAndroidPhysicalCoeff = (devicePixelRatio = 1) => {
   void devicePixelRatio;

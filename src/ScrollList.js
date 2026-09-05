@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import './ScrollList.css';
 import outputs from './backend_config.json';
 import {
+  clampFlingVelocityPxMs,
   getMinFlingVelocityPxMs,
   isFlingThresholdMet,
 } from './scrollPhysics/flingThreshold';
@@ -14,6 +15,7 @@ import {
   getAndroidPhysicalCoeff,
   getAndroidSplineFlingDistancePx,
   getAndroidSplineFlingDurationMs,
+  rebuildAndroidSplineTableFromConfig,
   getScrollBounds as getOverScrollerBounds,
   clampTranslate as clampTranslateFromBounds,
   applyOverscrollResistance as applyOverscrollResistanceToBounds,
@@ -249,6 +251,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       ? parsedDecelerationRate
       : DEFAULT_DECELERATION_RATE;
     FLING_PHYSICS_CONFIG.inflexion = parsedInflexion;
+    rebuildAndroidSplineTableFromConfig();
 
     setDecelerationRateInput(
       toInputString(parsedDecelerationRate, DEFAULT_PARAMETER_SET.decelerationRate)
@@ -442,6 +445,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
     FLING_PHYSICS_CONFIG.scrollFriction = clampedScrollFriction;
     FLING_PHYSICS_CONFIG.decelerationRate = clampedDecelerationRate;
     FLING_PHYSICS_CONFIG.inflexion = clampedInflexion;
+    rebuildAndroidSplineTableFromConfig();
 
     // Ensure parameter changes are immediately noticeable in test mode.
     if (animationRef.current) {
@@ -941,12 +945,11 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
     pushTouchSample(endNow, lastTouchY == null ? 0 : lastTouchY);
     const fingerVelocityPxMs = getLsq2VelocityPxMs();
 
-    const flingVelocityThresholdPxMs = getMinFlingVelocityPxMs();
-    const meetsFlingThreshold = isFlingThresholdMet(fingerVelocityPxMs, flingVelocityThresholdPxMs);
+    const meetsFlingThreshold = isFlingThresholdMet(fingerVelocityPxMs);
 
     let launchVelocity = 0;
     if (meetsFlingThreshold) {
-      launchVelocity = fingerVelocityPxMs;
+      launchVelocity = clampFlingVelocityPxMs(fingerVelocityPxMs);
     }
 
     if (touchStatsRef.current.active && trialMetricsRef.current) {
@@ -1038,7 +1041,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
         ? Math.max(0.7, Math.min(MAX_EFFECTIVE_DECAY, parsedDecay))
         : DEFAULT_DECAY;
       const fingerVelocityPxMs = getLsq2VelocityPxMs();
-      const flingThresholdPxMs = getMinFlingVelocityPxMs();
       const trialMetrics = trialMetricsRef.current;
       const currentAttempt = {
         targetNumber,
@@ -1094,7 +1096,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
             inflexion: FLING_PHYSICS_CONFIG.inflexion,
             decay,
             fingerVelocityPxMs,
-            flingThresholdPxMs,
             decelerationRateInputValue: decelerationRate,
           },
         });
