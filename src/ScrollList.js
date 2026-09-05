@@ -323,23 +323,31 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
   const synchronizeNextParameterSet = async (attemptCount) => {
     if (isTestMode) return false;
 
-    const immediateParameterSet = await triggerNextParameterSetUpdate(attemptCount);
-    if (immediateParameterSet) {
-      setNextParameterSet(immediateParameterSet);
-      return true;
-    }
-
-    for (let retry = 0; retry < 5; retry += 1) {
-      await wait(500);
-      const participant = await loadParticipantState();
-      const nextSet = normalizeParameterSet(participant?.nextParameterSet);
-      if (nextSet) {
-        setNextParameterSet(nextSet);
+    try {
+      const immediateParameterSet = await triggerNextParameterSetUpdate(attemptCount);
+      if (immediateParameterSet) {
+        setNextParameterSet(immediateParameterSet);
         return true;
       }
+    } catch (error) {
+      // AppSync can time out while Lambda continues in the background.
+      // Continue polling DynamoDB-backed participant state instead of failing fast.
+      console.warn('triggerNextParameterSet returned an error; continue polling participant state', error);
     }
 
-    return false;
+    while (true) {
+      await wait(500);
+      try {
+        const participant = await loadParticipantState();
+        const nextSet = normalizeParameterSet(participant?.nextParameterSet);
+        if (nextSet) {
+          setNextParameterSet(nextSet);
+          return true;
+        }
+      } catch (error) {
+        console.warn('Error while polling participant nextParameterSet; retrying', error);
+      }
+    }
   };
 
   const getStoredAttemptsCount = (participantState) => {
