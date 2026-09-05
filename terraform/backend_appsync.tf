@@ -149,6 +149,13 @@ resource "aws_lambda_function" "next_parameter_set_monitor" {
   tags = var.tags
 }
 
+resource "aws_cloudwatch_log_group" "next_parameter_set_monitor" {
+  name              = "/aws/lambda/${aws_lambda_function.next_parameter_set_monitor.function_name}"
+  retention_in_days = 14
+
+  tags = var.tags
+}
+
 resource "aws_appsync_graphql_api" "api" {
   name                = "${local.resource_name_prefix}-api"
   authentication_type = "API_KEY"

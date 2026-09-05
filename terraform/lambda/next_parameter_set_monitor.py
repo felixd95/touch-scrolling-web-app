@@ -1,8 +1,8 @@
 import json
+import logging
 import math
 import os
 import time
-import traceback
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -20,6 +20,8 @@ REQUIRED_KEYS = tuple(DEFAULT_PARAMETER_SET.keys())
 
 dynamodb = boto3.resource("dynamodb")
 sagemaker_runtime = boto3.client("sagemaker-runtime")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def _to_plain(value):
@@ -46,6 +48,16 @@ def _to_dynamo(value):
     if isinstance(value, list):
         return [_to_dynamo(v) for v in value]
     return value
+
+
+def _log_info(message, **fields):
+    payload = {"message": message, **_to_plain(fields)}
+    logger.info(json.dumps(payload, ensure_ascii=True))
+
+
+def _log_warning(message, **fields):
+    payload = {"message": message, **_to_plain(fields)}
+    logger.warning(json.dumps(payload, ensure_ascii=True))
 
 
 def _collect_numeric_field(attempts, key):
@@ -428,7 +440,7 @@ def _build_next_parameter_set(attempt_count, generated_params):
     }
 
 
-def _build_failure_next_parameter_set(participant_id, attempt_count, stage, error, extra=None):
+def _build_failure_next_parameter_set(participant_id, attempt_count, stage, error):
     safe_attempt_count = int(attempt_count) if isinstance(attempt_count, int) else 0
     completed_block_count = math.floor(safe_attempt_count / RUNS_PER_BLOCK) if safe_attempt_count >= 0 else 0
     payload = {
@@ -443,10 +455,7 @@ def _build_failure_next_parameter_set(participant_id, attempt_count, stage, erro
         "errorStage": stage,
         "errorType": type(error).__name__,
         "errorMessage": str(error),
-        "traceback": traceback.format_exc(),
     }
-    if isinstance(extra, dict) and extra:
-        payload["debug"] = _to_plain(extra)
     return payload
 
 
@@ -487,10 +496,6 @@ def handler(event, context):
     participant_id = args.get("participantId")
     attempt_count_raw = args.get("attemptCount", 0)
     stage = "init"
-    debug_payload = {
-        "hasTableName": bool(table_name),
-        "rawAttemptCount": attempt_count_raw,
-    }
 
     try:
         if not table_name:
@@ -498,6 +503,13 @@ def handler(event, context):
 
         stage = "parse-arguments"
         attempt_count = int(attempt_count_raw)
+
+        _log_info(
+            "next-parameter-set invocation started",
+            participantId=participant_id,
+            attemptCount=attempt_count,
+            awsRequestId=getattr(context, "aws_request_id", None),
+        )
 
         if not participant_id:
             raise ValueError("Missing participantId")
@@ -509,9 +521,14 @@ def handler(event, context):
         participant_state = _load_participant_state(table_name, participant_id)
         attempts = participant_state.get("attempts", [])
         flat_attempts = _flatten_attempts_for_ml(attempts)
-        debug_payload["storedAttemptCount"] = len(flat_attempts)
 
         if len(flat_attempts) < attempt_count:
+            _log_warning(
+                "not enough attempts stored",
+                participantId=participant_id,
+                attemptCount=attempt_count,
+                storedAttemptCount=len(flat_attempts),
+            )
             raise ValueError(
                 f"Not enough attempts stored for participant {participant_id}: "
                 f"expected at least {attempt_count}, got {len(flat_attempts)}"
@@ -529,8 +546,14 @@ def handler(event, context):
         participants_data = other_participants_data + [
             {"participantId": participant_id, "attempts": all_attempt_data}
         ]
-        debug_payload["pooledParticipantCount"] = len(participants_data)
-        debug_payload["pooledAttemptCount"] = sum(len(entry.get("attempts", [])) for entry in participants_data)
+        pooled_attempt_count = sum(len(entry.get("attempts", [])) for entry in participants_data)
+
+        _log_info(
+            "ml payload prepared",
+            participantId=participant_id,
+            pooledParticipantCount=len(participants_data),
+            pooledAttemptCount=pooled_attempt_count,
+        )
 
         stage = "invoke-sagemaker"
         generated_params, raw_prediction, sagemaker_latency_ms = _invoke_sagemaker(
@@ -547,7 +570,7 @@ def handler(event, context):
             raw_prediction=raw_prediction,
             sagemaker_latency_ms=sagemaker_latency_ms,
             pooled_participant_count=len(participants_data),
-            pooled_attempt_count=debug_payload["pooledAttemptCount"],
+            pooled_attempt_count=pooled_attempt_count,
         )
 
         stage = "store-success-state"
@@ -565,16 +588,32 @@ def handler(event, context):
             },
         )
 
+        _log_info(
+            "next parameter set stored",
+            participantId=participant_id,
+            attemptCount=attempt_count,
+            generatedFromAttemptCount=next_parameter_set.get("generatedFromAttemptCount"),
+            sagemakerLatencyMs=round(sagemaker_latency_ms, 1),
+        )
+
         return {
             "nextParameterSet": json.dumps(next_parameter_set)
         }
     except Exception as error:
+        logger.exception(
+            "next-parameter-set invocation failed",
+            extra={
+                "participantId": participant_id,
+                "attemptCount": attempt_count_raw,
+                "stage": stage,
+            },
+        )
+
         failure_payload = _build_failure_next_parameter_set(
             participant_id=participant_id,
             attempt_count=int(attempt_count_raw) if str(attempt_count_raw).isdigit() else 0,
             stage=stage,
             error=error,
-            extra=debug_payload,
         )
 
         try:
