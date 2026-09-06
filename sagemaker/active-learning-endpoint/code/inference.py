@@ -50,6 +50,12 @@ DEDUPLICATION_ROUND_DECIMALS = 6
 OBSERVATION_NOISE_FLOOR = 1e-4
 CHOLESKY_JITTER = 1e-3
 
+PARAMETER_DECIMALS = {
+    "scrollFriction": 3,
+    "inflexion": 2,
+    "decelerationRate": 4,
+}
+
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
     return {}
@@ -320,7 +326,8 @@ def _denormalize_candidate_params(candidate_norm: np.ndarray, scales: Dict[str, 
     for dim, key in enumerate(REQUIRED_KEYS):
         scale = scales["params"][key]
         value = float(scale["low"] + float(candidate_norm[dim]) * float(scale["span"]))
-        params[key] = _clip_param(value, key)
+        clipped = _clip_param(value, key)
+        params[key] = round(clipped, PARAMETER_DECIMALS.get(key, 4))
     return params
 
 

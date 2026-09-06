@@ -17,6 +17,11 @@ DEFAULT_PARAMETER_SET = {
 }
 
 REQUIRED_KEYS = tuple(DEFAULT_PARAMETER_SET.keys())
+PARAMETER_DECIMALS = {
+    "scrollFriction": 3,
+    "inflexion": 2,
+    "decelerationRate": 4,
+}
 
 dynamodb = boto3.resource("dynamodb")
 sagemaker_runtime = boto3.client("sagemaker-runtime")
@@ -233,6 +238,21 @@ def _normalize_parameter_set(raw):
     return normalized
 
 
+def _round_parameter_precision(parameter_set):
+    if not isinstance(parameter_set, dict):
+        return parameter_set
+
+    rounded = dict(parameter_set)
+    for key, decimals in PARAMETER_DECIMALS.items():
+        value = rounded.get(key)
+        if isinstance(value, bool):
+            continue
+        if isinstance(value, (int, float)):
+            rounded[key] = round(float(value), decimals)
+
+    return rounded
+
+
 def _normalize_attempts(raw_attempts):
     if raw_attempts is None:
         return []
@@ -429,9 +449,10 @@ def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, part
 def _build_next_parameter_set(attempt_count, generated_params):
     completed_block_count = math.floor(attempt_count / RUNS_PER_BLOCK)
     generated_from_attempt_count = completed_block_count * RUNS_PER_BLOCK
+    rounded_params = _round_parameter_precision(generated_params)
 
     return {
-        **generated_params,
+        **rounded_params,
         "blockSize": RUNS_PER_BLOCK,
         "status": "ready",
         "source": "terraform-appsync-sagemaker-active-learning",
@@ -456,7 +477,7 @@ def _build_failure_next_parameter_set(participant_id, attempt_count, stage, erro
         "errorType": type(error).__name__,
         "errorMessage": str(error),
     }
-    return payload
+    return _round_parameter_precision(payload)
 
 
 def _store_failure_state(table_name, participant_id, failure_payload):
