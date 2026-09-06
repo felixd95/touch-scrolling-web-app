@@ -56,15 +56,15 @@ const createRandomParameterSet = (attemptCount = 0) => ({
   scrollFriction: Number(getRandomInRange(
     FLING_PHYSICS_BOUNDS.scrollFriction.min,
     FLING_PHYSICS_BOUNDS.scrollFriction.max,
-  ).toFixed(5)),
+  ).toFixed(3)),
   decelerationRate: Number(getRandomInRange(
     FLING_PHYSICS_BOUNDS.decelerationRate.min,
     FLING_PHYSICS_BOUNDS.decelerationRate.max,
-  ).toFixed(3)),
+  ).toFixed(4)),
   inflexion: Number(getRandomInRange(
     FLING_PHYSICS_BOUNDS.inflexion.min,
     FLING_PHYSICS_BOUNDS.inflexion.max,
-  ).toFixed(3)),
+  ).toFixed(2)),
   blockSize: RUNS_PER_BLOCK,
   status: 'ready',
   source: 'random-initial-parameter-set',

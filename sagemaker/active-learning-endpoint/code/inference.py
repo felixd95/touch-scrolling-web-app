@@ -11,7 +11,6 @@ from botorch.acquisition.multi_objective.logei import (  # noqa: E402
 from botorch.fit import fit_gpytorch_mll  # noqa: E402
 from botorch.models import ModelListGP, SingleTaskGP  # noqa: E402
 from botorch.models.transforms.outcome import Standardize  # noqa: E402
-from botorch.optim import optimize_acqf  # noqa: E402
 from gpytorch.mlls.sum_marginal_log_likelihood import (  # noqa: E402
     SumMarginalLogLikelihood,
 )
@@ -40,9 +39,7 @@ MIN_OBSERVATIONS_FOR_BO = 2
 MAX_BLOCKS_PER_PARTICIPANT = 5
 
 # Coarse search settings to keep endpoint latency stable.
-BO_NUM_RESTARTS = 3
-BO_RAW_SAMPLES = 32
-BO_MAXITER = 30
+BO_GRID_CANDIDATE_COUNT = 256
 BO_PROBE_COUNT = 16
 
 # Numerical stability configuration for GP fitting.
@@ -331,6 +328,42 @@ def _denormalize_candidate_params(candidate_norm: np.ndarray, scales: Dict[str, 
     return params
 
 
+def _sample_quantized_candidate_matrix(candidate_count: int) -> np.ndarray:
+    if candidate_count <= 0:
+        candidate_count = 1
+
+    columns = []
+    for key in REQUIRED_KEYS:
+        low, high = PARAMETER_BOUNDS[key]
+        decimals = PARAMETER_DECIMALS[key]
+        scale = 10 ** decimals
+        low_i = int(np.ceil(low * scale))
+        high_i = int(np.floor(high * scale))
+        if high_i < low_i:
+            low_i = high_i = int(round(DEFAULT_PARAMETER_SET[key] * scale))
+
+        sampled_i = np.random.randint(low_i, high_i + 1, size=candidate_count)
+        columns.append(sampled_i.astype(float) / float(scale))
+
+    return np.stack(columns, axis=1)
+
+
+def _normalize_candidate_matrix(
+    candidate_params: np.ndarray,
+    input_scales: Dict[str, Any],
+    fixed_task_feature: float,
+) -> np.ndarray:
+    candidate_norm = np.zeros((candidate_params.shape[0], len(REQUIRED_KEYS) + 1), dtype=float)
+    for dim, key in enumerate(REQUIRED_KEYS):
+        scale = input_scales["params"][key]
+        span = max(float(scale["span"]), 1e-9)
+        candidate_norm[:, dim] = (candidate_params[:, dim] - float(scale["low"])) / span
+        candidate_norm[:, dim] = np.clip(candidate_norm[:, dim], 0.0, 1.0)
+
+    candidate_norm[:, len(REQUIRED_KEYS)] = float(np.clip(fixed_task_feature, 0.0, 1.0))
+    return candidate_norm
+
+
 def _compute_ref_point_for_maximization(train_objectives: "torch.Tensor") -> List[float]:
     mins = train_objectives.min(dim=0).values
     maxs = train_objectives.max(dim=0).values
@@ -381,12 +414,6 @@ def _select_candidate_with_qlognehvi(
     with gpytorch.settings.cholesky_jitter(CHOLESKY_JITTER):
         fit_gpytorch_mll(mll)
 
-    bounds = torch.tensor(
-        [[0.0] * (len(REQUIRED_KEYS) + 1), [1.0] * (len(REQUIRED_KEYS) + 1)],
-        dtype=dtype,
-        device=device,
-    )
-
     task_scale = input_scales["task"]
     if task_scale.get("isDegenerate"):
         fixed_task_feature = 0.0
@@ -404,32 +431,25 @@ def _select_candidate_with_qlognehvi(
         prune_baseline=True,
     )
 
-    candidate, _ = optimize_acqf(
-        acq_function=acquisition,
-        bounds=bounds,
-        q=1,
-        num_restarts=BO_NUM_RESTARTS,
-        raw_samples=BO_RAW_SAMPLES,
-        fixed_features={len(REQUIRED_KEYS): fixed_task_feature},
-        options={"batch_limit": 2, "maxiter": BO_MAXITER},
-    )
-
-    candidate_batch = candidate.unsqueeze(0)
-    acquisition_value = float(acquisition(candidate_batch).detach().cpu().item())
+    candidate_params_np = _sample_quantized_candidate_matrix(BO_GRID_CANDIDATE_COUNT)
+    candidate_norm_np = _normalize_candidate_matrix(candidate_params_np, input_scales, fixed_task_feature)
+    candidate_norm = torch.tensor(candidate_norm_np, dtype=dtype, device=device)
+    candidate_values = acquisition(candidate_norm.unsqueeze(1)).detach().cpu().numpy()
+    best_index = int(np.argmax(candidate_values))
+    acquisition_value = float(candidate_values[best_index])
+    best_candidate_norm = candidate_norm[best_index : best_index + 1]
 
     # Approximate the candidate rank by comparing against random probes under the
     # same fixed participant task feature.
     probe_count = BO_PROBE_COUNT
-    probe = torch.rand((probe_count, len(REQUIRED_KEYS) + 1), dtype=dtype, device=device)
-    lower = bounds[0]
-    upper = bounds[1]
-    probe = lower + (upper - lower) * probe
-    probe[:, len(REQUIRED_KEYS)] = fixed_task_feature
+    probe_params_np = _sample_quantized_candidate_matrix(probe_count)
+    probe_norm_np = _normalize_candidate_matrix(probe_params_np, input_scales, fixed_task_feature)
+    probe = torch.tensor(probe_norm_np, dtype=dtype, device=device)
     probe_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy().tolist()
     better_count = sum(1 for value in probe_values if value > acquisition_value)
     candidate_rank_approx = int(better_count + 1)
 
-    candidate_np = candidate.detach().cpu().numpy()[0]
+    candidate_np = best_candidate_norm.detach().cpu().numpy()[0]
     parameters = _denormalize_candidate_params(candidate_np, input_scales)
 
     diagnostics = {
@@ -453,11 +473,11 @@ def _select_candidate_with_qlognehvi(
             "choleskyJitter": CHOLESKY_JITTER,
         },
         "searchConfig": {
-            "numRestarts": BO_NUM_RESTARTS,
-            "rawSamples": BO_RAW_SAMPLES,
-            "maxIter": BO_MAXITER,
+            "strategy": "quantized-random-acquisition-search",
+            "gridCandidateCount": BO_GRID_CANDIDATE_COUNT,
             "probeCount": BO_PROBE_COUNT,
             "maxBlocksPerParticipant": MAX_BLOCKS_PER_PARTICIPANT,
+            "parameterDecimals": PARAMETER_DECIMALS,
         },
     }
 
