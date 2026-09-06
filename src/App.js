@@ -253,6 +253,22 @@ function ParticipantsList({ onBack }) {
     return groups;
   };
 
+  const getMetricForRunGroup = (participant, group, fallbackIndex) => {
+    const metrics = Array.isArray(participant?.parameterBlockMetrics)
+      ? participant.parameterBlockMetrics
+      : [];
+    if (metrics.length === 0) return null;
+
+    const blockIndex = Number.isFinite(Number(group?.blockIndex))
+      ? Math.trunc(Number(group.blockIndex))
+      : (fallbackIndex + 1);
+
+    return metrics.find((metric) => {
+      const metricBlock = Number(metric?.blockNumber);
+      return Number.isFinite(metricBlock) && Math.trunc(metricBlock) === blockIndex;
+    }) || null;
+  };
+
   const parseAttemptsPayload = (rawAttempts) => {
     if (!rawAttempts) return { blocks: [], flat: [] };
 
@@ -647,64 +663,6 @@ function ParticipantsList({ onBack }) {
                   Naechster Parametersatz: mu={formatMetric(selectedParticipant.nextParameterSet.scrollFriction, 4)}, beta={formatMetric(selectedParticipant.nextParameterSet.inflexion, 3)}, r={formatMetric(selectedParticipant.nextParameterSet.decelerationRate, 3)}
                 </div>
               )}
-              {(selectedParticipant.parameterBlockMetrics || []).length > 0 && (
-                <div style={{ marginBottom: 10, padding: 10, border: '1px solid #d1e3f2', borderRadius: 8, background: '#f4f9ff' }}>
-                  <strong style={{ fontSize: 13, color: '#35506b' }}>ML-Metriken pro generiertem Block</strong>
-                  <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
-                    {(selectedParticipant.parameterBlockMetrics || []).map((metric, mi) => (
-                      <div
-                        key={`block-metric-${metric.blockNumber ?? mi}`}
-                        style={{ fontSize: 12, color: '#4c5967', lineHeight: 1.6, borderTop: mi > 0 ? '1px dashed #d1e3f2' : 'none', paddingTop: mi > 0 ? 8 : 0 }}
-                      >
-                        <div style={{ fontWeight: 600, color: '#35506b' }}>
-                          Block {metric.blockNumber ?? (mi + 1)}
-                          {metric.generatedAt ? ` · ${new Date(metric.generatedAt).toLocaleString()}` : ''}
-                        </div>
-                        {metric.completionTimeMs && (
-                          <span>Zeit: ⌀{formatMetric(metric.completionTimeMs.mean)} ms (Median {formatMetric(metric.completionTimeMs.median)} ms, σ {formatMetric(metric.completionTimeMs.std)}) · </span>
-                        )}
-                        {metric.overshoots && (
-                          <span>Overshoots: ⌀{formatMetric(metric.overshoots.mean)} (max {formatMetric(metric.overshoots.max)}) · </span>
-                        )}
-                        {metric.maxOvershootDistancePx && (
-                          <span>max. Overshoot-Distanz: {formatMetric(metric.maxOvershootDistancePx.max)} px · </span>
-                        )}
-                        {Number.isFinite(Number(metric.sagemakerLatencyMs)) && (
-                          <span>Generierung: {formatMetric(metric.sagemakerLatencyMs)} ms · </span>
-                        )}
-                        {Number.isFinite(Number(metric.pooledAttemptCount)) && (
-                          <span>Datenbasis: {metric.pooledAttemptCount} Versuche / {metric.pooledParticipantCount} Teilnehmer</span>
-                        )}
-                        {metric.model && (
-                          <div style={{ marginTop: 4 }}>
-                            {Number.isFinite(Number(metric.model.acquisitionValue)) && (
-                              <span>Acq: {formatMetric(metric.model.acquisitionValue, 5)} · </span>
-                            )}
-                            {Number.isFinite(Number(metric.model.candidateRankApprox)) && Number.isFinite(Number(metric.model.candidateRankProbeCount)) && (
-                              <span>Candidate-Rank: {formatIntegerMetric(metric.model.candidateRankApprox)}/{formatIntegerMetric(metric.model.candidateRankProbeCount)} · </span>
-                            )}
-                            {Array.isArray(metric.model.refPoint) && metric.model.refPoint.length > 0 && (
-                              <span>ref_point: [{metric.model.refPoint.map((value) => formatMetric(value, 2)).join(', ')}] · </span>
-                            )}
-                            {metric.model.strategy && (
-                              <span>Strategie: {metric.model.strategy} · </span>
-                            )}
-                            {metric.model.version && (
-                              <span>Version: {metric.model.version} · </span>
-                            )}
-                            {Number.isFinite(Number(metric.model.trainingRowCount)) && (
-                              <span>Trainingszeilen: {formatIntegerMetric(metric.model.trainingRowCount)} · </span>
-                            )}
-                            {Number.isFinite(Number(metric.model.objectiveCount)) && (
-                              <span>Objectives: {formatIntegerMetric(metric.model.objectiveCount)}</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
               <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
                 {(selectedParticipant.runGroups || []).length === 0 ? (
                   <p>Keine Durchläufe vorhanden.</p>
@@ -713,6 +671,7 @@ function ParticipantsList({ onBack }) {
                     const isOpen = i === selectedRunIndex;
                     const attempts = group.attempts || [];
                     const parameterItems = getBlockParameterItems(group.parameterSet);
+                    const linkedMetric = getMetricForRunGroup(selectedParticipant, group, i);
 
                     return (
                       <div
@@ -753,6 +712,19 @@ function ParticipantsList({ onBack }) {
                           <span style={{ fontSize: 13, color: '#4c5967', lineHeight: 1.5 }}>
                             {formatBlockParameterSummary(group.parameterSet)}
                           </span>
+                          {linkedMetric && (
+                            <div style={{ fontSize: 12, color: '#35506b', lineHeight: 1.5 }}>
+                              {Number.isFinite(Number(linkedMetric.sagemakerLatencyMs)) && (
+                                <span>Generierung: {formatMetric(linkedMetric.sagemakerLatencyMs)} ms · </span>
+                              )}
+                              {Number.isFinite(Number(linkedMetric.pooledAttemptCount)) && (
+                                <span>Datenbasis: {formatIntegerMetric(linkedMetric.pooledAttemptCount)} Versuche / {formatIntegerMetric(linkedMetric.pooledParticipantCount)} Teilnehmer · </span>
+                              )}
+                              {linkedMetric.model && Number.isFinite(Number(linkedMetric.model.acquisitionValue)) && (
+                                <span>Acq: {formatMetric(linkedMetric.model.acquisitionValue, 5)}</span>
+                              )}
+                            </div>
+                          )}
                           {parameterItems.length > 0 && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                               {parameterItems.map((item) => (
@@ -776,6 +748,67 @@ function ParticipantsList({ onBack }) {
 
                         {isOpen && (
                           <div style={{ padding: '0 12px 12px' }}>
+                            {linkedMetric && (
+                              <div
+                                style={{
+                                  marginBottom: 10,
+                                  padding: 10,
+                                  border: '1px solid #d1e3f2',
+                                  borderRadius: 8,
+                                  background: '#f4f9ff',
+                                  fontSize: 12,
+                                  color: '#4c5967',
+                                  lineHeight: 1.6,
+                                }}
+                              >
+                                <div style={{ fontWeight: 600, color: '#35506b' }}>
+                                  ML-Metriken zu diesem Block
+                                  {linkedMetric.generatedAt ? ` · ${new Date(linkedMetric.generatedAt).toLocaleString()}` : ''}
+                                </div>
+                                {linkedMetric.completionTimeMs && (
+                                  <div>
+                                    Zeit: ⌀{formatMetric(linkedMetric.completionTimeMs.mean)} ms (Median {formatMetric(linkedMetric.completionTimeMs.median)} ms, σ {formatMetric(linkedMetric.completionTimeMs.std)})
+                                  </div>
+                                )}
+                                {linkedMetric.overshoots && (
+                                  <div>Overshoots: ⌀{formatMetric(linkedMetric.overshoots.mean)} (max {formatMetric(linkedMetric.overshoots.max)})</div>
+                                )}
+                                {linkedMetric.maxOvershootDistancePx && (
+                                  <div>max. Overshoot-Distanz: {formatMetric(linkedMetric.maxOvershootDistancePx.max)} px</div>
+                                )}
+                                {Number.isFinite(Number(linkedMetric.sagemakerLatencyMs)) && (
+                                  <div>Generierung: {formatMetric(linkedMetric.sagemakerLatencyMs)} ms</div>
+                                )}
+                                {Number.isFinite(Number(linkedMetric.pooledAttemptCount)) && (
+                                  <div>Datenbasis: {formatIntegerMetric(linkedMetric.pooledAttemptCount)} Versuche / {formatIntegerMetric(linkedMetric.pooledParticipantCount)} Teilnehmer</div>
+                                )}
+                                {linkedMetric.model && (
+                                  <div>
+                                    {Number.isFinite(Number(linkedMetric.model.acquisitionValue)) && (
+                                      <span>Acq: {formatMetric(linkedMetric.model.acquisitionValue, 5)} · </span>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.candidateRankApprox)) && Number.isFinite(Number(linkedMetric.model.candidateRankProbeCount)) && (
+                                      <span>Candidate-Rank: {formatIntegerMetric(linkedMetric.model.candidateRankApprox)}/{formatIntegerMetric(linkedMetric.model.candidateRankProbeCount)} · </span>
+                                    )}
+                                    {Array.isArray(linkedMetric.model.refPoint) && linkedMetric.model.refPoint.length > 0 && (
+                                      <span>ref_point: [{linkedMetric.model.refPoint.map((value) => formatMetric(value, 2)).join(', ')}] · </span>
+                                    )}
+                                    {linkedMetric.model.strategy && (
+                                      <span>Strategie: {linkedMetric.model.strategy} · </span>
+                                    )}
+                                    {linkedMetric.model.version && (
+                                      <span>Version: {linkedMetric.model.version} · </span>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.trainingRowCount)) && (
+                                      <span>Trainingszeilen: {formatIntegerMetric(linkedMetric.model.trainingRowCount)} · </span>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.objectiveCount)) && (
+                                      <span>Objectives: {formatIntegerMetric(linkedMetric.model.objectiveCount)}</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                             <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
                               <button
                                 className="nav-button"
