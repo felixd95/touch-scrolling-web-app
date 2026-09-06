@@ -271,8 +271,8 @@ def _normalize_attempts(raw_attempts):
     return [_to_plain(item) for item in raw_attempts]
 
 
-def _flatten_attempts_for_ml(raw_attempts):
-    """Return a flat attempt list that is robust for both legacy and block-based formats."""
+def _build_block_records_for_ml(raw_attempts):
+    """Return one ML record per run/block with aggregated completion time and parameters."""
     if not isinstance(raw_attempts, list):
         return []
 
@@ -295,13 +295,13 @@ def _flatten_attempts_for_ml(raw_attempts):
 
         return extracted
 
-    # New format: [{runNumber, parameterSet, attempts:[...]}]
+    # New format: [{runNumber, parameterSet, totalTimeMs?, attempts:[...]}]
     looks_like_blocks = any(
         isinstance(entry, dict) and isinstance(entry.get("attempts"), list)
         for entry in raw_attempts
     )
     if looks_like_blocks:
-        flattened = []
+        block_records = []
         for block_entry in raw_attempts:
             if not isinstance(block_entry, dict):
                 continue
@@ -313,25 +313,51 @@ def _flatten_attempts_for_ml(raw_attempts):
             if not isinstance(attempts, list):
                 continue
 
-            for idx, attempt in enumerate(attempts):
-                if not isinstance(attempt, dict):
-                    continue
+            total_time_ms = block_entry.get("totalTimeMs")
+            try:
+                total_time_ms = float(total_time_ms)
+            except Exception:
+                total_time_ms = None
 
-                attempt_paper_params = _extract_required_paper_params(attempt.get("paperParams"))
-                effective_paper_params = attempt_paper_params or block_paper_params
-                if effective_paper_params is None:
-                    continue
+            if total_time_ms is None:
+                total_time_ms = 0.0
+                for attempt in attempts:
+                    if not isinstance(attempt, dict):
+                        continue
+                    value = attempt.get("timeMs")
+                    if isinstance(value, bool):
+                        continue
+                    try:
+                        total_time_ms += float(value)
+                    except Exception:
+                        continue
 
-                flattened.append(
-                    {
-                        **attempt,
-                        "blockIndex": attempt.get("blockIndex") if attempt.get("blockIndex") is not None else run_number,
-                        "attemptInBlock": attempt.get("attemptInBlock") if attempt.get("attemptInBlock") is not None else (idx + 1),
-                        "paperParams": effective_paper_params,
-                    }
-                )
+            if total_time_ms <= 0:
+                continue
 
-        return flattened
+            # Prefer block-level parameters; if absent, fall back to the first valid attempt-level paperParams.
+            effective_paper_params = block_paper_params
+            if effective_paper_params is None:
+                for attempt in attempts:
+                    if not isinstance(attempt, dict):
+                        continue
+                    attempt_paper_params = _extract_required_paper_params(attempt.get("paperParams"))
+                    if attempt_paper_params is not None:
+                        effective_paper_params = attempt_paper_params
+                        break
+
+            if effective_paper_params is None:
+                continue
+
+            block_records.append(
+                {
+                    "blockIndex": run_number,
+                    "timeMs": float(total_time_ms),
+                    "paperParams": effective_paper_params,
+                }
+            )
+
+        return block_records
 
     # Legacy format: flatten and attach canonical paperParams if available.
     flattened = []
@@ -350,7 +376,48 @@ def _flatten_attempts_for_ml(raw_attempts):
             "paperParams": paper_params,
         })
 
-    return flattened
+    grouped = {}
+    for idx, attempt in enumerate(flattened):
+        block_index = attempt.get("blockIndex")
+        try:
+            block_index = int(block_index)
+        except Exception:
+            block_index = (idx // RUNS_PER_BLOCK) + 1
+
+        grouped.setdefault(block_index, []).append(attempt)
+
+    block_records = []
+    for block_index in sorted(grouped.keys()):
+        entries = grouped[block_index]
+        if not entries:
+            continue
+
+        total_time_ms = 0.0
+        for attempt in entries:
+            value = attempt.get("timeMs")
+            if isinstance(value, bool):
+                continue
+            try:
+                total_time_ms += float(value)
+            except Exception:
+                continue
+
+        if total_time_ms <= 0:
+            continue
+
+        paper_params = entries[0].get("paperParams")
+        if not isinstance(paper_params, dict):
+            continue
+
+        block_records.append(
+            {
+                "blockIndex": int(block_index),
+                "timeMs": float(total_time_ms),
+                "paperParams": paper_params,
+            }
+        )
+
+    return block_records
 
 
 def _load_participant_state(table_name, participant_id):
@@ -391,13 +458,13 @@ def _scan_other_participants_data(table_name, exclude_participant_id):
         if not other_participant_id or other_participant_id == exclude_participant_id:
             continue
 
-        flat_attempts = _flatten_attempts_for_ml(_normalize_attempts(item.get("attempts")))
-        if not flat_attempts:
+        block_records = _build_block_records_for_ml(_normalize_attempts(item.get("attempts")))
+        if not block_records:
             continue
 
         participants_data.append({
             "participantId": other_participant_id,
-            "attempts": flat_attempts,
+            "attempts": block_records,
         })
 
     return participants_data
@@ -541,22 +608,24 @@ def handler(event, context):
         stage = "load-participant-state"
         participant_state = _load_participant_state(table_name, participant_id)
         attempts = participant_state.get("attempts", [])
-        flat_attempts = _flatten_attempts_for_ml(attempts)
+        block_records = _build_block_records_for_ml(attempts)
+        completed_block_count = attempt_count // RUNS_PER_BLOCK
 
-        if len(flat_attempts) < attempt_count:
+        if len(block_records) < completed_block_count:
             _log_warning(
-                "not enough attempts stored",
+                "not enough block records stored",
                 participantId=participant_id,
                 attemptCount=attempt_count,
-                storedAttemptCount=len(flat_attempts),
+                storedBlockCount=len(block_records),
+                expectedBlockCount=completed_block_count,
             )
             raise ValueError(
-                f"Not enough attempts stored for participant {participant_id}: "
-                f"expected at least {attempt_count}, got {len(flat_attempts)}"
+                f"Not enough block records stored for participant {participant_id}: "
+                f"expected at least {completed_block_count}, got {len(block_records)}"
             )
 
         stage = "prepare-ml-payload"
-        all_attempt_data = flat_attempts
+        all_attempt_data = block_records
         current_params = (
             _normalize_parameter_set(participant_state.get("currentParameterSet"))
             or _normalize_parameter_set(participant_state.get("nextParameterSet"))

@@ -173,17 +173,22 @@ def _build_block_observations(recent_data: List[Dict[str, Any]]) -> List[Dict[st
         x = [block_params[key] for key in REQUIRED_KEYS]
 
         times_per_target = {target: [] for target in TARGET_NUMBERS}
+        aggregate_times = []
         for entry in entries:
             target = entry.get("targetNumber")
             time_ms = entry.get("timeMs")
-            if target in times_per_target and isinstance(time_ms, float):
-                times_per_target[target].append(time_ms)
+            if isinstance(time_ms, float):
+                aggregate_times.append(time_ms)
+                if target in times_per_target:
+                    times_per_target[target].append(time_ms)
 
         available_times = [t for vals in times_per_target.values() for t in vals]
-        if not available_times:
+        if not aggregate_times:
             continue
 
-        fallback_time = float(sum(available_times) / len(available_times))
+        # If target numbers are not available (new aggregated block format), use
+        # the block-level total/mean time as a shared objective proxy.
+        fallback_time = float(sum(aggregate_times) / len(aggregate_times))
         time_vector = []
         for target in TARGET_NUMBERS:
             values = times_per_target[target]

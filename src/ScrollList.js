@@ -560,6 +560,10 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       const nextBlock = {
         runNumber: blockIndex,
         parameterSet: blockParameterSet && typeof blockParameterSet === 'object' ? blockParameterSet : null,
+        totalTimeMs: blockAttempts.reduce(
+          (sum, attempt) => sum + (Number.isFinite(Number(attempt?.timeMs)) ? Number(attempt.timeMs) : 0),
+          0,
+        ),
         attempts: blockAttempts.map((attempt, index) => ({
           attemptInBlock: index + 1,
           targetNumber: Number.isFinite(Number(attempt?.targetNumber))
