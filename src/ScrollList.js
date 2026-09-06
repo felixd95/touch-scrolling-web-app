@@ -557,13 +557,21 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       const attemptsBeforeAppend = countAttemptsInBlocks(existingBlocks);
       const blockIndex = Math.floor(attemptsBeforeAppend / RUNS_PER_BLOCK) + 1;
 
+      const normalizedTimeTerms = blockAttempts.map((attempt) => {
+        const timeMs = Number(attempt?.timeMs);
+        const targetNumber = Number(attempt?.targetNumber);
+        if (!Number.isFinite(timeMs) || !Number.isFinite(targetNumber) || targetNumber <= 0) {
+          throw new Error('Ungueltige Blockdaten: timeMs/targetNumber muessen numerisch sein und targetNumber > 0.');
+        }
+        return timeMs / targetNumber;
+      });
+
+      const totalNormalizedTimeMs = normalizedTimeTerms.reduce((sum, term) => sum + term, 0);
+
       const nextBlock = {
         runNumber: blockIndex,
         parameterSet: blockParameterSet && typeof blockParameterSet === 'object' ? blockParameterSet : null,
-        totalTimeMs: blockAttempts.reduce(
-          (sum, attempt) => sum + (Number.isFinite(Number(attempt?.timeMs)) ? Number(attempt.timeMs) : 0),
-          0,
-        ),
+        totalNormalizedTimeMs,
         attempts: blockAttempts.map((attempt, index) => ({
           attemptInBlock: index + 1,
           targetNumber: Number.isFinite(Number(attempt?.targetNumber))

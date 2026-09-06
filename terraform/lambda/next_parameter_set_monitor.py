@@ -295,124 +295,49 @@ def _build_block_records_for_ml(raw_attempts):
 
         return extracted
 
-    # New format: [{runNumber, parameterSet, totalTimeMs?, attempts:[...]}]
+    # Strict format: [{runNumber, parameterSet, totalNormalizedTimeMs, attempts:[...]}]
     looks_like_blocks = any(
         isinstance(entry, dict) and isinstance(entry.get("attempts"), list)
         for entry in raw_attempts
     )
-    if looks_like_blocks:
-        block_records = []
-        for block_entry in raw_attempts:
-            if not isinstance(block_entry, dict):
-                continue
-
-            run_number = block_entry.get("runNumber")
-            parameter_set = block_entry.get("parameterSet")
-            block_paper_params = _extract_required_paper_params(parameter_set)
-            attempts = block_entry.get("attempts")
-            if not isinstance(attempts, list):
-                continue
-
-            total_time_ms = block_entry.get("totalTimeMs")
-            try:
-                total_time_ms = float(total_time_ms)
-            except Exception:
-                total_time_ms = None
-
-            if total_time_ms is None:
-                total_time_ms = 0.0
-                for attempt in attempts:
-                    if not isinstance(attempt, dict):
-                        continue
-                    value = attempt.get("timeMs")
-                    if isinstance(value, bool):
-                        continue
-                    try:
-                        total_time_ms += float(value)
-                    except Exception:
-                        continue
-
-            if total_time_ms <= 0:
-                continue
-
-            # Prefer block-level parameters; if absent, fall back to the first valid attempt-level paperParams.
-            effective_paper_params = block_paper_params
-            if effective_paper_params is None:
-                for attempt in attempts:
-                    if not isinstance(attempt, dict):
-                        continue
-                    attempt_paper_params = _extract_required_paper_params(attempt.get("paperParams"))
-                    if attempt_paper_params is not None:
-                        effective_paper_params = attempt_paper_params
-                        break
-
-            if effective_paper_params is None:
-                continue
-
-            block_records.append(
-                {
-                    "blockIndex": run_number,
-                    "timeMs": float(total_time_ms),
-                    "paperParams": effective_paper_params,
-                }
-            )
-
-        return block_records
-
-    # Legacy format: flatten and attach canonical paperParams if available.
-    flattened = []
-    for entry in raw_attempts:
-        if not isinstance(entry, dict):
-            continue
-
-        paper_params = _extract_required_paper_params(entry.get("paperParams"))
-        if paper_params is None:
-            paper_params = _extract_required_paper_params(entry.get("blockParameterSet"))
-        if paper_params is None:
-            continue
-
-        flattened.append({
-            **entry,
-            "paperParams": paper_params,
-        })
-
-    grouped = {}
-    for idx, attempt in enumerate(flattened):
-        block_index = attempt.get("blockIndex")
-        try:
-            block_index = int(block_index)
-        except Exception:
-            block_index = (idx // RUNS_PER_BLOCK) + 1
-
-        grouped.setdefault(block_index, []).append(attempt)
+    if not looks_like_blocks:
+        return []
 
     block_records = []
-    for block_index in sorted(grouped.keys()):
-        entries = grouped[block_index]
-        if not entries:
+    for block_entry in raw_attempts:
+        if not isinstance(block_entry, dict):
             continue
 
-        total_time_ms = 0.0
-        for attempt in entries:
-            value = attempt.get("timeMs")
-            if isinstance(value, bool):
-                continue
-            try:
-                total_time_ms += float(value)
-            except Exception:
-                continue
-
-        if total_time_ms <= 0:
+        attempts = block_entry.get("attempts")
+        if not isinstance(attempts, list):
             continue
 
-        paper_params = entries[0].get("paperParams")
-        if not isinstance(paper_params, dict):
+        run_number = block_entry.get("runNumber")
+        try:
+            run_number = int(run_number)
+        except Exception:
+            continue
+        if run_number <= 0:
+            continue
+
+        paper_params = _extract_required_paper_params(block_entry.get("parameterSet"))
+        if paper_params is None:
+            continue
+
+        total_normalized_time = block_entry.get("totalNormalizedTimeMs")
+        if isinstance(total_normalized_time, bool):
+            continue
+        try:
+            total_normalized_time = float(total_normalized_time)
+        except Exception:
+            continue
+        if total_normalized_time <= 0:
             continue
 
         block_records.append(
             {
-                "blockIndex": int(block_index),
-                "timeMs": float(total_time_ms),
+                "blockIndex": run_number,
+                "timeMs": total_normalized_time,
                 "paperParams": paper_params,
             }
         )
@@ -435,10 +360,8 @@ def _load_participant_state(table_name, participant_id):
 
 
 def _scan_other_participants_data(table_name, exclude_participant_id):
-    """Scan every participant except the calling one and return their flattened
-    attempts so the SageMaker multi-task GP can pool observations across
-    participants. Uses a projection (id, attempts) to keep the scan cheap and
-    paginates via LastEvaluatedKey since Scan only returns up to 1MB per page.
+    """Scan every participant except the caller and return strict block-level
+    ML records. Uses a projection (id, attempts) and paginates via LastEvaluatedKey.
     """
     table = dynamodb.Table(table_name)
     items = []
