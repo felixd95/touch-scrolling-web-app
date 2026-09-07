@@ -116,7 +116,7 @@ variable "sagemaker_serverless_max_concurrency" {
 variable "sagemaker_instance_type" {
   description = "Instance type for provisioned SageMaker endpoint compute capacity"
   type        = string
-  default     = "ml.m5.small"
+  default     = "ml.t2.medium"
 }
 
 variable "sagemaker_instance_count" {
