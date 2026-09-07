@@ -6,9 +6,7 @@ import gpytorch  # noqa: E402
 import numpy as np  # noqa: E402
 
 import torch  # noqa: E402
-from botorch.acquisition.multi_objective.logei import (  # noqa: E402
-    qLogNoisyExpectedHypervolumeImprovement,
-)
+from botorch.acquisition import qNoisyExpectedImprovement  # noqa: E402
 from botorch.fit import fit_gpytorch_mll  # noqa: E402
 from botorch.models import ModelListGP, SingleTaskGP  # noqa: E402
 from botorch.models.transforms.outcome import Standardize  # noqa: E402
@@ -184,36 +182,29 @@ def _build_block_observations(recent_data: List[Dict[str, Any]]) -> List[Dict[st
         block_params = entries[0]["params"]
         x = [block_params[key] for key in REQUIRED_KEYS]
 
-        times_per_target = {target: [] for target in TARGET_NUMBERS}
-        aggregate_times = []
+        normalized_total_time = 0.0
+        valid_measurements = 0
         for entry in entries:
-            target = entry.get("targetNumber")
             time_ms = entry.get("timeMs")
-            if isinstance(time_ms, float):
-                aggregate_times.append(time_ms)
-                if target in times_per_target:
-                    times_per_target[target].append(time_ms)
+            target_number = entry.get("targetNumber")
+            if not isinstance(time_ms, (int, float)):
+                continue
+            valid_measurements += 1
+            try:
+                target_number = float(target_number)
+            except (TypeError, ValueError):
+                target_number = 1.0
+            target_number = max(target_number, 1.0)
+            normalized_total_time += float(time_ms) / target_number
 
-        available_times = [t for vals in times_per_target.values() for t in vals]
-        if not aggregate_times:
+        if valid_measurements == 0:
             continue
-
-        # If target numbers are not available (new aggregated block format), use
-        # the block-level total/mean time as a shared objective proxy.
-        fallback_time = float(sum(aggregate_times) / len(aggregate_times))
-        time_vector = []
-        for target in TARGET_NUMBERS:
-            values = times_per_target[target]
-            if values:
-                time_vector.append(float(sum(values) / len(values)))
-            else:
-                time_vector.append(fallback_time)
 
         observations.append(
             {
                 "blockIndex": block_idx,
                 "x": x,
-                "timeVector": time_vector,
+                "timeVector": [float(normalized_total_time)],
             }
         )
 
@@ -254,7 +245,7 @@ def _normalize_participants_data(
     return blocks_by_task_id, current_task_id
 
 
-def _build_multiobjective_training_data(
+def _build_training_data(
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
 ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
     rows_x: List[List[float]] = []
@@ -381,7 +372,7 @@ def _normalize_candidate_matrix(
     return candidate_norm
 
 
-def _compute_ref_point_for_maximization(train_objectives: "torch.Tensor") -> List[float]:
+def _compute_scalar_reference_point(train_objectives: "torch.Tensor") -> List[float]:
     mins = train_objectives.min(dim=0).values
     maxs = train_objectives.max(dim=0).values
     span = (maxs - mins).clamp_min(1e-6)
@@ -412,20 +403,20 @@ def _get_persistent_model_state(model: Dict[str, Any]) -> Dict[str, Any]:
     return state
 
 
-def _select_candidate_with_qlognehvi(
+def _select_candidate_with_single_objective(
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
     current_task_id: int,
     persistent_state: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Dict[str, float], Dict[str, Any]]:
 
-    train_x_np, train_y_np = _build_multiobjective_training_data(blocks_by_task_id)
+    train_x_np, train_y_np = _build_training_data(blocks_by_task_id)
     if train_x_np is None or train_y_np is None:
-        raise ValueError("No training data available for qLogNEHVI.")
+        raise ValueError("No training data available for scalar total-time optimization.")
 
     train_x_np, train_y_np, collapsed_row_count = _deduplicate_training_rows(train_x_np, train_y_np)
     if train_x_np.shape[0] < MIN_OBSERVATIONS_FOR_BO:
         raise ValueError(
-            f"Not enough observations for qLogNEHVI: {train_x_np.shape[0]} < {MIN_OBSERVATIONS_FOR_BO}."
+            f"Not enough observations for scalar optimization: {train_x_np.shape[0]} < {MIN_OBSERVATIONS_FOR_BO}."
         )
 
     train_x_norm_np, input_scales = _normalize_train_x_to_unit_cube(train_x_np)
@@ -434,23 +425,17 @@ def _select_candidate_with_qlognehvi(
     device = torch.device("cpu")
 
     train_x = torch.tensor(train_x_norm_np, dtype=dtype, device=device)
-    # We minimize completion times. qLogNEHVI maximizes objectives, so negate.
-    train_obj = -torch.tensor(train_y_np, dtype=dtype, device=device)
+    train_y = torch.tensor(train_y_np[:, 0:1], dtype=dtype, device=device)
+    # Minimize total normalized time; acquisition maximizes improvement, so negate.
+    train_obj = -train_y
 
-    models = []
-    for objective_idx in range(train_obj.shape[1]):
-        y_i = train_obj[:, objective_idx : objective_idx + 1]
-        yvar_i = torch.full_like(y_i, OBSERVATION_NOISE_FLOOR)
-        models.append(
-            SingleTaskGP(
-                train_X=train_x,
-                train_Y=y_i,
-                train_Yvar=yvar_i,
-                outcome_transform=Standardize(m=1),
-            )
-        )
-
-    model = ModelListGP(*models)
+    yvar = torch.full_like(train_obj, OBSERVATION_NOISE_FLOOR)
+    model = SingleTaskGP(
+        train_X=train_x,
+        train_Y=train_obj,
+        train_Yvar=yvar,
+        outcome_transform=Standardize(m=1),
+    )
     mll = SumMarginalLogLikelihood(model.likelihood, model)
     with gpytorch.settings.cholesky_jitter(CHOLESKY_JITTER):
         fit_gpytorch_mll(mll)
@@ -464,10 +449,9 @@ def _select_candidate_with_qlognehvi(
         )
         fixed_task_feature = float(np.clip(fixed_task_feature, 0.0, 1.0))
 
-    ref_point = _compute_ref_point_for_maximization(train_obj)
-    acquisition = qLogNoisyExpectedHypervolumeImprovement(
+    ref_point = _compute_scalar_reference_point(train_obj)
+    acquisition = qNoisyExpectedImprovement(
         model=model,
-        ref_point=ref_point,
         X_baseline=train_x,
         prune_baseline=True,
     )
@@ -480,8 +464,6 @@ def _select_candidate_with_qlognehvi(
     acquisition_value = float(candidate_values[best_index])
     best_candidate_norm = candidate_norm[best_index : best_index + 1]
 
-    # Approximate the candidate rank by comparing against random probes under the
-    # same fixed participant task feature.
     probe_count = BO_PROBE_COUNT
     probe_params_np = _sample_quantized_candidate_matrix(probe_count)
     probe_norm_np = _normalize_candidate_matrix(probe_params_np, input_scales, fixed_task_feature)
@@ -507,14 +489,15 @@ def _select_candidate_with_qlognehvi(
         },
         "trainingRowCount": int(train_x.shape[0]),
         "collapsedDuplicateRowCount": collapsed_row_count,
-        "objectiveCount": int(train_obj.shape[1]),
+        "objectiveCount": 1,
+        "objectiveType": "total_normalized_time",
         "numericalStability": {
             "deduplicationRoundDecimals": DEDUPLICATION_ROUND_DECIMALS,
             "observationNoiseFloor": OBSERVATION_NOISE_FLOOR,
             "choleskyJitter": CHOLESKY_JITTER,
         },
         "searchConfig": {
-            "strategy": "quantized-random-acquisition-search",
+            "strategy": "quantized-random-acquisition-search-single-objective",
             "gridCandidateCount": BO_GRID_CANDIDATE_COUNT,
             "probeCount": BO_PROBE_COUNT,
             "maxBlocksPerParticipant": MAX_BLOCKS_PER_PARTICIPANT,
@@ -560,7 +543,7 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
         diagnostics["modelReuse"] = True
         diagnostics["payloadSignature"] = signature
     else:
-        best_candidate, diagnostics = _select_candidate_with_qlognehvi(
+        best_candidate, diagnostics = _select_candidate_with_single_objective(
             blocks_by_task_id, current_task_id, persistent_state=persistent_state
         )
         persistent_state["payload_signature"] = signature
@@ -570,14 +553,14 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
         diagnostics["modelReuse"] = False
         diagnostics["payloadSignature"] = signature
 
-    strategy = "botorch-qlognehvi-multi-objective-10-target-times"
+    strategy = "botorch-qnoisy-ei-single-objective-total-normalized-time"
 
     return {
         "parameters": best_candidate,
         "inferenceDiagnostics": diagnostics,
         "modelMetadata": {
             "strategy": strategy,
-            "version": "v3-botorch-qlognehvi",
+            "version": "v4-single-objective-total-time",
             "participantCount": len(blocks_by_task_id),
             "totalBlockObservations": total_block_observations,
             "persistentModel": True,
