@@ -726,16 +726,6 @@ function ParticipantsList({ onBack }) {
           {selectedParticipant && (
             <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
               <h3>Teilnehmer {selectedParticipant.participantNumber ?? buildParticipantNumberMap(items).get(selectedParticipant.id) ?? '-'} · {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
-              {selectedParticipant.currentParameterSet && (
-                <div style={{ marginBottom: 6, fontSize: 13, color: '#4c5967' }}>
-                  Aktueller Parametersatz: mu={formatMetric(selectedParticipant.currentParameterSet.scrollFriction, 4)}, beta={formatMetric(selectedParticipant.currentParameterSet.inflexion, 3)}, r={formatMetric(selectedParticipant.currentParameterSet.decelerationRate, 3)}
-                </div>
-              )}
-              {selectedParticipant.nextParameterSet && (
-                <div style={{ marginBottom: 10, fontSize: 13, color: '#4c5967' }}>
-                  Naechster Parametersatz: mu={formatMetric(selectedParticipant.nextParameterSet.scrollFriction, 4)}, beta={formatMetric(selectedParticipant.nextParameterSet.inflexion, 3)}, r={formatMetric(selectedParticipant.nextParameterSet.decelerationRate, 3)}
-                </div>
-              )}
               <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
                 {(selectedParticipant.runGroups || []).length === 0 ? (
                   <p>Keine Durchläufe vorhanden.</p>
@@ -784,9 +774,6 @@ function ParticipantsList({ onBack }) {
                               {isOpen ? '▾' : '▸'}
                             </span>
                           </div>
-                          <span style={{ fontSize: 13, color: '#4c5967', lineHeight: 1.5 }}>
-                            {formatBlockParameterSummary(group.parameterSet)}
-                          </span>
                           {linkedMetric && (
                             <div style={{ fontSize: 12, color: '#35506b', lineHeight: 1.5 }}>
                               {Number.isFinite(Number(linkedMetric.sagemakerLatencyMs)) && (
@@ -798,25 +785,6 @@ function ParticipantsList({ onBack }) {
                               {linkedMetric.model && Number.isFinite(Number(linkedMetric.model.acquisitionValue)) && (
                                 <span>Acq: {formatMetric(linkedMetric.model.acquisitionValue, 5)}</span>
                               )}
-                            </div>
-                          )}
-                          {parameterItems.length > 0 && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                              {parameterItems.map((item) => (
-                                <span
-                                  key={`${group.blockIndex ?? i}-${item.label}`}
-                                  style={{
-                                    fontSize: 12,
-                                    color: '#35506b',
-                                    background: '#eaf3fb',
-                                    border: '1px solid #d1e3f2',
-                                    borderRadius: 999,
-                                    padding: '4px 8px',
-                                  }}
-                                >
-                                  {item.label}: {item.value}
-                                </span>
-                              ))}
                             </div>
                           )}
                         </button>
