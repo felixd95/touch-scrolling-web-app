@@ -171,16 +171,6 @@ function ParticipantsList({ onBack }) {
     return String(Math.trunc(Number(value)));
   };
 
-  const formatBlockParameterSummary = (parameterSet) => {
-    if (!parameterSet || typeof parameterSet !== 'object') return 'Keine Parameter gespeichert';
-
-    return [
-      `scrollFriction=${formatMetric(parameterSet.scrollFriction, 4)}`,
-      `inflexion=${formatMetric(parameterSet.inflexion, 3)}`,
-      `decelerationRate=${formatMetric(parameterSet.decelerationRate, 3)}`,
-    ].join(', ');
-  };
-
   const getBlockParameterItems = (parameterSet) => {
     if (!parameterSet || typeof parameterSet !== 'object') return [];
 
