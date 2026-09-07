@@ -381,6 +381,76 @@ function ParticipantsList({ onBack }) {
     return blocks.sort((a, b) => a.runNumber - b.runNumber);
   };
 
+  const buildParticipantNumberMap = (participants) => {
+    if (!Array.isArray(participants) || participants.length === 0) return new Map();
+
+    const ordered = [...participants].sort((a, b) => {
+      const ta = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (ta !== tb) return ta - tb;
+      return String(a?.id || '').localeCompare(String(b?.id || ''));
+    });
+
+    return new Map(ordered.map((participant, index) => [participant?.id, index + 1]));
+  };
+
+  const buildGlobalRunNumberMap = (participants) => {
+    const entries = [];
+
+    for (const participant of participants || []) {
+      const parsedAttempts = parseAttemptsPayload(participant?.attempts);
+      for (const block of parsedAttempts.blocks || []) {
+        const runNumber = Number.isFinite(Number(block?.runNumber)) ? Number(block.runNumber) : 1;
+        const firstAttemptTimestamp = (block.attempts || []).reduce((min, attempt) => {
+          const ts = attempt?.timestamp ? new Date(attempt.timestamp).getTime() : Number.MAX_SAFE_INTEGER;
+          return Number.isFinite(ts) ? Math.min(min, ts) : min;
+        }, Number.MAX_SAFE_INTEGER);
+
+        entries.push({
+          key: `${participant.id}:${runNumber}`,
+          timestamp: Number.isFinite(firstAttemptTimestamp) ? firstAttemptTimestamp : 0,
+        });
+      }
+    }
+
+    entries.sort((a, b) => a.timestamp - b.timestamp || a.key.localeCompare(b.key));
+
+    const map = new Map();
+    entries.forEach((entry, index) => {
+      map.set(entry.key, index + 1);
+    });
+    return map;
+  };
+
+  const buildGlobalAttemptNumberMap = (participants) => {
+    const entries = [];
+
+    for (const participant of participants || []) {
+      const parsedAttempts = parseAttemptsPayload(participant?.attempts);
+      for (const attempt of parsedAttempts.flat || []) {
+        const timestamp = attempt?.timestamp ? new Date(attempt.timestamp).getTime() : 0;
+        const attemptKey = [
+          participant.id,
+          attempt?.blockIndex ?? 0,
+          attempt?.attemptInBlock ?? 0,
+          attempt?.targetNumber ?? '',
+          attempt?.timestamp ?? '',
+          attempt?.timeMs ?? '',
+        ].join(':');
+
+        entries.push({ key: attemptKey, timestamp });
+      }
+    }
+
+    entries.sort((a, b) => a.timestamp - b.timestamp || a.key.localeCompare(b.key));
+
+    const map = new Map();
+    entries.forEach((entry, index) => {
+      map.set(entry.key, index + 1);
+    });
+    return map;
+  };
+
   const updateLocalParticipantAttempts = (participantId, attempts) => {
     try {
       const localMap = JSON.parse(localStorage.getItem('participantResults') || '{}');
@@ -422,7 +492,7 @@ function ParticipantsList({ onBack }) {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate privateSmartphone screenTimePerDay attempts currentParameterSet nextParameterSet parameterBlockMetrics } } }`,
+        query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate createdAt privateSmartphone screenTimePerDay attempts currentParameterSet nextParameterSet parameterBlockMetrics } } }`,
       }),
     });
 
@@ -603,6 +673,7 @@ function ParticipantsList({ onBack }) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
+                <th style={{ textAlign: 'left', padding: 6 }}>Teilnehmer</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>ID</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Name</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>E-Mail</th>
@@ -613,12 +684,13 @@ function ParticipantsList({ onBack }) {
             </thead>
             <tbody>
                   {items.map((p) => {
-                    // parse attempts array for this participant
+                    const participantNumber = buildParticipantNumberMap(items).get(p.id) ?? '-';
                     const parsedAttempts = parseAttemptsPayload(p.attempts);
                     const attemptsArr = parsedAttempts.flat;
                     const hasStoredAttempts = parsedAttempts.blocks.length > 0 || attemptsArr.length > 0;
                     return (
                       <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
+                        <td style={{ padding: 6 }}>{participantNumber}</td>
                         <td style={{ padding: 6 }}>{p.id}</td>
                         <td style={{ padding: 6 }}>{(p.firstName || '') + ' ' + (p.lastName || '')}</td>
                         <td style={{ padding: 6 }}>{p.email}</td>
@@ -632,6 +704,7 @@ function ParticipantsList({ onBack }) {
                               const runGroups = buildRunGroups(attemptsArr);
                               setSelectedParticipant({
                                 ...p,
+                                participantNumber,
                                 attempts: attemptsArr,
                                 attemptBlocks: parsedAttempts.blocks,
                                 runGroups,
@@ -652,7 +725,7 @@ function ParticipantsList({ onBack }) {
       )}
           {selectedParticipant && (
             <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
-              <h3>Attempts for {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
+              <h3>Teilnehmer {selectedParticipant.participantNumber ?? buildParticipantNumberMap(items).get(selectedParticipant.id) ?? '-'} · {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
               {selectedParticipant.currentParameterSet && (
                 <div style={{ marginBottom: 6, fontSize: 13, color: '#4c5967' }}>
                   Aktueller Parametersatz: mu={formatMetric(selectedParticipant.currentParameterSet.scrollFriction, 4)}, beta={formatMetric(selectedParticipant.currentParameterSet.inflexion, 3)}, r={formatMetric(selectedParticipant.currentParameterSet.decelerationRate, 3)}
@@ -672,6 +745,8 @@ function ParticipantsList({ onBack }) {
                     const attempts = group.attempts || [];
                     const parameterItems = getBlockParameterItems(group.parameterSet);
                     const linkedMetric = getMetricForRunGroup(selectedParticipant, group, i);
+                    const participantNumber = selectedParticipant.participantNumber ?? buildParticipantNumberMap(items).get(selectedParticipant.id) ?? '-';
+                    const globalRunNumber = buildGlobalRunNumberMap(items).get(`${selectedParticipant.id}:${group.blockIndex ?? (i + 1)}`) ?? (i + 1);
 
                     return (
                       <div
@@ -700,7 +775,7 @@ function ParticipantsList({ onBack }) {
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                             <div style={{ display: 'grid', gap: 4 }}>
-                              <strong style={{ fontSize: 16 }}>Block {group.blockIndex ?? (i + 1)}</strong>
+                              <strong style={{ fontSize: 16 }}>Teilnehmer {participantNumber} · Durchlauf {globalRunNumber}</strong>
                               <span style={{ fontSize: 12, color: '#66788a' }}>
                                 {attempts.length} Versuche
                               </span>
@@ -859,15 +934,27 @@ function ParticipantsList({ onBack }) {
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {attempts.map((attempt, idx) => (
-                                      <tr key={`${attempt?.timestamp || 'na'}-${idx}`} style={{ borderTop: '1px solid #e5e5e5' }}>
-                                        <td style={{ padding: 8 }}>{attempt?.attemptInBlock ?? (idx + 1)}</td>
-                                        <td style={{ padding: 8 }}>{attempt?.targetNumber ?? '-'}</td>
-                                        <td style={{ padding: 8 }}>{attempt?.timeMs ?? '-'}</td>
-                                        <td style={{ padding: 8 }}>{attempt?.scrollDistance ?? '-'}</td>
-                                        <td style={{ padding: 8 }}>{attempt?.timestamp ?? '-'}</td>
-                                      </tr>
-                                    ))}
+                                    {attempts.map((attempt, idx) => {
+                                      const attemptKey = [
+                                        selectedParticipant.id,
+                                        attempt?.blockIndex ?? group.blockIndex ?? 0,
+                                        attempt?.attemptInBlock ?? idx + 1,
+                                        attempt?.targetNumber ?? '',
+                                        attempt?.timestamp ?? '',
+                                        attempt?.timeMs ?? '',
+                                      ].join(':');
+                                      const globalAttemptNumber = buildGlobalAttemptNumberMap(items).get(attemptKey) ?? (idx + 1);
+
+                                      return (
+                                        <tr key={`${attempt?.timestamp || 'na'}-${idx}`} style={{ borderTop: '1px solid #e5e5e5' }}>
+                                          <td style={{ padding: 8 }}>#{globalAttemptNumber}</td>
+                                          <td style={{ padding: 8 }}>{attempt?.targetNumber ?? '-'}</td>
+                                          <td style={{ padding: 8 }}>{attempt?.timeMs ?? '-'}</td>
+                                          <td style={{ padding: 8 }}>{attempt?.scrollDistance ?? '-'}</td>
+                                          <td style={{ padding: 8 }}>{attempt?.timestamp ?? '-'}</td>
+                                        </tr>
+                                      );
+                                    })}
                                   </tbody>
                                 </table>
                               )}
