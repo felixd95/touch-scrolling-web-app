@@ -1,3 +1,4 @@
+import hashlib
 import json
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -55,7 +56,18 @@ PARAMETER_DECIMALS = {
 
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
-    return {}
+    return {
+        "model_dir": model_dir,
+        "persistent_state": {
+            "payload_signature": None,
+            "fit_cache": {},
+            "best_candidate": None,
+            "diagnostics": None,
+            "last_model": None,
+            "last_ref_point": None,
+            "last_input_scales": None,
+        },
+    }
 
 
 def input_fn(request_body: str, request_content_type: str) -> Dict[str, Any]:
@@ -377,9 +389,33 @@ def _compute_ref_point_for_maximization(train_objectives: "torch.Tensor") -> Lis
     return ref.detach().cpu().tolist()
 
 
+def _payload_signature(blocks_by_task_id: Dict[int, List[Dict[str, Any]]], current_task_id: int) -> str:
+    stable_rows = []
+    for task_id in sorted(blocks_by_task_id):
+        for block in blocks_by_task_id[task_id]:
+            stable_rows.append({
+                "task_id": task_id,
+                "block_index": block.get("blockIndex"),
+                "x": [float(v) for v in block.get("x", [])],
+                "time_vector": [float(v) for v in block.get("timeVector", [])],
+            })
+
+    digest_payload = {
+        "current_task_id": int(current_task_id),
+        "rows": stable_rows,
+    }
+    return hashlib.sha256(json.dumps(digest_payload, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def _get_persistent_model_state(model: Dict[str, Any]) -> Dict[str, Any]:
+    state = model.setdefault("persistent_state", {})
+    return state
+
+
 def _select_candidate_with_qlognehvi(
     blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
     current_task_id: int,
+    persistent_state: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Dict[str, float], Dict[str, Any]]:
 
     train_x_np, train_y_np = _build_multiobjective_training_data(blocks_by_task_id)
@@ -486,6 +522,16 @@ def _select_candidate_with_qlognehvi(
         },
     }
 
+    if persistent_state is not None:
+        persistent_state["last_model"] = model
+        persistent_state["last_ref_point"] = ref_point
+        persistent_state["last_input_scales"] = input_scales
+        persistent_state["fit_cache"] = {
+            "train_x": train_x_np.tolist(),
+            "train_y": train_y_np.tolist(),
+            "current_task_id": int(current_task_id),
+        }
+
     return parameters, diagnostics
 
 
@@ -505,9 +551,25 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
             f"Not enough block observations for qLogNEHVI: {total_block_observations} < {MIN_OBSERVATIONS_FOR_BO}."
         )
 
-    best_candidate, diagnostics = _select_candidate_with_qlognehvi(
-        blocks_by_task_id, current_task_id
-    )
+    persistent_state = _get_persistent_model_state(model)
+    signature = _payload_signature(blocks_by_task_id, current_task_id)
+
+    if persistent_state.get("payload_signature") == signature and persistent_state.get("best_candidate") is not None:
+        best_candidate = persistent_state["best_candidate"]
+        diagnostics = dict(persistent_state["diagnostics"] or {})
+        diagnostics["modelReuse"] = True
+        diagnostics["payloadSignature"] = signature
+    else:
+        best_candidate, diagnostics = _select_candidate_with_qlognehvi(
+            blocks_by_task_id, current_task_id, persistent_state=persistent_state
+        )
+        persistent_state["payload_signature"] = signature
+        persistent_state["best_candidate"] = best_candidate
+        persistent_state["diagnostics"] = diagnostics
+        diagnostics = dict(diagnostics)
+        diagnostics["modelReuse"] = False
+        diagnostics["payloadSignature"] = signature
+
     strategy = "botorch-qlognehvi-multi-objective-10-target-times"
 
     return {
@@ -518,6 +580,8 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
             "version": "v3-botorch-qlognehvi",
             "participantCount": len(blocks_by_task_id),
             "totalBlockObservations": total_block_observations,
+            "persistentModel": True,
+            "modelReuse": bool(diagnostics.get("modelReuse", False)),
         },
     }
 
