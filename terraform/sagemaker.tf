@@ -1,6 +1,7 @@
 locals {
-  # The inference backend uses BoTorch + qLogNEHVI and therefore requires
-  # torch at runtime. Use the prebuilt SageMaker PyTorch inference image by
+  # The inference backend uses BoTorch + qNoisyExpectedImprovement in a
+  # single-objective scalar formulation and therefore requires torch at
+  # runtime. Use the prebuilt SageMaker PyTorch inference image by
   # default to avoid installing the full torch stack inside a scikit-learn
   # container at cold start.
   sagemaker_container_image = length(trimspace(var.sagemaker_container_image)) > 0 ? var.sagemaker_container_image : data.aws_sagemaker_prebuilt_ecr_image.pytorch.registry_path

@@ -164,6 +164,10 @@ def _build_block_metrics(
                 if isinstance(value, (int, float)) and not isinstance(value, bool):
                     model_diagnostics[key] = float(value)
 
+            objective_type = inference_diagnostics.get("objectiveType")
+            if isinstance(objective_type, str) and objective_type:
+                model_diagnostics["objectiveType"] = objective_type
+
             ref_point = inference_diagnostics.get("refPoint")
             if isinstance(ref_point, list):
                 numeric_ref_point = []

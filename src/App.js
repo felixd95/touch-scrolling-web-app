@@ -826,6 +826,9 @@ function ParticipantsList({ onBack }) {
                                     {Array.isArray(linkedMetric.model.refPoint) && linkedMetric.model.refPoint.length > 0 && (
                                       <span>ref_point: [{linkedMetric.model.refPoint.map((value) => formatMetric(value, 2)).join(', ')}] · </span>
                                     )}
+                                    {linkedMetric.model.objectiveType && (
+                                      <span>Zielgröße: {linkedMetric.model.objectiveType.replace(/_/g, ' ')} · </span>
+                                    )}
                                     {linkedMetric.model.strategy && (
                                       <span>Strategie: {linkedMetric.model.strategy} · </span>
                                     )}
@@ -835,7 +838,7 @@ function ParticipantsList({ onBack }) {
                                     {Number.isFinite(Number(linkedMetric.model.trainingRowCount)) && (
                                       <span>Trainingszeilen: {formatIntegerMetric(linkedMetric.model.trainingRowCount)} · </span>
                                     )}
-                                    {Number.isFinite(Number(linkedMetric.model.objectiveCount)) && (
+                                    {Number.isFinite(Number(linkedMetric.model.objectiveCount)) && !linkedMetric.model.objectiveType && (
                                       <span>Objectives: {formatIntegerMetric(linkedMetric.model.objectiveCount)}</span>
                                     )}
                                   </div>

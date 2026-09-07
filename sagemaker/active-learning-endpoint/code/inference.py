@@ -8,10 +8,10 @@ import numpy as np  # noqa: E402
 import torch  # noqa: E402
 from botorch.acquisition import qNoisyExpectedImprovement  # noqa: E402
 from botorch.fit import fit_gpytorch_mll  # noqa: E402
-from botorch.models import ModelListGP, SingleTaskGP  # noqa: E402
+from botorch.models import SingleTaskGP  # noqa: E402
 from botorch.models.transforms.outcome import Standardize  # noqa: E402
-from gpytorch.mlls.sum_marginal_log_likelihood import (  # noqa: E402
-    SumMarginalLogLikelihood,
+from gpytorch.mlls.exact_marginal_log_likelihood import (  # noqa: E402
+    ExactMarginalLogLikelihood,
 )
 
 REQUIRED_KEYS = (
@@ -436,7 +436,7 @@ def _select_candidate_with_single_objective(
         train_Yvar=yvar,
         outcome_transform=Standardize(m=1),
     )
-    mll = SumMarginalLogLikelihood(model.likelihood, model)
+    mll = ExactMarginalLogLikelihood(model.likelihood, model)
     with gpytorch.settings.cholesky_jitter(CHOLESKY_JITTER):
         fit_gpytorch_mll(mll)
 
@@ -531,7 +531,7 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
         raise ValueError("Current participant not found in normalized participantsData.")
     if total_block_observations < MIN_OBSERVATIONS_FOR_BO:
         raise ValueError(
-            f"Not enough block observations for qLogNEHVI: {total_block_observations} < {MIN_OBSERVATIONS_FOR_BO}."
+            f"Not enough block observations for single-objective BO: {total_block_observations} < {MIN_OBSERVATIONS_FOR_BO}."
         )
 
     persistent_state = _get_persistent_model_state(model)
