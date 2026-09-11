@@ -171,6 +171,32 @@ function ParticipantsList({ onBack }) {
     return String(Math.trunc(Number(value)));
   };
 
+  const formatGenerationStrategy = (value) => {
+    switch (String(value ?? '').toLowerCase()) {
+      case 'random':
+        return 'Random';
+      case 'qucb':
+        return 'qUCB';
+      case 'qnei':
+        return 'qNEI';
+      default:
+        return value || '-';
+    }
+  };
+
+  const formatGenerationPhase = (value) => {
+    switch (String(value ?? '').toLowerCase()) {
+      case 'bootstrap-random':
+        return 'Bootstrap';
+      case 'exploration-qucb':
+        return 'Exploration';
+      case 'exploitation-qnei':
+        return 'Exploitation';
+      default:
+        return value || '-';
+    }
+  };
+
   const getBlockParameterItems = (parameterSet) => {
     if (!parameterSet || typeof parameterSet !== 'object') return [];
 
@@ -766,11 +792,22 @@ function ParticipantsList({ onBack }) {
                           </div>
                           {linkedMetric && (
                             <div style={{ fontSize: 12, color: '#35506b', lineHeight: 1.5 }}>
+                              {linkedMetric.generation?.strategy && (
+                                <span>
+                                  {formatGenerationStrategy(linkedMetric.generation.strategy)}
+                                  {linkedMetric.generation.phase ? ` · ${formatGenerationPhase(linkedMetric.generation.phase)}` : ''}
+                                  {Number.isFinite(Number(linkedMetric.generation.beta)) ? ` · beta ${formatMetric(linkedMetric.generation.beta)}` : ''}
+                                  {' · '}
+                                </span>
+                              )}
                               {Number.isFinite(Number(linkedMetric.sagemakerLatencyMs)) && (
                                 <span>Generierung: {formatMetric(linkedMetric.sagemakerLatencyMs)} ms · </span>
                               )}
-                              {Number.isFinite(Number(linkedMetric.pooledAttemptCount)) && (
-                                <span>Datenbasis: {formatIntegerMetric(linkedMetric.pooledAttemptCount)} Versuche / {formatIntegerMetric(linkedMetric.pooledParticipantCount)} Teilnehmer · </span>
+                              {Number.isFinite(Number(linkedMetric.trainingObservationCount)) && (
+                                <span>Datenbasis: {formatIntegerMetric(linkedMetric.trainingObservationCount)} Bloecke · </span>
+                              )}
+                              {linkedMetric.model && Number.isFinite(Number(linkedMetric.model.predictedCandidateNormalizedTime)) && (
+                                <span>Prognose: {formatMetric(linkedMetric.model.predictedCandidateNormalizedTime, 3)} · </span>
                               )}
                               {linkedMetric.model && Number.isFinite(Number(linkedMetric.model.acquisitionValue)) && (
                                 <span>Acq: {formatMetric(linkedMetric.model.acquisitionValue, 5)}</span>
@@ -812,34 +849,62 @@ function ParticipantsList({ onBack }) {
                                 {Number.isFinite(Number(linkedMetric.sagemakerLatencyMs)) && (
                                   <div>Generierung: {formatMetric(linkedMetric.sagemakerLatencyMs)} ms</div>
                                 )}
-                                {Number.isFinite(Number(linkedMetric.pooledAttemptCount)) && (
-                                  <div>Datenbasis: {formatIntegerMetric(linkedMetric.pooledAttemptCount)} Versuche / {formatIntegerMetric(linkedMetric.pooledParticipantCount)} Teilnehmer</div>
+                                {linkedMetric.generation && (
+                                  <div>
+                                    Erzeugt mit: {formatGenerationStrategy(linkedMetric.generation.strategy)}
+                                    {linkedMetric.generation.phase ? ` · ${formatGenerationPhase(linkedMetric.generation.phase)}` : ''}
+                                    {Number.isFinite(Number(linkedMetric.generation.beta)) ? ` · beta ${formatMetric(linkedMetric.generation.beta)}` : ''}
+                                  </div>
+                                )}
+                                {Number.isFinite(Number(linkedMetric.trainingObservationCount)) && (
+                                  <div>Datenbasis: {formatIntegerMetric(linkedMetric.trainingObservationCount)} Trainingsbloecke</div>
                                 )}
                                 {linkedMetric.model && (
-                                  <div>
+                                  <div style={{ display: 'grid', gap: 2 }}>
+                                    {Number.isFinite(Number(linkedMetric.model.predictedCandidateNormalizedTime)) && (
+                                      <div>Prognostizierte Zielgroesse der neuen Funktion: {formatMetric(linkedMetric.model.predictedCandidateNormalizedTime, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.predictedCurrentNormalizedTime)) && (
+                                      <div>Prognostizierte Zielgroesse der aktuellen Funktion: {formatMetric(linkedMetric.model.predictedCurrentNormalizedTime, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.predictedImprovementVsCurrent)) && (
+                                      <div>Erwartete Verbesserung gegen aktuelle Funktion: {formatMetric(linkedMetric.model.predictedImprovementVsCurrent, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.predictedImprovementVsBestObserved)) && (
+                                      <div>Erwartete Verbesserung gegen beste beobachtete Funktion: {formatMetric(linkedMetric.model.predictedImprovementVsBestObserved, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.candidateUncertaintyStd)) && (
+                                      <div>Unsicherheit der neuen Funktion: {formatMetric(linkedMetric.model.candidateUncertaintyStd, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.currentUncertaintyStd)) && (
+                                      <div>Unsicherheit der aktuellen Funktion: {formatMetric(linkedMetric.model.currentUncertaintyStd, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.bestObservedNormalizedTime)) && (
+                                      <div>Beste bisher beobachtete Zielgroesse: {formatMetric(linkedMetric.model.bestObservedNormalizedTime, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.lastObservedNormalizedTime)) && (
+                                      <div>Letzte beobachtete Zielgroesse: {formatMetric(linkedMetric.model.lastObservedNormalizedTime, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.optimisticCandidateNormalizedTime)) && (
+                                      <div>Optimistische qUCB-Zielgroesse: {formatMetric(linkedMetric.model.optimisticCandidateNormalizedTime, 3)}</div>
+                                    )}
+                                    {Number.isFinite(Number(linkedMetric.model.explorationBonus)) && (
+                                      <div>Explorationsbonus: {formatMetric(linkedMetric.model.explorationBonus, 3)}</div>
+                                    )}
                                     {Number.isFinite(Number(linkedMetric.model.acquisitionValue)) && (
-                                      <span>Acq: {formatMetric(linkedMetric.model.acquisitionValue, 5)} · </span>
+                                      <div>Acquisition-Wert: {formatMetric(linkedMetric.model.acquisitionValue, 5)}</div>
                                     )}
                                     {Number.isFinite(Number(linkedMetric.model.candidateRankApprox)) && Number.isFinite(Number(linkedMetric.model.candidateRankProbeCount)) && (
-                                      <span>Candidate-Rank: {formatIntegerMetric(linkedMetric.model.candidateRankApprox)}/{formatIntegerMetric(linkedMetric.model.candidateRankProbeCount)} · </span>
-                                    )}
-                                    {Array.isArray(linkedMetric.model.refPoint) && linkedMetric.model.refPoint.length > 0 && (
-                                      <span>ref_point: [{linkedMetric.model.refPoint.map((value) => formatMetric(value, 2)).join(', ')}] · </span>
+                                      <div>Candidate-Rank: {formatIntegerMetric(linkedMetric.model.candidateRankApprox)}/{formatIntegerMetric(linkedMetric.model.candidateRankProbeCount)}</div>
                                     )}
                                     {linkedMetric.model.objectiveType && (
-                                      <span>Zielgröße: {linkedMetric.model.objectiveType.replace(/_/g, ' ')} · </span>
-                                    )}
-                                    {linkedMetric.model.strategy && (
-                                      <span>Strategie: {linkedMetric.model.strategy} · </span>
-                                    )}
-                                    {linkedMetric.model.version && (
-                                      <span>Version: {linkedMetric.model.version} · </span>
+                                      <div>Zielgroesse: {linkedMetric.model.objectiveType.replace(/_/g, ' ')}</div>
                                     )}
                                     {Number.isFinite(Number(linkedMetric.model.trainingRowCount)) && (
-                                      <span>Trainingszeilen: {formatIntegerMetric(linkedMetric.model.trainingRowCount)} · </span>
+                                      <div>Trainingszeilen nach Deduplikation: {formatIntegerMetric(linkedMetric.model.trainingRowCount)}</div>
                                     )}
-                                    {Number.isFinite(Number(linkedMetric.model.objectiveCount)) && !linkedMetric.model.objectiveType && (
-                                      <span>Objectives: {formatIntegerMetric(linkedMetric.model.objectiveCount)}</span>
+                                    {Number.isFinite(Number(linkedMetric.model.collapsedDuplicateRowCount)) && (
+                                      <div>Kollabierte Duplikate: {formatIntegerMetric(linkedMetric.model.collapsedDuplicateRowCount)}</div>
                                     )}
                                   </div>
                                 )}

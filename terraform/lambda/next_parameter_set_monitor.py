@@ -9,6 +9,9 @@ from decimal import Decimal
 import boto3
 
 RUNS_PER_BLOCK = 10
+RANDOM_BOOTSTRAP_BLOCKS = 3
+UCB_EXPLORATION_BLOCKS = 5
+UCB_BETA = 6.0
 
 DEFAULT_PARAMETER_SET = {
     "scrollFriction": 0.015,
@@ -109,8 +112,7 @@ def _build_block_metrics(
     generated_parameter_set,
     raw_prediction,
     sagemaker_latency_ms,
-    pooled_participant_count,
-    pooled_attempt_count,
+    training_block_count,
 ):
     """Summarize the block of trials that produced this parameter generation so
     each generated parameter block is accompanied by its own metrics record."""
@@ -123,8 +125,7 @@ def _build_block_metrics(
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "runsInBlock": len(block_attempts),
         "sagemakerLatencyMs": round(sagemaker_latency_ms, 1),
-        "pooledParticipantCount": pooled_participant_count,
-        "pooledAttemptCount": pooled_attempt_count,
+        "trainingObservationCount": training_block_count,
         "testedParameterSet": tested_parameter_set,
         "generatedParameterSet": generated_parameter_set,
     }
@@ -145,20 +146,37 @@ def _build_block_metrics(
     # Optional model diagnostics, only if the endpoint returned them.
     if isinstance(raw_prediction, dict):
         model_diagnostics = {}
-        for score_key in ("score", "candidateScore", "acquisitionValue", "predictedMean", "predictedSpread"):
-            value = raw_prediction.get(score_key)
-            if isinstance(value, (int, float)) and not isinstance(value, bool):
-                model_diagnostics[score_key] = float(value)
+        generation = {}
 
         inference_diagnostics = raw_prediction.get("inferenceDiagnostics")
         if isinstance(inference_diagnostics, dict):
+            strategy = inference_diagnostics.get("acquisitionStrategy")
+            phase = inference_diagnostics.get("acquisitionPhase")
+            beta = inference_diagnostics.get("acquisitionBeta")
+
+            if isinstance(strategy, str) and strategy:
+                generation["strategy"] = strategy
+            if isinstance(phase, str) and phase:
+                generation["phase"] = phase
+            if isinstance(beta, (int, float)) and not isinstance(beta, bool):
+                generation["beta"] = float(beta)
+
             for key in (
                 "acquisitionValue",
                 "candidateRankApprox",
                 "candidateRankProbeCount",
-                "fixedTaskId",
                 "trainingRowCount",
-                "objectiveCount",
+                "collapsedDuplicateRowCount",
+                "bestObservedNormalizedTime",
+                "lastObservedNormalizedTime",
+                "predictedCandidateNormalizedTime",
+                "predictedCurrentNormalizedTime",
+                "predictedImprovementVsCurrent",
+                "predictedImprovementVsBestObserved",
+                "candidateUncertaintyStd",
+                "currentUncertaintyStd",
+                "optimisticCandidateNormalizedTime",
+                "explorationBonus",
             ):
                 value = inference_diagnostics.get(key)
                 if isinstance(value, (int, float)) and not isinstance(value, bool):
@@ -179,19 +197,19 @@ def _build_block_metrics(
 
         model_metadata = raw_prediction.get("modelMetadata")
         if isinstance(model_metadata, dict):
-            strategy = model_metadata.get("strategy")
             version = model_metadata.get("version")
-            participant_count = model_metadata.get("participantCount")
-            total_block_observations = model_metadata.get("totalBlockObservations")
-
-            if isinstance(strategy, str) and strategy:
-                model_diagnostics["strategy"] = strategy
+            generator = model_metadata.get("strategy")
             if isinstance(version, str) and version:
-                model_diagnostics["version"] = version
-            if isinstance(participant_count, (int, float)) and not isinstance(participant_count, bool):
-                model_diagnostics["participantCount"] = float(participant_count)
+                generation["modelVersion"] = version
+            if isinstance(generator, str) and generator:
+                generation["generator"] = generator
+
+            total_block_observations = model_metadata.get("totalBlockObservations")
             if isinstance(total_block_observations, (int, float)) and not isinstance(total_block_observations, bool):
                 model_diagnostics["totalBlockObservations"] = float(total_block_observations)
+
+        if generation:
+            metrics["generation"] = generation
 
         if model_diagnostics:
             metrics["model"] = model_diagnostics
@@ -255,6 +273,28 @@ def _round_parameter_precision(parameter_set):
             rounded[key] = round(float(value), decimals)
 
     return rounded
+
+
+def _build_acquisition_config(completed_block_count):
+    safe_completed_block_count = int(completed_block_count) if isinstance(completed_block_count, int) else 0
+
+    if safe_completed_block_count < RANDOM_BOOTSTRAP_BLOCKS:
+        return {
+            "strategy": "random",
+            "phase": "bootstrap-random",
+        }
+
+    if safe_completed_block_count < RANDOM_BOOTSTRAP_BLOCKS + UCB_EXPLORATION_BLOCKS:
+        return {
+            "strategy": "qucb",
+            "phase": "exploration-qucb",
+            "beta": UCB_BETA,
+        }
+
+    return {
+        "strategy": "qnei",
+        "phase": "exploitation-qnei",
+    }
 
 
 def _normalize_attempts(raw_attempts):
@@ -363,41 +403,7 @@ def _load_participant_state(table_name, participant_id):
     }
 
 
-def _scan_other_participants_data(table_name, exclude_participant_id):
-    """Scan every participant except the caller and return strict block-level
-    ML records. Uses a projection (id, attempts) and paginates via LastEvaluatedKey.
-    """
-    table = dynamodb.Table(table_name)
-    items = []
-    scan_kwargs = {"ProjectionExpression": "id, attempts"}
-
-    while True:
-        response = table.scan(**scan_kwargs)
-        items.extend(response.get("Items", []))
-        last_key = response.get("LastEvaluatedKey")
-        if not last_key:
-            break
-        scan_kwargs["ExclusiveStartKey"] = last_key
-
-    participants_data = []
-    for item in items:
-        other_participant_id = item.get("id")
-        if not other_participant_id or other_participant_id == exclude_participant_id:
-            continue
-
-        block_records = _build_block_records_for_ml(_normalize_attempts(item.get("attempts")))
-        if not block_records:
-            continue
-
-        participants_data.append({
-            "participantId": other_participant_id,
-            "attempts": block_records,
-        })
-
-    return participants_data
-
-
-def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, participants_data):
+def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, participant_blocks, acquisition_config):
     endpoint_name = os.environ.get("SAGEMAKER_ENDPOINT_NAME")
     if not endpoint_name:
         raise RuntimeError("Missing SAGEMAKER_ENDPOINT_NAME environment variable")
@@ -408,7 +414,8 @@ def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, part
         "completedBlockCount": math.floor(attempt_count / RUNS_PER_BLOCK),
         "runsPerBlock": RUNS_PER_BLOCK,
         "currentParameterSet": current_parameter_set,
-        "participantsData": participants_data,
+        "participantBlocks": participant_blocks,
+        "acquisition": acquisition_config,
     }
 
     invoke_started = time.perf_counter()
@@ -440,16 +447,41 @@ def _invoke_sagemaker(participant_id, attempt_count, current_parameter_set, part
     return generated_params, parsed, sagemaker_latency_ms
 
 
-def _build_next_parameter_set(attempt_count, generated_params):
+def _build_next_parameter_set(attempt_count, generated_params, raw_prediction):
     completed_block_count = math.floor(attempt_count / RUNS_PER_BLOCK)
     generated_from_attempt_count = completed_block_count * RUNS_PER_BLOCK
     rounded_params = _round_parameter_precision(generated_params)
+    generation = {"source": "terraform-appsync-sagemaker-active-learning"}
+
+    if isinstance(raw_prediction, dict):
+        inference_diagnostics = raw_prediction.get("inferenceDiagnostics")
+        if isinstance(inference_diagnostics, dict):
+            strategy = inference_diagnostics.get("acquisitionStrategy")
+            phase = inference_diagnostics.get("acquisitionPhase")
+            beta = inference_diagnostics.get("acquisitionBeta")
+
+            if isinstance(strategy, str) and strategy:
+                generation["strategy"] = strategy
+            if isinstance(phase, str) and phase:
+                generation["phase"] = phase
+            if isinstance(beta, (int, float)) and not isinstance(beta, bool):
+                generation["beta"] = float(beta)
+
+        model_metadata = raw_prediction.get("modelMetadata")
+        if isinstance(model_metadata, dict):
+            generator = model_metadata.get("strategy")
+            version = model_metadata.get("version")
+            if isinstance(generator, str) and generator:
+                generation["generator"] = generator
+            if isinstance(version, str) and version:
+                generation["modelVersion"] = version
 
     return {
         **rounded_params,
         "blockSize": RUNS_PER_BLOCK,
         "status": "ready",
         "source": "terraform-appsync-sagemaker-active-learning",
+        "generation": generation,
         "generatedFromAttemptCount": generated_from_attempt_count,
         "completedBlockCount": completed_block_count,
     }
@@ -553,30 +585,27 @@ def handler(event, context):
 
         stage = "prepare-ml-payload"
         all_attempt_data = block_records
+        acquisition_config = _build_acquisition_config(completed_block_count)
         current_params = (
             _normalize_parameter_set(participant_state.get("currentParameterSet"))
             or _normalize_parameter_set(participant_state.get("nextParameterSet"))
             or dict(DEFAULT_PARAMETER_SET)
         )
 
-        other_participants_data = _scan_other_participants_data(table_name, exclude_participant_id=participant_id)
-        participants_data = other_participants_data + [
-            {"participantId": participant_id, "attempts": all_attempt_data}
-        ]
-        pooled_attempt_count = sum(len(entry.get("attempts", [])) for entry in participants_data)
-
         _log_info(
             "ml payload prepared",
             participantId=participant_id,
-            pooledParticipantCount=len(participants_data),
-            pooledAttemptCount=pooled_attempt_count,
+            trainingParticipantCount=1,
+            trainingBlockCount=len(all_attempt_data),
+            acquisitionPhase=acquisition_config.get("phase"),
+            acquisitionStrategy=acquisition_config.get("strategy"),
         )
 
         stage = "invoke-sagemaker"
         generated_params, raw_prediction, sagemaker_latency_ms = _invoke_sagemaker(
-            participant_id, attempt_count, current_params, participants_data
+            participant_id, attempt_count, current_params, all_attempt_data, acquisition_config
         )
-        next_parameter_set = _build_next_parameter_set(attempt_count, generated_params)
+        next_parameter_set = _build_next_parameter_set(attempt_count, generated_params, raw_prediction)
 
         stage = "build-metrics"
         block_metrics = _build_block_metrics(
@@ -586,8 +615,7 @@ def handler(event, context):
             generated_parameter_set=generated_params,
             raw_prediction=raw_prediction,
             sagemaker_latency_ms=sagemaker_latency_ms,
-            pooled_participant_count=len(participants_data),
-            pooled_attempt_count=pooled_attempt_count,
+            training_block_count=len(all_attempt_data),
         )
 
         stage = "store-success-state"

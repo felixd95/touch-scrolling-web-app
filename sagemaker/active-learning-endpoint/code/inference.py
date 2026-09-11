@@ -6,7 +6,7 @@ import gpytorch  # noqa: E402
 import numpy as np  # noqa: E402
 
 import torch  # noqa: E402
-from botorch.acquisition import qNoisyExpectedImprovement  # noqa: E402
+from botorch.acquisition import qNoisyExpectedImprovement, qUpperConfidenceBound  # noqa: E402
 from botorch.fit import fit_gpytorch_mll  # noqa: E402
 from botorch.models import SingleTaskGP  # noqa: E402
 from botorch.models.transforms.outcome import Standardize  # noqa: E402
@@ -35,7 +35,6 @@ PARAMETER_BOUNDS = {
 }
 
 MIN_OBSERVATIONS_FOR_BO = 2
-MAX_BLOCKS_PER_PARTICIPANT = 5
 
 # Coarse search settings to keep endpoint latency stable.
 BO_GRID_CANDIDATE_COUNT = 256
@@ -51,6 +50,8 @@ PARAMETER_DECIMALS = {
     "inflexion": 2,
     "decelerationRate": 4,
 }
+
+DEFAULT_UCB_BETA = 6.0
 
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
@@ -211,50 +212,31 @@ def _build_block_observations(recent_data: List[Dict[str, Any]]) -> List[Dict[st
     return observations
 
 
-def _normalize_participants_data(
-    raw_participants_data: Any,
-    current_participant_id: Optional[str],
-) -> Tuple[Dict[int, List[Dict[str, Any]]], Optional[int]]:
-    blocks_by_task_id: Dict[int, List[Dict[str, Any]]] = {}
-    current_task_id = None
+def _select_training_block_window(
+    participant_blocks: List[Dict[str, Any]],
+    acquisition_config: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    return participant_blocks
 
-    if not isinstance(raw_participants_data, list):
-        return blocks_by_task_id, current_task_id
 
-    for entry in raw_participants_data:
-        if not isinstance(entry, dict):
-            continue
-
-        participant_id = entry.get("participantId")
-        if not participant_id:
-            continue
-
-        recent_data = _normalize_recent_data(entry.get("attempts"))
-        blocks = _build_block_observations(recent_data)
-        if len(blocks) > MAX_BLOCKS_PER_PARTICIPANT:
-            blocks = blocks[-MAX_BLOCKS_PER_PARTICIPANT:]
-        if not blocks:
-            continue
-
-        task_id = len(blocks_by_task_id)
-        blocks_by_task_id[task_id] = blocks
-
-        if participant_id == current_participant_id:
-            current_task_id = task_id
-
-    return blocks_by_task_id, current_task_id
+def _normalize_participant_blocks(
+    raw_participant_blocks: Any,
+    acquisition_config: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    recent_data = _normalize_recent_data(raw_participant_blocks)
+    blocks = _build_block_observations(recent_data)
+    return _select_training_block_window(blocks, acquisition_config)
 
 
 def _build_training_data(
-    blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
+    participant_blocks: List[Dict[str, Any]],
 ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
     rows_x: List[List[float]] = []
     rows_y: List[List[float]] = []
 
-    for task_id, blocks in blocks_by_task_id.items():
-        for block in blocks:
-            rows_x.append([*block["x"], float(task_id)])
-            rows_y.append(block["timeVector"])
+    for block in participant_blocks:
+        rows_x.append(list(block["x"]))
+        rows_y.append(block["timeVector"])
 
     if not rows_x:
         return None, None
@@ -295,10 +277,7 @@ def _normalize_train_x_to_unit_cube(
     train_x_np: np.ndarray,
 ) -> Tuple[np.ndarray, Dict[str, Any]]:
     x = train_x_np.copy()
-    scales: Dict[str, Any] = {
-        "params": {},
-        "task": {},
-    }
+    scales: Dict[str, Any] = {"params": {}}
 
     for dim, key in enumerate(REQUIRED_KEYS):
         low, high = PARAMETER_BOUNDS[key]
@@ -306,22 +285,6 @@ def _normalize_train_x_to_unit_cube(
         x[:, dim] = (x[:, dim] - low) / span
         x[:, dim] = np.clip(x[:, dim], 0.0, 1.0)
         scales["params"][key] = {"low": float(low), "high": float(high), "span": float(span)}
-
-    task_low = float(np.min(train_x_np[:, -1]))
-    task_high = float(np.max(train_x_np[:, -1]))
-    task_span = max(task_high - task_low, 1e-9)
-    if task_high > task_low:
-        x[:, -1] = (x[:, -1] - task_low) / task_span
-        x[:, -1] = np.clip(x[:, -1], 0.0, 1.0)
-    else:
-        x[:, -1] = 0.0
-
-    scales["task"] = {
-        "low": task_low,
-        "high": task_high,
-        "span": float(task_span),
-        "isDegenerate": bool(task_high <= task_low),
-    }
 
     return x, scales
 
@@ -356,19 +319,13 @@ def _sample_quantized_candidate_matrix(candidate_count: int) -> np.ndarray:
     return np.stack(columns, axis=1)
 
 
-def _normalize_candidate_matrix(
-    candidate_params: np.ndarray,
-    input_scales: Dict[str, Any],
-    fixed_task_feature: float,
-) -> np.ndarray:
-    candidate_norm = np.zeros((candidate_params.shape[0], len(REQUIRED_KEYS) + 1), dtype=float)
+def _normalize_candidate_matrix(candidate_params: np.ndarray, input_scales: Dict[str, Any]) -> np.ndarray:
+    candidate_norm = np.zeros((candidate_params.shape[0], len(REQUIRED_KEYS)), dtype=float)
     for dim, key in enumerate(REQUIRED_KEYS):
         scale = input_scales["params"][key]
         span = max(float(scale["span"]), 1e-9)
         candidate_norm[:, dim] = (candidate_params[:, dim] - float(scale["low"])) / span
         candidate_norm[:, dim] = np.clip(candidate_norm[:, dim], 0.0, 1.0)
-
-    candidate_norm[:, len(REQUIRED_KEYS)] = float(np.clip(fixed_task_feature, 0.0, 1.0))
     return candidate_norm
 
 
@@ -380,21 +337,16 @@ def _compute_scalar_reference_point(train_objectives: "torch.Tensor") -> List[fl
     return ref.detach().cpu().tolist()
 
 
-def _payload_signature(blocks_by_task_id: Dict[int, List[Dict[str, Any]]], current_task_id: int) -> str:
+def _payload_signature(participant_blocks: List[Dict[str, Any]]) -> str:
     stable_rows = []
-    for task_id in sorted(blocks_by_task_id):
-        for block in blocks_by_task_id[task_id]:
-            stable_rows.append({
-                "task_id": task_id,
-                "block_index": block.get("blockIndex"),
-                "x": [float(v) for v in block.get("x", [])],
-                "time_vector": [float(v) for v in block.get("timeVector", [])],
-            })
+    for block in participant_blocks:
+        stable_rows.append({
+            "block_index": block.get("blockIndex"),
+            "x": [float(v) for v in block.get("x", [])],
+            "time_vector": [float(v) for v in block.get("timeVector", [])],
+        })
 
-    digest_payload = {
-        "current_task_id": int(current_task_id),
-        "rows": stable_rows,
-    }
+    digest_payload = {"rows": stable_rows}
     return hashlib.sha256(json.dumps(digest_payload, sort_keys=True).encode("utf-8")).hexdigest()
 
 
@@ -403,13 +355,65 @@ def _get_persistent_model_state(model: Dict[str, Any]) -> Dict[str, Any]:
     return state
 
 
+def _normalize_acquisition_config(payload: Dict[str, Any]) -> Dict[str, Any]:
+    acquisition = payload.get("acquisition", {})
+    if not isinstance(acquisition, dict):
+        acquisition = {}
+
+    strategy = str(acquisition.get("strategy") or "qnei").strip().lower()
+    if strategy not in {"qnei", "qucb"}:
+        strategy = "qnei"
+
+    beta = acquisition.get("beta", DEFAULT_UCB_BETA)
+    try:
+        beta = float(beta)
+    except (TypeError, ValueError):
+        beta = DEFAULT_UCB_BETA
+    beta = max(beta, 0.0)
+
+    phase = acquisition.get("phase")
+    if not isinstance(phase, str) or not phase.strip():
+        phase = "exploitation-qnei" if strategy == "qnei" else "exploration-qucb"
+
+    return {
+        "strategy": strategy,
+        "beta": beta,
+        "phase": phase,
+    }
+
+
+def _build_acquisition_function(
+    strategy: str,
+    gp_model: SingleTaskGP,
+    train_x: "torch.Tensor",
+    beta: float,
+):
+    if strategy == "qucb":
+        return qUpperConfidenceBound(model=gp_model, beta=beta)
+
+    return qNoisyExpectedImprovement(
+        model=gp_model,
+        X_baseline=train_x,
+        prune_baseline=True,
+    )
+
+
+def _posterior_mean_std(gp_model: SingleTaskGP, x: "torch.Tensor") -> Tuple[float, float]:
+    posterior = gp_model.posterior(x)
+    mean = float(posterior.mean.squeeze().detach().cpu().item())
+    variance = posterior.variance.clamp_min(0.0)
+    std = float(variance.sqrt().squeeze().detach().cpu().item())
+    return mean, std
+
+
 def _select_candidate_with_single_objective(
-    blocks_by_task_id: Dict[int, List[Dict[str, Any]]],
-    current_task_id: int,
+    participant_blocks: List[Dict[str, Any]],
+    acquisition_config: Dict[str, Any],
+    current_params: Dict[str, float],
     persistent_state: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Dict[str, float], Dict[str, Any]]:
 
-    train_x_np, train_y_np = _build_training_data(blocks_by_task_id)
+    train_x_np, train_y_np = _build_training_data(participant_blocks)
     if train_x_np is None or train_y_np is None:
         raise ValueError("No training data available for scalar total-time optimization.")
 
@@ -430,34 +434,28 @@ def _select_candidate_with_single_objective(
     train_obj = -train_y
 
     yvar = torch.full_like(train_obj, OBSERVATION_NOISE_FLOOR)
-    model = SingleTaskGP(
+    gp_model = SingleTaskGP(
         train_X=train_x,
         train_Y=train_obj,
         train_Yvar=yvar,
         outcome_transform=Standardize(m=1),
     )
-    mll = ExactMarginalLogLikelihood(model.likelihood, model)
+    mll = ExactMarginalLogLikelihood(gp_model.likelihood, gp_model)
     with gpytorch.settings.cholesky_jitter(CHOLESKY_JITTER):
         fit_gpytorch_mll(mll)
 
-    task_scale = input_scales["task"]
-    if task_scale.get("isDegenerate"):
-        fixed_task_feature = 0.0
-    else:
-        fixed_task_feature = float(
-            (float(current_task_id) - float(task_scale["low"])) / float(task_scale["span"])
-        )
-        fixed_task_feature = float(np.clip(fixed_task_feature, 0.0, 1.0))
-
     ref_point = _compute_scalar_reference_point(train_obj)
-    acquisition = qNoisyExpectedImprovement(
-        model=model,
-        X_baseline=train_x,
-        prune_baseline=True,
+    strategy = acquisition_config["strategy"]
+    beta = float(acquisition_config["beta"])
+    acquisition = _build_acquisition_function(
+        strategy=strategy,
+        gp_model=gp_model,
+        train_x=train_x,
+        beta=beta,
     )
 
     candidate_params_np = _sample_quantized_candidate_matrix(BO_GRID_CANDIDATE_COUNT)
-    candidate_norm_np = _normalize_candidate_matrix(candidate_params_np, input_scales, fixed_task_feature)
+    candidate_norm_np = _normalize_candidate_matrix(candidate_params_np, input_scales)
     candidate_norm = torch.tensor(candidate_norm_np, dtype=dtype, device=device)
     candidate_values = acquisition(candidate_norm.unsqueeze(1)).detach().cpu().numpy()
     best_index = int(np.argmax(candidate_values))
@@ -466,7 +464,7 @@ def _select_candidate_with_single_objective(
 
     probe_count = BO_PROBE_COUNT
     probe_params_np = _sample_quantized_candidate_matrix(probe_count)
-    probe_norm_np = _normalize_candidate_matrix(probe_params_np, input_scales, fixed_task_feature)
+    probe_norm_np = _normalize_candidate_matrix(probe_params_np, input_scales)
     probe = torch.tensor(probe_norm_np, dtype=dtype, device=device)
     probe_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy().tolist()
     better_count = sum(1 for value in probe_values if value > acquisition_value)
@@ -475,44 +473,64 @@ def _select_candidate_with_single_objective(
     candidate_np = best_candidate_norm.detach().cpu().numpy()[0]
     parameters = _denormalize_candidate_params(candidate_np, input_scales)
 
+    current_param_vector = np.array(
+        [[float(current_params[key]) for key in REQUIRED_KEYS]],
+        dtype=float,
+    )
+    current_norm_np = _normalize_candidate_matrix(current_param_vector, input_scales)
+    current_norm = torch.tensor(current_norm_np, dtype=dtype, device=device)
+
+    candidate_mean_obj, candidate_std = _posterior_mean_std(gp_model, best_candidate_norm)
+    current_mean_obj, current_std = _posterior_mean_std(gp_model, current_norm)
+
+    best_observed_normalized_time = float(np.min(train_y_np[:, 0]))
+    last_observed_normalized_time = float(train_y_np[-1, 0])
+    predicted_candidate_normalized_time = float(-candidate_mean_obj)
+    predicted_current_normalized_time = float(-current_mean_obj)
+    predicted_improvement_vs_current = float(
+        predicted_current_normalized_time - predicted_candidate_normalized_time
+    )
+    predicted_improvement_vs_best_observed = float(
+        best_observed_normalized_time - predicted_candidate_normalized_time
+    )
+
+    exploration_bonus = float(np.sqrt(beta) * candidate_std) if strategy == "qucb" else None
+    optimistic_candidate_normalized_time = (
+        float(-(candidate_mean_obj + exploration_bonus)) if exploration_bonus is not None else None
+    )
+
     diagnostics = {
         "acquisitionValue": acquisition_value,
         "candidateRankApprox": candidate_rank_approx,
         "candidateRankProbeCount": probe_count,
-        "refPoint": ref_point,
-        "fixedTaskId": int(current_task_id),
-        "fixedTaskFeatureNormalized": fixed_task_feature,
-        "inputNormalization": {
-            "type": "min-max-unit-cube",
-            "parameterBounds": PARAMETER_BOUNDS,
-            "task": task_scale,
-        },
+        "acquisitionStrategy": strategy,
+        "acquisitionPhase": acquisition_config.get("phase"),
+        "acquisitionBeta": beta,
         "trainingRowCount": int(train_x.shape[0]),
         "collapsedDuplicateRowCount": collapsed_row_count,
-        "objectiveCount": 1,
         "objectiveType": "total_normalized_time",
-        "numericalStability": {
-            "deduplicationRoundDecimals": DEDUPLICATION_ROUND_DECIMALS,
-            "observationNoiseFloor": OBSERVATION_NOISE_FLOOR,
-            "choleskyJitter": CHOLESKY_JITTER,
-        },
-        "searchConfig": {
-            "strategy": "quantized-random-acquisition-search-single-objective",
-            "gridCandidateCount": BO_GRID_CANDIDATE_COUNT,
-            "probeCount": BO_PROBE_COUNT,
-            "maxBlocksPerParticipant": MAX_BLOCKS_PER_PARTICIPANT,
-            "parameterDecimals": PARAMETER_DECIMALS,
-        },
+        "bestObservedNormalizedTime": best_observed_normalized_time,
+        "lastObservedNormalizedTime": last_observed_normalized_time,
+        "predictedCandidateNormalizedTime": predicted_candidate_normalized_time,
+        "predictedCurrentNormalizedTime": predicted_current_normalized_time,
+        "predictedImprovementVsCurrent": predicted_improvement_vs_current,
+        "predictedImprovementVsBestObserved": predicted_improvement_vs_best_observed,
+        "candidateUncertaintyStd": candidate_std,
+        "currentUncertaintyStd": current_std,
     }
 
+    if exploration_bonus is not None:
+        diagnostics["explorationBonus"] = exploration_bonus
+        diagnostics["optimisticCandidateNormalizedTime"] = optimistic_candidate_normalized_time
+
     if persistent_state is not None:
-        persistent_state["last_model"] = model
+        persistent_state["last_model"] = gp_model
         persistent_state["last_ref_point"] = ref_point
         persistent_state["last_input_scales"] = input_scales
         persistent_state["fit_cache"] = {
             "train_x": train_x_np.tolist(),
             "train_y": train_y_np.tolist(),
-            "current_task_id": int(current_task_id),
+            "acquisition": dict(acquisition_config),
         }
 
     return parameters, diagnostics
@@ -520,49 +538,58 @@ def _select_candidate_with_single_objective(
 
 def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, Any]:
     _normalize_current_params(input_data)
-    current_participant_id = input_data.get("participantId")
-
-    blocks_by_task_id, current_task_id = _normalize_participants_data(
-        input_data.get("participantsData"), current_participant_id
+    acquisition_config = _normalize_acquisition_config(input_data)
+    participant_blocks = _normalize_participant_blocks(
+        input_data.get("participantBlocks"), acquisition_config
     )
-    total_block_observations = sum(len(blocks) for blocks in blocks_by_task_id.values())
+    total_block_observations = len(participant_blocks)
 
-    if current_task_id is None:
-        raise ValueError("Current participant not found in normalized participantsData.")
     if total_block_observations < MIN_OBSERVATIONS_FOR_BO:
         raise ValueError(
             f"Not enough block observations for single-objective BO: {total_block_observations} < {MIN_OBSERVATIONS_FOR_BO}."
         )
 
     persistent_state = _get_persistent_model_state(model)
-    signature = _payload_signature(blocks_by_task_id, current_task_id)
+    signature = _payload_signature(participant_blocks)
+    cache_key = f"{signature}:{acquisition_config['strategy']}:{acquisition_config['beta']:.6f}:{acquisition_config['phase']}"
 
-    if persistent_state.get("payload_signature") == signature and persistent_state.get("best_candidate") is not None:
+    if persistent_state.get("payload_signature") == cache_key and persistent_state.get("best_candidate") is not None:
         best_candidate = persistent_state["best_candidate"]
         diagnostics = dict(persistent_state["diagnostics"] or {})
         diagnostics["modelReuse"] = True
         diagnostics["payloadSignature"] = signature
+        diagnostics["acquisitionCacheKey"] = cache_key
     else:
         best_candidate, diagnostics = _select_candidate_with_single_objective(
-            blocks_by_task_id, current_task_id, persistent_state=persistent_state
+            participant_blocks,
+            acquisition_config,
+            _normalize_current_params(input_data),
+            persistent_state=persistent_state,
         )
-        persistent_state["payload_signature"] = signature
+        persistent_state["payload_signature"] = cache_key
         persistent_state["best_candidate"] = best_candidate
         persistent_state["diagnostics"] = diagnostics
         diagnostics = dict(diagnostics)
         diagnostics["modelReuse"] = False
         diagnostics["payloadSignature"] = signature
+        diagnostics["acquisitionCacheKey"] = cache_key
 
-    strategy = "botorch-qnoisy-ei-single-objective-total-normalized-time"
+    strategy_map = {
+        "qucb": "botorch-qucb-single-objective-per-participant-total-normalized-time",
+        "qnei": "botorch-qnoisy-ei-single-objective-per-participant-total-normalized-time",
+    }
+    strategy = strategy_map.get(acquisition_config["strategy"], strategy_map["qnei"])
 
     return {
         "parameters": best_candidate,
         "inferenceDiagnostics": diagnostics,
         "modelMetadata": {
             "strategy": strategy,
-            "version": "v4-single-objective-total-time",
-            "participantCount": len(blocks_by_task_id),
+            "version": "v5-single-objective-per-participant-total-time",
+            "participantCount": 1,
             "totalBlockObservations": total_block_observations,
+            "acquisitionPhase": acquisition_config.get("phase"),
+            "acquisitionStrategy": acquisition_config.get("strategy"),
             "persistentModel": True,
             "modelReuse": bool(diagnostics.get("modelReuse", False)),
         },
