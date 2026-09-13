@@ -1243,6 +1243,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
   const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
   const showParameterDialog = !isTestMode && (awaitingNextParameterSet || awaitingBlockStartConfirmation || Boolean(parameterSyncError));
+  const showStudyList = isTestMode || !showParameterDialog;
   const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
@@ -1297,48 +1298,52 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
         </div>
       )}
 
-      <div className="target-banner">
-        <span className="target-banner-label">Find:</span>
-        <span className="target-banner-value">{targetNumber}</span>
-      </div>
-
-      <div className="scroll-list-row">
-        {renderDistanceFeedback('left')}
-
-        <div className="scroll-list-container">
-          <div
-            className="scroll-list"
-            ref={scrollListRef}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onTouchCancel={handleTouchEnd}
-          >
-            <div ref={scrollListInnerRef} className="scroll-list-inner" style={{ transform: `translateY(${translateY}px)` }}>
-              {Array.from({ length: NUM_ITEMS }, (_, i) => (
-                <button
-                  key={i}
-                  className={`list-item ${i === targetId ? 'target' : ''} ${
-                    i === targetId && !isSearching ? 'found' : ''
-                  }`}
-                  onClick={() => handleButtonClick(i)}
-                  onTouchEnd={(event) => {
-                    if (i === targetId) {
-                      event.stopPropagation();
-                      handleButtonClick(i);
-                    }
-                  }}
-                  disabled={!isSearching}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
+      {showStudyList && (
+        <>
+          <div className="target-banner">
+            <span className="target-banner-label">Find:</span>
+            <span className="target-banner-value">{targetNumber}</span>
           </div>
-        </div>
 
-        {renderDistanceFeedback('right')}
-      </div>
+          <div className="scroll-list-row">
+            {renderDistanceFeedback('left')}
+
+            <div className="scroll-list-container">
+              <div
+                className="scroll-list"
+                ref={scrollListRef}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd}
+              >
+                <div ref={scrollListInnerRef} className="scroll-list-inner" style={{ transform: `translateY(${translateY}px)` }}>
+                  {Array.from({ length: NUM_ITEMS }, (_, i) => (
+                    <button
+                      key={i}
+                      className={`list-item ${i === targetId ? 'target' : ''} ${
+                        i === targetId && !isSearching ? 'found' : ''
+                      }`}
+                      onClick={() => handleButtonClick(i)}
+                      onTouchEnd={(event) => {
+                        if (i === targetId) {
+                          event.stopPropagation();
+                          handleButtonClick(i);
+                        }
+                      }}
+                      disabled={!isSearching}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {renderDistanceFeedback('right')}
+          </div>
+        </>
+      )}
 
       {showParameterDialog && (
         <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="next-block-dialog-title">

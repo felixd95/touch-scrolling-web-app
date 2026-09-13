@@ -1,0 +1,74 @@
+\section{Related Work: Machine Learning}
+
+\subsection{Problem Context and Positioning}
+This thesis is positioned at the intersection of active learning, Bayesian optimization (BO), and human-in-the-loop experimental design. In all three areas, the core question is the same: how can we obtain the highest possible knowledge or optimization gain with as few expensive evaluations as possible? The literature describes this class of problems as goal-driven learning, where a surrogate model and a selection criterion are iteratively combined to determine the next informative measurement \cite{di2024active}.
+
+For interactive studies with human participants, this perspective is particularly relevant because each additional evaluation incurs direct time and organizational costs. Consequently, not only the final quality of the selected parameters matters, but also the sample efficiency of the search process.
+
+\subsection{Active Learning Foundations}
+In supervised learning, a model is trained on labeled input-output pairs, and the quality of the learned model depends strongly on the availability of sufficiently many labeled training instances \cite{nasteski2017supervised}. Supervised learning is the most common setting in which the learner is given annotated data and must infer a mapping from inputs to outputs. Depending on the nature of the target variable, the task is usually formulated either as classification, where the label is discrete, or as regression, where the label is continuous \cite{nasteski2017supervised}.
+
+Active learning extends this setting by allowing the learning algorithm to choose which unlabeled instances should be labeled next, rather than relying on a fixed training set. Instead of passively accepting the available training data, an active learner iteratively identifies the most informative candidates and requests their labels from an oracle. This makes active learning particularly useful in situations where labeled data are scarce, expensive, or time-consuming to obtain \cite{settles.tr09}.
+
+The core idea of active learning has long been established: for the same labeling budget, a learning algorithm can produce better models if it selectively queries the most informative data points \cite{settles.tr09}. Classical scenarios include membership query synthesis, stream-based selection, and especially pool-based active learning. Typical query strategies include uncertainty sampling, query-by-committee, expected model change, error reduction, and density-weighted variants.
+
+For the problem class considered here, the methodological proximity to BO is especially important: both approaches use a model of current uncertainty to choose the next query point purposefully rather than randomly. The main difference lies in the optimization target. Active learning typically maximizes information gain for a predictive model, whereas BO directly addresses the optimization of an unknown objective function.
+
+\subsection{Bayesian Optimization Foundations}
+Bayesian optimization models the unknown objective as a random function and selects the next evaluation point by maximizing an acquisition function. For expensive black-box functions, this approach is especially attractive because it combines global search with explicit uncertainty management \cite{snoek2012practical}.
+
+Its central components are a probabilistic surrogate model, most commonly a Gaussian process (GP), and an acquisition criterion that balances exploration and exploitation. Standard acquisition families discussed in the literature include probability of improvement, expected improvement (EI), and UCB-based criteria. Snoek et al. also show that practical factors such as evaluation cost, parallelization, and GP hyperparameter treatment strongly influence real-world performance \cite{snoek2012practical}.
+
+\subsection{Gaussian Processes as Surrogate Models}
+Gaussian processes are widely used in BO because they provide, for each candidate point, both a predictive mean and an uncertainty estimate. This combination can be used directly in acquisition functions. The GP literature formalizes this as a distribution over functions whose structure is governed by mean and covariance functions \cite{rasmussen2006gpml}.
+
+In practical applications, the covariance structure is not merely a technical detail. It determines the smoothness, scaling behavior, and local variability assumed over the search space \cite{rasmussen2006gpml,snoek2012practical}. At the same time, noisy observations can be handled through explicit likelihood modeling \cite{rasmussen2006gpml,snoek2012practical}, which is essential for behavior-based measurements with human participants.
+
+\subsection{Acquisition Functions for Exploration and Exploitation}
+Acquisition functions operationalize the sequential decision rule in Bayesian optimization. Rather than optimizing the expensive black-box objective $f(x)$ directly, BO selects the next evaluation point by maximizing a computationally inexpensive utility function $\alpha(x)$ derived from the current surrogate posterior \cite{snoek2012practical,balandat2020botorch}. The acquisition function therefore determines how the method trades off exploration of uncertain regions against exploitation of regions that are predicted to yield favorable objective values.
+
+For a minimization problem, acquisition functions generally favor candidates with low posterior mean $\mu(x)$, high posterior uncertainty $\sigma(x)$, or both. The relative importance of these two quantities depends on the chosen criterion and its hyperparameters. In the present work, this trade-off is controlled explicitly across the study. The initial trials prioritize broad exploration of the parameter space, whereas later trials increasingly prioritize the identification and refinement of high-performing transfer functions.
+
+\subsubsection{Upper Confidence Bound}
+The Gaussian-process upper confidence bound (GP-UCB) acquisition function combines posterior mean and uncertainty in a single decision criterion. For a maximization problem, it is commonly defined as
+\[
+\alpha_{\mathrm{UCB},t}(x) = \mu_{t-1}(x) + \sqrt{\beta_t}\,\sigma_{t-1}(x),
+\]
+where $\mu_{t-1}(x)$ and $\sigma_{t-1}(x)$ denote the GP posterior mean and standard deviation after $t-1$ observations. The parameter $\beta_t$ controls the exploration-exploitation trade-off: increasing $\beta_t$ assigns greater weight to posterior uncertainty and thereby promotes exploration of insufficiently observed regions \cite{srinivas2009gaussian}.
+
+Srinivas et al.~\cite{srinivas2009gaussian} analyze GP-UCB in the GP-bandit setting and establish regret bounds under suitable assumptions. In this thesis, an elevated UCB exploration parameter is used in the early study phase to obtain broad information about the response surface before strongly concentrating evaluations near currently favorable parameter regions. For minimization, the criterion is equivalently negated or formulated as a lower confidence bound.
+
+\subsubsection{Expected Improvement under Noise}
+Expected improvement (EI) is a classical acquisition function for expensive black-box optimization. It quantifies the expected improvement of a candidate over the best function value observed so far \cite{jones1998efficient}. For noise-free maximization, EI can be written as
+
+\[
+\alpha_{\mathrm{EI}}(x) = \mathbb{E}\left[\max\left(f(x)-f^{+},0\right) \mid \mathcal{D}\right],
+\]
+
+where $f^{+}$ is the best observed objective value. EI therefore favors candidates that either have a high predicted value or retain sufficient uncertainty to plausibly improve upon the incumbent solution.
+
+When observations are noisy, the best latent function value among previously evaluated configurations is not known exactly. Using the best observed outcome or a plug-in estimate can lead to overly exploitative and potentially unstable decisions, particularly when the observation noise is large. Noisy expected improvement (NEI) addresses this issue by integrating the improvement utility over the joint posterior uncertainty of the latent function values at the previously evaluated configurations \cite{letham2019constrained}. NEI is thus well suited to behavioral measurements, for which participant ratings and performance measures may exhibit non-negligible variability.
+
+BoTorch provides a Monte Carlo formulation of parallel noisy expected improvement, denoted qNEI. It evaluates improvement jointly over posterior samples at candidate and baseline points, avoiding the need to specify a single deterministic best observed value \cite{balandat2020botorch}. Although the general qNEI formulation supports selecting batches of $q$ candidates, the present experimental loop evaluates one configuration after each interaction block. Thus, the operational setting corresponds to $q=1$; the batch-capable formulation is retained through the underlying BoTorch implementation.
+
+\subsection{Sequential Bayesian Optimization in Human-in-the-Loop Studies}
+\label{subsec:batch-noisy-bo}
+The present optimization loop is sequential and participant-specific: after each completed interaction block, the newly obtained observation is incorporated into the GP posterior and a single subsequent parameter configuration is selected. This differs from parallel BO settings, in which multiple candidates are evaluated simultaneously, but follows the same surrogate-model and acquisition-optimization principle.
+
+The sequential setting is appropriate for human-in-the-loop studies because each interaction block has direct time cost and because later queries can exploit information obtained from the same participant earlier in the session. The use of a noise-aware surrogate model and NEI in the later phase is therefore intended to reduce the influence of potentially noisy individual observations while focusing the remaining trial budget on promising transfer-function configurations \cite{letham2019constrained,balandat2020botorch}.
+
+\subsection{BoTorch and PyTorch-based Bayesian Optimization}
+\label{subsec:botorch-pytorch}
+BoTorch is positioned as a modular BO framework built on PyTorch, specifically designed for Monte Carlo acquisition functions, automatic differentiation, and hardware acceleration \cite{balandat2020botorch}. Its practical value is based on three key properties:
+\begin{itemize}
+\item unified model and acquisition abstractions,
+\item gradient-based optimization even for complex q-acquisition functions,
+\item strong compatibility with parallel and noisy optimization workflows.
+\end{itemize}
+This makes BoTorch particularly suitable for experimental workflows where acquisition strategies are adjusted by phase (e.g., early exploration with qUCB, later refinement with qNEI).
+
+\subsection{Phase-dependent Acquisition Strategy}
+\label{subsec:human-in-the-loop-patterns}
+Based on the preceding considerations, this thesis adopts a phase-dependent sequential BO strategy. The initial design uses diverse samples to provide a stable basis for GP fitting. Subsequently, an exploration-oriented UCB criterion with an elevated uncertainty weight is used to improve coverage of the parameter space. In later trials, the procedure switches to a noise-aware improvement-based criterion, NEI, to prioritize transfer-function configurations that are likely to improve upon the current incumbent despite measurement uncertainty.
+
+This schedule is a methodological design choice for the present human-in-the-loop setting rather than a claim that one fixed schedule is universally optimal. Its purpose is to allocate the limited participant-specific evaluation budget first to learning the broad response surface and subsequently to refining promising regions.
