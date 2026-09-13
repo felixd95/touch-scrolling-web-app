@@ -48,7 +48,8 @@ CHOLESKY_JITTER = 1e-3
 # Convergence configuration: transition from global exploration to local refinement.
 TRUST_REGION_START_BLOCK = 8
 TRUST_REGION_TOP_K = 3
-TRUST_REGION_HALF_SPAN_RATIO = 0.2
+DEFAULT_TRUST_REGION_HALF_SPAN_RATIO = 0.2
+DEFAULT_POSTERIOR_MEAN_WEIGHT = 0.0
 
 PARAMETER_DECIMALS = {
     "scrollFriction": 3,
@@ -339,9 +340,16 @@ def _sample_quantized_candidate_matrix_with_bounds(
 
 def _build_refinement_bounds(
     participant_blocks: List[Dict[str, Any]],
+    acquisition_config: Dict[str, Any],
 ) -> Optional[Dict[str, Tuple[float, float]]]:
+    configured_half_span_ratio = acquisition_config.get("trustRegionHalfSpanRatio")
+    if configured_half_span_ratio in (None, ""):
+        return None
+
     if len(participant_blocks) < TRUST_REGION_START_BLOCK:
         return None
+
+    trust_region_half_span_ratio = float(configured_half_span_ratio)
 
     ranked_blocks = sorted(
         participant_blocks,
@@ -358,7 +366,7 @@ def _build_refinement_bounds(
     for dim, key in enumerate(REQUIRED_KEYS):
         base_low, base_high = PARAMETER_BOUNDS[key]
         span = max(base_high - base_low, 1e-9)
-        half_span = max(TRUST_REGION_HALF_SPAN_RATIO * span, 1.0 / (10 ** PARAMETER_DECIMALS[key]))
+        half_span = max(trust_region_half_span_ratio * span, 1.0 / (10 ** PARAMETER_DECIMALS[key]))
         local_low = max(base_low, float(center[dim]) - half_span)
         local_high = min(base_high, float(center[dim]) + half_span)
 
@@ -374,6 +382,18 @@ def _build_deterministic_rng(participant_blocks: List[Dict[str, Any]]) -> np.ran
     seed_source = _payload_signature(participant_blocks)
     seed = int(seed_source[:16], 16) % (2 ** 32)
     return np.random.default_rng(seed)
+
+
+def _normalize_values_for_blending(values: np.ndarray) -> np.ndarray:
+    if values.size == 0:
+        return values
+
+    min_value = float(np.min(values))
+    max_value = float(np.max(values))
+    span = max_value - min_value
+    if span <= 1e-12:
+        return np.ones_like(values, dtype=float)
+    return (values - min_value) / span
 
 
 def _normalize_candidate_matrix(candidate_params: np.ndarray, input_scales: Dict[str, Any]) -> np.ndarray:
@@ -424,13 +444,30 @@ def _normalize_acquisition_config(payload: Dict[str, Any]) -> Dict[str, Any]:
         phase = "adaptive-qnei"
 
     selection_mode = str(acquisition.get("selectionMode") or "acquisition").strip().lower()
-    if selection_mode not in {"acquisition", "posterior-mean-minimizer"}:
+    if selection_mode not in {"acquisition", "posterior-mean-minimizer", "hybrid"}:
         selection_mode = "acquisition"
+
+    trust_region_half_span_ratio = acquisition.get("trustRegionHalfSpanRatio")
+    try:
+        trust_region_half_span_ratio = float(trust_region_half_span_ratio)
+    except (TypeError, ValueError):
+        trust_region_half_span_ratio = DEFAULT_TRUST_REGION_HALF_SPAN_RATIO
+    if not (0 < trust_region_half_span_ratio <= 0.5):
+        trust_region_half_span_ratio = DEFAULT_TRUST_REGION_HALF_SPAN_RATIO
+
+    posterior_mean_weight = acquisition.get("posteriorMeanWeight")
+    try:
+        posterior_mean_weight = float(posterior_mean_weight)
+    except (TypeError, ValueError):
+        posterior_mean_weight = DEFAULT_POSTERIOR_MEAN_WEIGHT
+    posterior_mean_weight = float(np.clip(posterior_mean_weight, 0.0, 1.0))
 
     return {
         "strategy": strategy,
         "phase": phase,
         "selectionMode": selection_mode,
+        "trustRegionHalfSpanRatio": trust_region_half_span_ratio,
+        "posteriorMeanWeight": posterior_mean_weight,
     }
 
 
@@ -494,12 +531,13 @@ def _select_candidate_with_single_objective(
     ref_point = _compute_scalar_reference_point(train_obj)
     strategy = acquisition_config["strategy"]
     selection_mode = acquisition_config.get("selectionMode", "acquisition")
+    posterior_mean_weight = float(acquisition_config.get("posteriorMeanWeight", DEFAULT_POSTERIOR_MEAN_WEIGHT))
     acquisition = _build_acquisition_function(
         gp_model=gp_model,
         train_x=train_x,
     )
 
-    sampling_bounds = _build_refinement_bounds(participant_blocks)
+    sampling_bounds = _build_refinement_bounds(participant_blocks, acquisition_config)
     rng = _build_deterministic_rng(participant_blocks)
 
     candidate_params_np = _sample_quantized_candidate_matrix_with_bounds(
@@ -514,17 +552,26 @@ def _select_candidate_with_single_objective(
     candidate_posterior = gp_model.posterior(candidate_norm)
     candidate_mean_objs = candidate_posterior.mean.squeeze(-1).detach().cpu().numpy()
 
+    blended_candidate_scores = None
+    if selection_mode == "hybrid":
+        acq_component = _normalize_values_for_blending(candidate_values)
+        mean_component = _normalize_values_for_blending(candidate_mean_objs)
+        blended_candidate_scores = ((1.0 - posterior_mean_weight) * acq_component) + (posterior_mean_weight * mean_component)
+
     if selection_mode == "posterior-mean-minimizer":
         best_index = int(np.argmax(candidate_mean_objs))
+    elif selection_mode == "hybrid" and blended_candidate_scores is not None:
+        best_index = int(np.argmax(blended_candidate_scores))
     else:
         best_index = int(np.argmax(candidate_values))
 
     acquisition_value = float(candidate_values[best_index])
+    hybrid_score = float(blended_candidate_scores[best_index]) if blended_candidate_scores is not None else None
     best_candidate_norm = candidate_norm[best_index : best_index + 1]
 
     probe_count = BO_PROBE_COUNT
     candidate_rank_approx = None
-    if selection_mode == "acquisition":
+    if selection_mode in {"acquisition", "hybrid"}:
         probe_params_np = _sample_quantized_candidate_matrix_with_bounds(
             probe_count,
             bounds_override=sampling_bounds,
@@ -532,8 +579,18 @@ def _select_candidate_with_single_objective(
         )
         probe_norm_np = _normalize_candidate_matrix(probe_params_np, input_scales)
         probe = torch.tensor(probe_norm_np, dtype=dtype, device=device)
-        probe_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy().tolist()
-        better_count = sum(1 for value in probe_values if value > acquisition_value)
+        probe_acq_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy()
+        if selection_mode == "hybrid":
+            probe_mean_objs = gp_model.posterior(probe).mean.squeeze(-1).detach().cpu().numpy()
+            probe_scores = (
+                (1.0 - posterior_mean_weight) * _normalize_values_for_blending(probe_acq_values)
+                + posterior_mean_weight * _normalize_values_for_blending(probe_mean_objs)
+            ).tolist()
+            comparison_value = hybrid_score if hybrid_score is not None else acquisition_value
+        else:
+            probe_scores = probe_acq_values.tolist()
+            comparison_value = acquisition_value
+        better_count = sum(1 for value in probe_scores if value > comparison_value)
         candidate_rank_approx = int(better_count + 1)
 
     candidate_np = best_candidate_norm.detach().cpu().numpy()[0]
@@ -562,6 +619,7 @@ def _select_candidate_with_single_objective(
 
     diagnostics = {
         "acquisitionValue": acquisition_value,
+        "posteriorMeanWeight": posterior_mean_weight,
         "selectionMode": selection_mode,
         "candidateRankProbeCount": probe_count,
         "acquisitionStrategy": strategy,
@@ -577,11 +635,15 @@ def _select_candidate_with_single_objective(
         "predictedImprovementVsBestObserved": predicted_improvement_vs_best_observed,
         "candidateUncertaintyStd": candidate_std,
         "currentUncertaintyStd": current_std,
+        "trustRegionHalfSpanRatio": acquisition_config.get("trustRegionHalfSpanRatio"),
         "searchBounds": sampling_bounds or {
             key: [float(PARAMETER_BOUNDS[key][0]), float(PARAMETER_BOUNDS[key][1])]
             for key in REQUIRED_KEYS
         },
     }
+
+    if hybrid_score is not None:
+        diagnostics["hybridScore"] = hybrid_score
 
     if candidate_rank_approx is not None:
         diagnostics["candidateRankApprox"] = candidate_rank_approx
@@ -614,7 +676,11 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
 
     persistent_state = _get_persistent_model_state(model)
     signature = _payload_signature(participant_blocks)
-    cache_key = f"{signature}:{acquisition_config['strategy']}:{acquisition_config['phase']}:{acquisition_config['selectionMode']}"
+    cache_key = (
+        f"{signature}:{acquisition_config['strategy']}:{acquisition_config['phase']}"
+        f":{acquisition_config['selectionMode']}:{acquisition_config['trustRegionHalfSpanRatio']}"
+        f":{acquisition_config['posteriorMeanWeight']}"
+    )
 
     if persistent_state.get("payload_signature") == cache_key and persistent_state.get("best_candidate") is not None:
         best_candidate = persistent_state["best_candidate"]
@@ -644,7 +710,7 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
         "inferenceDiagnostics": diagnostics,
         "modelMetadata": {
             "strategy": strategy,
-            "version": "v6-qnei-single-objective-per-participant-total-time",
+            "version": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
             "participantCount": 1,
             "totalBlockObservations": total_block_observations,
             "acquisitionPhase": acquisition_config.get("phase"),
