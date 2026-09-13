@@ -764,7 +764,7 @@ function ParticipantsList({ onBack }) {
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                             <div style={{ display: 'grid', gap: 4 }}>
-                              <strong style={{ fontSize: 16 }}>Teilnehmer {participantNumber} · Durchlauf {globalRunNumber}</strong>
+                              <strong style={{ fontSize: 16, color: '#1f2f3d' }}>Teilnehmer {participantNumber} · Durchlauf {globalRunNumber}</strong>
                               <span style={{ fontSize: 12, color: '#66788a' }}>
                                 Block {group.blockIndex ?? globalRunNumber}
                               </span>
