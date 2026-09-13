@@ -27,7 +27,6 @@ const INITIAL_ANDROID_BLOCKS = 1;
 const RANDOM_BOOTSTRAP_BLOCKS = 2;
 const INFERENCE_BLOCKS = 10;
 const TOTAL_STUDY_BLOCKS = INITIAL_ANDROID_BLOCKS + RANDOM_BOOTSTRAP_BLOCKS + INFERENCE_BLOCKS;
-const TOTAL_STUDY_ATTEMPTS = TOTAL_STUDY_BLOCKS * RUNS_PER_BLOCK;
 const NEXT_PARAMETER_POLL_INITIAL_MS = 2000;
 const NEXT_PARAMETER_POLL_MAX_MS = 10000;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
@@ -83,13 +82,12 @@ const getAttemptCount = (value) => {
 
 const getCompletedBlockCount = (attemptCount) => Math.floor(getAttemptCount(attemptCount) / RUNS_PER_BLOCK);
 
-const isRandomBootstrapPhase = (attemptCount) => {
-  const completedBlockCount = getCompletedBlockCount(attemptCount);
+const isRandomBootstrapPhase = (completedBlockCount) => {
   return completedBlockCount >= INITIAL_ANDROID_BLOCKS
     && completedBlockCount < INITIAL_ANDROID_BLOCKS + RANDOM_BOOTSTRAP_BLOCKS;
 };
 
-const hasStudyCompleted = (attemptCount) => getAttemptCount(attemptCount) >= TOTAL_STUDY_ATTEMPTS;
+const hasStudyCompleted = (completedBlockCount) => getAttemptCount(completedBlockCount) >= TOTAL_STUDY_BLOCKS;
 
 const isNextParameterSetForAttemptCount = (parameterSet, expectedAttemptCount) => {
   if (!parameterSet || typeof parameterSet !== 'object') return false;
@@ -221,7 +219,51 @@ const normalizeAttemptBlocks = (rawAttempts) => {
 const countAttemptsInBlocks = (blocks) =>
   blocks.reduce((sum, block) => sum + (Array.isArray(block?.attempts) ? block.attempts.length : 0), 0);
 
-function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
+const getCompletedBlockCountFromNextParameterSet = (rawNextSet) => {
+  if (!rawNextSet) return 0;
+
+  let parsed = rawNextSet;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    return 0;
+  }
+
+  const completedBlockCount = Number(parsed.completedBlockCount);
+  return Number.isFinite(completedBlockCount) ? Math.max(0, Math.trunc(completedBlockCount)) : 0;
+};
+
+const getProgressFromParticipantState = (participantState) => {
+  const rawAttempts = participantState?.attempts;
+  const blocks = normalizeAttemptBlocks(rawAttempts);
+  const attemptsCount = countAttemptsInBlocks(blocks);
+  const maxRunNumber = blocks.reduce((max, block) => {
+    const runNumber = Number(block?.runNumber);
+    if (!Number.isFinite(runNumber)) return max;
+    return Math.max(max, Math.trunc(runNumber));
+  }, 0);
+
+  const nextCompletedBlockCount = getCompletedBlockCountFromNextParameterSet(participantState?.nextParameterSet);
+
+  const completedBlockCount = Math.max(
+    maxRunNumber,
+    getCompletedBlockCount(attemptsCount),
+    nextCompletedBlockCount,
+  );
+
+  return {
+    attemptsCount,
+    completedBlockCount,
+  };
+};
+
+function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onStudyCompleted }) {
   const isTestMode = mode === 'test';
   const [targetSequence, setTargetSequence] = useState(() => createShuffledTargetNumbers());
   const [targetIndex, setTargetIndex] = useState(0);
@@ -246,6 +288,8 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [nextParameterSet, setNextParameterSet] = useState(null);
   const [studyCompleted, setStudyCompleted] = useState(false);
+  const [storedAttemptsCount, setStoredAttemptsCount] = useState(0);
+  const [storedCompletedBlockCount, setStoredCompletedBlockCount] = useState(0);
   const [pendingBlockAttempts, setPendingBlockAttempts] = useState([]);
   const [testScrollFriction, setTestScrollFriction] = useState(() => Number(FLING_PHYSICS_CONFIG.scrollFriction));
   const [testDecelerationRate, setTestDecelerationRate] = useState(() => Number(FLING_PHYSICS_CONFIG.decelerationRate));
@@ -440,14 +484,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
     }
   };
 
-  const getStoredAttemptsCount = (participantState) => {
-    const rawAttempts = participantState?.attempts;
-    if (!rawAttempts) return 0;
-
-    const blocks = normalizeAttemptBlocks(rawAttempts);
-    return countAttemptsInBlocks(blocks);
-  };
-
   const handleRefreshParameterStatus = async () => {
     if (isTestMode) return;
     if (!participantId) return;
@@ -457,7 +493,20 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
 
     try {
       const participant = await loadParticipantState();
+      const progress = getProgressFromParticipantState(participant);
+      const attemptsCount = progress.attemptsCount;
+      const completedBlockCount = progress.completedBlockCount;
+      setStoredAttemptsCount(attemptsCount);
+      setStoredCompletedBlockCount(completedBlockCount);
       const nextSet = normalizeParameterSet(participant?.nextParameterSet);
+
+      if (nextSet?.status === 'completed') {
+        setAwaitingNextParameterSet(false);
+        setAwaitingBlockStartConfirmation(false);
+        setParametersReadyForNextBlock(false);
+        setStudyCompleted(true);
+        return;
+      }
 
       if (nextSet) {
         setNextParameterSet(nextSet);
@@ -466,8 +515,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
         return;
       }
 
-      const attemptsCount = getStoredAttemptsCount(participant);
-      if (hasStudyCompleted(attemptsCount)) {
+      if (hasStudyCompleted(completedBlockCount)) {
         setAwaitingNextParameterSet(false);
         setAwaitingBlockStartConfirmation(false);
         setParametersReadyForNextBlock(false);
@@ -475,7 +523,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
         return;
       }
 
-      if (isRandomBootstrapPhase(attemptsCount)) {
+      if (isRandomBootstrapPhase(completedBlockCount)) {
         const randomParameterSet = createRandomParameterSet(attemptsCount);
         await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(randomParameterSet) });
         setNextParameterSet(randomParameterSet);
@@ -508,9 +556,24 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
 
       try {
         const participant = await loadParticipantState();
-        const attemptsCount = getStoredAttemptsCount(participant);
+        const progress = getProgressFromParticipantState(participant);
+        const attemptsCount = progress.attemptsCount;
+        const completedBlockCount = progress.completedBlockCount;
+        setStoredAttemptsCount(attemptsCount);
+        setStoredCompletedBlockCount(completedBlockCount);
 
-        if (hasStudyCompleted(attemptsCount)) {
+        const participantNextSet = normalizeParameterSet(participant?.nextParameterSet);
+        if (participantNextSet?.status === 'completed') {
+          setNextParameterSet(null);
+          setAwaitingNextParameterSet(false);
+          setAwaitingBlockStartConfirmation(false);
+          setParametersReadyForNextBlock(false);
+          setStudyCompleted(true);
+          setParameterSyncError('');
+          return;
+        }
+
+        if (hasStudyCompleted(completedBlockCount)) {
           setNextParameterSet(null);
           setAwaitingNextParameterSet(false);
           setAwaitingBlockStartConfirmation(false);
@@ -686,6 +749,11 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       const attemptsAfterAppend = parsedAttemptsAfterAppend > 0
         ? parsedAttemptsAfterAppend
         : attemptsBeforeAppend + blockAttempts.length;
+
+      const completedBlocksAfterAppend = getCompletedBlockCount(attemptsAfterAppend);
+
+      setStoredAttemptsCount(attemptsAfterAppend);
+      setStoredCompletedBlockCount(completedBlocksAfterAppend);
 
       return { attemptsCount: attemptsAfterAppend, savedRemotely: true };
     } catch (err) {
@@ -1262,7 +1330,10 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
 
         let receivedUpdatedParameters = false;
         const attemptsCount = getAttemptCount(saveOutcome?.attemptsCount);
-        if (hasStudyCompleted(attemptsCount)) {
+        const completedBlockCount = getCompletedBlockCount(attemptsCount);
+        setStoredAttemptsCount(attemptsCount);
+        setStoredCompletedBlockCount(completedBlockCount);
+        if (hasStudyCompleted(completedBlockCount)) {
           setAwaitingNextParameterSet(false);
           setAwaitingBlockStartConfirmation(false);
           setParametersReadyForNextBlock(false);
@@ -1272,7 +1343,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
 
         if (saveOutcome?.savedRemotely) {
           try {
-            if (isRandomBootstrapPhase(attemptsCount)) {
+            if (isRandomBootstrapPhase(completedBlockCount)) {
               const randomParameterSet = createRandomParameterSet(attemptsCount);
               await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(randomParameterSet) });
               setNextParameterSet(randomParameterSet);
@@ -1282,13 +1353,13 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
             }
           } catch (error) {
             console.error('Error setting next parameter set after block finish', error);
-            if (isRandomBootstrapPhase(attemptsCount)) {
+            if (isRandomBootstrapPhase(completedBlockCount)) {
               const randomParameterSet = createRandomParameterSet(attemptsCount);
               setNextParameterSet(randomParameterSet);
               receivedUpdatedParameters = true;
             }
           }
-        } else if (isRandomBootstrapPhase(attemptsCount)) {
+        } else if (isRandomBootstrapPhase(completedBlockCount)) {
           const randomParameterSet = createRandomParameterSet(attemptsCount);
           setNextParameterSet(randomParameterSet);
           receivedUpdatedParameters = true;
@@ -1337,6 +1408,8 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
   const showStudyCompletionDialog = !isTestMode && studyCompleted;
   const showParameterDialog = !isTestMode && !studyCompleted && (awaitingNextParameterSet || awaitingBlockStartConfirmation || Boolean(parameterSyncError));
   const showStudyList = isTestMode || (!showParameterDialog && !showStudyCompletionDialog);
+  const completedBlockCountForDialog = Math.min(TOTAL_STUDY_BLOCKS, getAttemptCount(storedCompletedBlockCount));
+  const nextBlockNumberForDialog = Math.min(TOTAL_STUDY_BLOCKS, completedBlockCountForDialog + 1);
   const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
@@ -1359,6 +1432,18 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       </div>
     </div>
   );
+
+  useEffect(() => {
+    if (isTestMode || !studyCompleted || typeof onStudyCompleted !== 'function') {
+      return undefined;
+    }
+
+    const redirectTimer = setTimeout(() => {
+      onStudyCompleted();
+    }, 1500);
+
+    return () => clearTimeout(redirectTimer);
+  }, [studyCompleted, onStudyCompleted, isTestMode]);
 
   return (
     <div className="scroll-list-wrapper" style={wrapperStyle}>
@@ -1444,6 +1529,9 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
             <h3 id="next-block-dialog-title">
               {awaitingBlockStartConfirmation ? 'Neuer Block bereit' : 'Parameter-Update'}
             </h3>
+            <p>
+              Block {nextBlockNumberForDialog} von {TOTAL_STUDY_BLOCKS}
+            </p>
             <p>
               {awaitingBlockStartConfirmation
                 ? 'Neue Parameter sind da. Starte den nächsten 10er-Block.'

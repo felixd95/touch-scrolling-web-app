@@ -766,7 +766,7 @@ function ParticipantsList({ onBack }) {
                             <div style={{ display: 'grid', gap: 4 }}>
                               <strong style={{ fontSize: 16 }}>Teilnehmer {participantNumber} · Durchlauf {globalRunNumber}</strong>
                               <span style={{ fontSize: 12, color: '#66788a' }}>
-                                {attempts.length} Versuche
+                                Block {group.blockIndex ?? globalRunNumber}
                               </span>
                             </div>
                             <span style={{ fontSize: 18, color: '#476282', lineHeight: 1 }}>
@@ -1218,7 +1218,13 @@ function App() {
       ) : currentPage === 'test' ? (
         <ScrollList mode="test" onExitTestEnvironment={() => setCurrentPage('landing')} />
       ) : (
-        <ScrollList participantId={participantId} />
+        <ScrollList
+          participantId={participantId}
+          onStudyCompleted={() => {
+            setParticipantId(null);
+            setCurrentPage('landing');
+          }}
+        />
       )}
     </main>
   );
