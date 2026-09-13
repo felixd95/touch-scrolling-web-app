@@ -75,3 +75,15 @@ button:disabled {
   height: 100dvh;
   width: 100%;
 }
+
+.run-group-toggle {
+  color: #111;
+}
+
+.run-group-toggle .run-group-title {
+  color: #111;
+}
+
+.run-group-toggle .run-group-subtitle {
+  color: #111;
+}

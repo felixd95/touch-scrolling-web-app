@@ -749,6 +749,7 @@ function ParticipantsList({ onBack }) {
                         }}
                       >
                         <button
+                          className="run-group-toggle"
                           type="button"
                           onClick={() => setSelectedRunIndex(i)}
                           style={{
@@ -762,10 +763,10 @@ function ParticipantsList({ onBack }) {
                             gap: 10,
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                          <div className="run-group-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                             <div style={{ display: 'grid', gap: 4 }}>
-                              <strong style={{ fontSize: 16, color: '#1f2f3d' }}>Teilnehmer {participantNumber} · Durchlauf {globalRunNumber}</strong>
-                              <span style={{ fontSize: 12, color: '#66788a' }}>
+                              <strong className="run-group-title" style={{ fontSize: 16 }}>Teilnehmer {participantNumber} · Durchlauf {globalRunNumber}</strong>
+                              <span className="run-group-subtitle" style={{ fontSize: 12 }}>
                                 Block {group.blockIndex ?? globalRunNumber}
                               </span>
                             </div>
