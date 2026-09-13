@@ -288,7 +288,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [nextParameterSet, setNextParameterSet] = useState(null);
   const [studyCompleted, setStudyCompleted] = useState(false);
-  const [storedAttemptsCount, setStoredAttemptsCount] = useState(0);
+  const [, setStoredAttemptsCount] = useState(0);
   const [storedCompletedBlockCount, setStoredCompletedBlockCount] = useState(0);
   const [pendingBlockAttempts, setPendingBlockAttempts] = useState([]);
   const [testScrollFriction, setTestScrollFriction] = useState(() => Number(FLING_PHYSICS_CONFIG.scrollFriction));
