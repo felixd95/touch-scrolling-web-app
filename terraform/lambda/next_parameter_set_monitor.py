@@ -13,13 +13,13 @@ INITIAL_ANDROID_BLOCKS = 1
 RANDOM_BOOTSTRAP_BLOCKS = 2
 ADAPTIVE_QNEI_BLOCKS = 9
 LATE_REFINEMENT_BLOCKS = 3
-FINAL_RECOMMENDATION_BLOCKS = 1
 INITIAL_DESIGN_BLOCKS = INITIAL_ANDROID_BLOCKS + RANDOM_BOOTSTRAP_BLOCKS
 FIRST_INFERENCE_BLOCK = INITIAL_DESIGN_BLOCKS
 ADAPTIVE_QNEI_END_BLOCK = INITIAL_DESIGN_BLOCKS + ADAPTIVE_QNEI_BLOCKS
 LATE_REFINEMENT_START_BLOCK = ADAPTIVE_QNEI_END_BLOCK + 1
-FINAL_RECOMMENDATION_TRIGGER_BLOCK = LATE_REFINEMENT_START_BLOCK + LATE_REFINEMENT_BLOCKS - 1
-TOTAL_STUDY_BLOCKS = FINAL_RECOMMENDATION_TRIGGER_BLOCK + FINAL_RECOMMENDATION_BLOCKS
+LATE_REFINEMENT_END_BLOCK = LATE_REFINEMENT_START_BLOCK + LATE_REFINEMENT_BLOCKS - 1
+FINAL_RECOMMENDATION_TRIGGER_BLOCK = LATE_REFINEMENT_END_BLOCK
+TOTAL_STUDY_BLOCKS = LATE_REFINEMENT_END_BLOCK
 INITIAL_TRUST_REGION_HALF_SPAN_RATIO = 0.35
 FINAL_TRUST_REGION_HALF_SPAN_RATIO = 0.10
 
@@ -559,10 +559,10 @@ def _build_failure_next_parameter_set(participant_id, attempt_count, stage, erro
     return _round_parameter_precision(payload)
 
 
-def _build_completion_next_parameter_set(attempt_count):
+def _build_completion_next_parameter_set(attempt_count, generated_params=None, raw_prediction=None):
     safe_attempt_count = int(attempt_count) if isinstance(attempt_count, int) else 0
     completed_block_count = math.floor(safe_attempt_count / RUNS_PER_BLOCK) if safe_attempt_count >= 0 else 0
-    return {
+    payload = {
         "status": "completed",
         "source": "terraform-appsync-sagemaker-active-learning",
         "generatedFromAttemptCount": completed_block_count * RUNS_PER_BLOCK,
@@ -571,6 +571,17 @@ def _build_completion_next_parameter_set(attempt_count):
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "message": "Study completed. No further parameter generation.",
     }
+
+    if isinstance(generated_params, dict):
+        payload.update(_round_parameter_precision(generated_params))
+
+    if isinstance(raw_prediction, dict):
+        final_ready_payload = _build_next_parameter_set(safe_attempt_count, generated_params or {}, raw_prediction)
+        generation = final_ready_payload.get("generation")
+        if isinstance(generation, dict):
+            payload["generation"] = generation
+
+    return payload
 
 
 def _store_failure_state(table_name, participant_id, failure_payload):
@@ -637,7 +648,7 @@ def handler(event, context):
         block_records = _build_block_records_for_ml(attempts)
         completed_block_count = attempt_count // RUNS_PER_BLOCK
 
-        if completed_block_count >= TOTAL_STUDY_BLOCKS:
+        if completed_block_count > TOTAL_STUDY_BLOCKS:
             _log_info(
                 "study already completed; skipping parameter generation",
                 participantId=participant_id,
@@ -696,7 +707,14 @@ def handler(event, context):
         generated_params, raw_prediction, sagemaker_latency_ms = _invoke_sagemaker(
             participant_id, attempt_count, current_params, all_attempt_data, acquisition_config
         )
-        next_parameter_set = _build_next_parameter_set(attempt_count, generated_params, raw_prediction)
+        if completed_block_count >= TOTAL_STUDY_BLOCKS:
+            next_parameter_set = _build_completion_next_parameter_set(
+                attempt_count,
+                generated_params=generated_params,
+                raw_prediction=raw_prediction,
+            )
+        else:
+            next_parameter_set = _build_next_parameter_set(attempt_count, generated_params, raw_prediction)
 
         stage = "build-metrics"
         block_metrics = _build_block_metrics(
