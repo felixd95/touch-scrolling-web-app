@@ -6,7 +6,7 @@ import gpytorch  # noqa: E402
 import numpy as np  # noqa: E402
 
 import torch  # noqa: E402
-from botorch.acquisition import qNoisyExpectedImprovement, qUpperConfidenceBound  # noqa: E402
+from botorch.acquisition import qNoisyExpectedImprovement  # noqa: E402
 from botorch.fit import fit_gpytorch_mll  # noqa: E402
 from botorch.models import SingleTaskGP  # noqa: E402
 from botorch.models.transforms.outcome import Standardize  # noqa: E402
@@ -50,8 +50,6 @@ PARAMETER_DECIMALS = {
     "inflexion": 2,
     "decelerationRate": 4,
 }
-
-DEFAULT_UCB_BETA = 6.0
 
 
 def model_fn(model_dir: str) -> Dict[str, Any]:
@@ -360,37 +358,27 @@ def _normalize_acquisition_config(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(acquisition, dict):
         acquisition = {}
 
-    strategy = str(acquisition.get("strategy") or "qnei").strip().lower()
-    if strategy not in {"qnei", "qucb"}:
-        strategy = "qnei"
-
-    beta = acquisition.get("beta", DEFAULT_UCB_BETA)
-    try:
-        beta = float(beta)
-    except (TypeError, ValueError):
-        beta = DEFAULT_UCB_BETA
-    beta = max(beta, 0.0)
+    strategy = "qnei"
 
     phase = acquisition.get("phase")
     if not isinstance(phase, str) or not phase.strip():
-        phase = "exploitation-qnei" if strategy == "qnei" else "exploration-qucb"
+        phase = "adaptive-qnei"
+
+    selection_mode = str(acquisition.get("selectionMode") or "acquisition").strip().lower()
+    if selection_mode not in {"acquisition", "posterior-mean-minimizer"}:
+        selection_mode = "acquisition"
 
     return {
         "strategy": strategy,
-        "beta": beta,
         "phase": phase,
+        "selectionMode": selection_mode,
     }
 
 
 def _build_acquisition_function(
-    strategy: str,
     gp_model: SingleTaskGP,
     train_x: "torch.Tensor",
-    beta: float,
 ):
-    if strategy == "qucb":
-        return qUpperConfidenceBound(model=gp_model, beta=beta)
-
     return qNoisyExpectedImprovement(
         model=gp_model,
         X_baseline=train_x,
@@ -446,29 +434,37 @@ def _select_candidate_with_single_objective(
 
     ref_point = _compute_scalar_reference_point(train_obj)
     strategy = acquisition_config["strategy"]
-    beta = float(acquisition_config["beta"])
+    selection_mode = acquisition_config.get("selectionMode", "acquisition")
     acquisition = _build_acquisition_function(
-        strategy=strategy,
         gp_model=gp_model,
         train_x=train_x,
-        beta=beta,
     )
 
     candidate_params_np = _sample_quantized_candidate_matrix(BO_GRID_CANDIDATE_COUNT)
     candidate_norm_np = _normalize_candidate_matrix(candidate_params_np, input_scales)
     candidate_norm = torch.tensor(candidate_norm_np, dtype=dtype, device=device)
     candidate_values = acquisition(candidate_norm.unsqueeze(1)).detach().cpu().numpy()
-    best_index = int(np.argmax(candidate_values))
+
+    candidate_posterior = gp_model.posterior(candidate_norm)
+    candidate_mean_objs = candidate_posterior.mean.squeeze(-1).detach().cpu().numpy()
+
+    if selection_mode == "posterior-mean-minimizer":
+        best_index = int(np.argmax(candidate_mean_objs))
+    else:
+        best_index = int(np.argmax(candidate_values))
+
     acquisition_value = float(candidate_values[best_index])
     best_candidate_norm = candidate_norm[best_index : best_index + 1]
 
     probe_count = BO_PROBE_COUNT
-    probe_params_np = _sample_quantized_candidate_matrix(probe_count)
-    probe_norm_np = _normalize_candidate_matrix(probe_params_np, input_scales)
-    probe = torch.tensor(probe_norm_np, dtype=dtype, device=device)
-    probe_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy().tolist()
-    better_count = sum(1 for value in probe_values if value > acquisition_value)
-    candidate_rank_approx = int(better_count + 1)
+    candidate_rank_approx = None
+    if selection_mode == "acquisition":
+        probe_params_np = _sample_quantized_candidate_matrix(probe_count)
+        probe_norm_np = _normalize_candidate_matrix(probe_params_np, input_scales)
+        probe = torch.tensor(probe_norm_np, dtype=dtype, device=device)
+        probe_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy().tolist()
+        better_count = sum(1 for value in probe_values if value > acquisition_value)
+        candidate_rank_approx = int(better_count + 1)
 
     candidate_np = best_candidate_norm.detach().cpu().numpy()[0]
     parameters = _denormalize_candidate_params(candidate_np, input_scales)
@@ -494,18 +490,12 @@ def _select_candidate_with_single_objective(
         best_observed_normalized_time - predicted_candidate_normalized_time
     )
 
-    exploration_bonus = float(np.sqrt(beta) * candidate_std) if strategy == "qucb" else None
-    optimistic_candidate_normalized_time = (
-        float(-(candidate_mean_obj + exploration_bonus)) if exploration_bonus is not None else None
-    )
-
     diagnostics = {
         "acquisitionValue": acquisition_value,
-        "candidateRankApprox": candidate_rank_approx,
+        "selectionMode": selection_mode,
         "candidateRankProbeCount": probe_count,
         "acquisitionStrategy": strategy,
         "acquisitionPhase": acquisition_config.get("phase"),
-        "acquisitionBeta": beta,
         "trainingRowCount": int(train_x.shape[0]),
         "collapsedDuplicateRowCount": collapsed_row_count,
         "objectiveType": "total_normalized_time",
@@ -519,9 +509,8 @@ def _select_candidate_with_single_objective(
         "currentUncertaintyStd": current_std,
     }
 
-    if exploration_bonus is not None:
-        diagnostics["explorationBonus"] = exploration_bonus
-        diagnostics["optimisticCandidateNormalizedTime"] = optimistic_candidate_normalized_time
+    if candidate_rank_approx is not None:
+        diagnostics["candidateRankApprox"] = candidate_rank_approx
 
     if persistent_state is not None:
         persistent_state["last_model"] = gp_model
@@ -551,7 +540,7 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
 
     persistent_state = _get_persistent_model_state(model)
     signature = _payload_signature(participant_blocks)
-    cache_key = f"{signature}:{acquisition_config['strategy']}:{acquisition_config['beta']:.6f}:{acquisition_config['phase']}"
+    cache_key = f"{signature}:{acquisition_config['strategy']}:{acquisition_config['phase']}:{acquisition_config['selectionMode']}"
 
     if persistent_state.get("payload_signature") == cache_key and persistent_state.get("best_candidate") is not None:
         best_candidate = persistent_state["best_candidate"]
@@ -574,22 +563,19 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
         diagnostics["payloadSignature"] = signature
         diagnostics["acquisitionCacheKey"] = cache_key
 
-    strategy_map = {
-        "qucb": "botorch-qucb-single-objective-per-participant-total-normalized-time",
-        "qnei": "botorch-qnoisy-ei-single-objective-per-participant-total-normalized-time",
-    }
-    strategy = strategy_map.get(acquisition_config["strategy"], strategy_map["qnei"])
+    strategy = "botorch-qnoisy-ei-single-objective-per-participant-total-normalized-time"
 
     return {
         "parameters": best_candidate,
         "inferenceDiagnostics": diagnostics,
         "modelMetadata": {
             "strategy": strategy,
-            "version": "v5-single-objective-per-participant-total-time",
+            "version": "v6-qnei-single-objective-per-participant-total-time",
             "participantCount": 1,
             "totalBlockObservations": total_block_observations,
             "acquisitionPhase": acquisition_config.get("phase"),
             "acquisitionStrategy": acquisition_config.get("strategy"),
+            "selectionMode": acquisition_config.get("selectionMode"),
             "persistentModel": True,
             "modelReuse": bool(diagnostics.get("modelReuse", False)),
         },

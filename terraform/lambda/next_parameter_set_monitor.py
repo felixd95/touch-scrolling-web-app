@@ -9,9 +9,12 @@ from decimal import Decimal
 import boto3
 
 RUNS_PER_BLOCK = 10
-RANDOM_BOOTSTRAP_BLOCKS = 3
-UCB_EXPLORATION_BLOCKS = 5
-UCB_BETA = 6.0
+INITIAL_ANDROID_BLOCKS = 1
+RANDOM_BOOTSTRAP_BLOCKS = 2
+INFERENCE_BLOCKS = 10
+FIRST_INFERENCE_BLOCK = INITIAL_ANDROID_BLOCKS + RANDOM_BOOTSTRAP_BLOCKS
+TOTAL_STUDY_BLOCKS = FIRST_INFERENCE_BLOCK + INFERENCE_BLOCKS
+FINAL_RECOMMENDATION_TRIGGER_BLOCK = TOTAL_STUDY_BLOCKS - 1
 
 DEFAULT_PARAMETER_SET = {
     "scrollFriction": 0.015,
@@ -153,6 +156,7 @@ def _build_block_metrics(
             strategy = inference_diagnostics.get("acquisitionStrategy")
             phase = inference_diagnostics.get("acquisitionPhase")
             beta = inference_diagnostics.get("acquisitionBeta")
+            selection_mode = inference_diagnostics.get("selectionMode")
 
             if isinstance(strategy, str) and strategy:
                 generation["strategy"] = strategy
@@ -160,6 +164,8 @@ def _build_block_metrics(
                 generation["phase"] = phase
             if isinstance(beta, (int, float)) and not isinstance(beta, bool):
                 generation["beta"] = float(beta)
+            if isinstance(selection_mode, str) and selection_mode:
+                generation["selectionMode"] = selection_mode
 
             for key in (
                 "acquisitionValue",
@@ -278,22 +284,24 @@ def _round_parameter_precision(parameter_set):
 def _build_acquisition_config(completed_block_count):
     safe_completed_block_count = int(completed_block_count) if isinstance(completed_block_count, int) else 0
 
-    if safe_completed_block_count < RANDOM_BOOTSTRAP_BLOCKS:
+    if safe_completed_block_count < FIRST_INFERENCE_BLOCK:
         return {
-            "strategy": "random",
+            "strategy": "qnei",
             "phase": "bootstrap-random",
+            "selectionMode": "acquisition",
         }
 
-    if safe_completed_block_count < RANDOM_BOOTSTRAP_BLOCKS + UCB_EXPLORATION_BLOCKS:
+    if safe_completed_block_count >= FINAL_RECOMMENDATION_TRIGGER_BLOCK:
         return {
-            "strategy": "qucb",
-            "phase": "exploration-qucb",
-            "beta": UCB_BETA,
+            "strategy": "qnei",
+            "phase": "final-recommendation",
+            "selectionMode": "posterior-mean-minimizer",
         }
 
     return {
         "strategy": "qnei",
-        "phase": "exploitation-qnei",
+        "phase": "adaptive-qnei",
+        "selectionMode": "acquisition",
     }
 
 
@@ -459,6 +467,7 @@ def _build_next_parameter_set(attempt_count, generated_params, raw_prediction):
             strategy = inference_diagnostics.get("acquisitionStrategy")
             phase = inference_diagnostics.get("acquisitionPhase")
             beta = inference_diagnostics.get("acquisitionBeta")
+            selection_mode = inference_diagnostics.get("selectionMode")
 
             if isinstance(strategy, str) and strategy:
                 generation["strategy"] = strategy
@@ -466,6 +475,8 @@ def _build_next_parameter_set(attempt_count, generated_params, raw_prediction):
                 generation["phase"] = phase
             if isinstance(beta, (int, float)) and not isinstance(beta, bool):
                 generation["beta"] = float(beta)
+            if isinstance(selection_mode, str) and selection_mode:
+                generation["selectionMode"] = selection_mode
 
         model_metadata = raw_prediction.get("modelMetadata")
         if isinstance(model_metadata, dict):

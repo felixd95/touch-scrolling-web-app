@@ -1,33 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import outputs from './backend_config.json';
 import ScrollList from './ScrollList';
-import { FLING_PHYSICS_BOUNDS } from './scrollPhysics/overScrollerPhysics';
 import './App.css';
 
 const RUNS_PER_BLOCK = 10;
 const DEFAULT_DECELERATION_RATE = Math.log(0.78) / Math.log(0.9);
-
-const getRandomParameterInRange = (min, max) => min + Math.random() * (max - min);
-
-const createRandomParameterSet = (attemptCount = 0) => ({
-  scrollFriction: Number(getRandomParameterInRange(
-    FLING_PHYSICS_BOUNDS.scrollFriction.min,
-    FLING_PHYSICS_BOUNDS.scrollFriction.max,
-  ).toFixed(5)),
-  decelerationRate: Number(getRandomParameterInRange(
-    FLING_PHYSICS_BOUNDS.decelerationRate.min,
-    FLING_PHYSICS_BOUNDS.decelerationRate.max,
-  ).toFixed(3)),
-  inflexion: Number(getRandomParameterInRange(
-    FLING_PHYSICS_BOUNDS.inflexion.min,
-    FLING_PHYSICS_BOUNDS.inflexion.max,
-  ).toFixed(3)),
-  blockSize: RUNS_PER_BLOCK,
-  status: 'ready',
-  source: 'random-initial-parameter-set',
-  generatedFromAttemptCount: attemptCount,
-  completedBlockCount: Math.floor(attemptCount / RUNS_PER_BLOCK),
-});
 
 const DEFAULT_NEXT_PARAMETER_SET = {
   scrollFriction: 0.015,
@@ -39,6 +16,12 @@ const DEFAULT_NEXT_PARAMETER_SET = {
   source: 'terraform-participant-create-default',
   generatedFromAttemptCount: 0,
 };
+
+const createAndroidParameterSet = () => ({
+  ...DEFAULT_NEXT_PARAMETER_SET,
+  source: 'android-default-parameter-set',
+  completedBlockCount: 0,
+});
 
 const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
 
@@ -1079,7 +1062,7 @@ function App() {
               privateSmartphone: formData.privateSmartphone.trim(),
               screenTimePerDay: formData.screenTimePerDay,
               attempts: JSON.stringify([]),
-              currentParameterSet: JSON.stringify(createRandomParameterSet(0)),
+              currentParameterSet: JSON.stringify(createAndroidParameterSet()),
               nextParameterSet: null,
             },
           },
