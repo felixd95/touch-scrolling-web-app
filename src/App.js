@@ -752,25 +752,15 @@ function ParticipantsList({ onBack }) {
                           className="run-group-toggle"
                           type="button"
                           onClick={() => setSelectedRunIndex(i)}
-                          style={{
-                            width: '100%',
-                            textAlign: 'left',
-                            background: 'transparent',
-                            border: 'none',
-                            padding: 14,
-                            cursor: 'pointer',
-                            display: 'grid',
-                            gap: 10,
-                          }}
                         >
-                          <div className="run-group-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                            <div style={{ display: 'grid', gap: 4 }}>
-                              <strong className="run-group-title" style={{ fontSize: 16 }}>Teilnehmer {participantNumber} · Durchlauf {globalRunNumber}</strong>
-                              <span className="run-group-subtitle" style={{ fontSize: 12 }}>
+                          <div className="run-group-header-row">
+                            <div className="run-group-header-text">
+                              <strong className="run-group-title">Teilnehmer {participantNumber} · Durchlauf {globalRunNumber}</strong>
+                              <span className="run-group-subtitle">
                                 Block {group.blockIndex ?? globalRunNumber}
                               </span>
                             </div>
-                            <span style={{ fontSize: 18, color: '#476282', lineHeight: 1 }}>
+                            <span className="run-group-chevron">
                               {isOpen ? '▾' : '▸'}
                             </span>
                           </div>
