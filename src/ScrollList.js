@@ -1423,8 +1423,8 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment }) {
       {showStudyCompletionDialog && (
         <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="study-complete-dialog-title">
           <div className="block-confirm-dialog">
-            <h3 id="study-complete-dialog-title">Studie abgeschlossen</h3>
-            <p>Alle 13 Blöcke wurden abgeschlossen. Der letzte Durchlauf wurde mit dem final empfohlenen Parametersatz ausgeführt.</p>
+            <h3 id="study-complete-dialog-title">Study completed</h3>
+            <p>The study has ended. Thank you for your participation.</p>
           </div>
         </div>
       )}
