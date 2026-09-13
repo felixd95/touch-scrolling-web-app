@@ -102,6 +102,47 @@ const isNextParameterSetForAttemptCount = (parameterSet, expectedAttemptCount) =
   return generatedFromAttemptCount === getAttemptCount(expectedAttemptCount);
 };
 
+const unwrapDynamoJsonValue = (value) => {
+  if (Array.isArray(value)) {
+    return value.map(unwrapDynamoJsonValue);
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(value, 'M') && value.M && typeof value.M === 'object') {
+    return unwrapDynamoJsonValue(value.M);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(value, 'L') && Array.isArray(value.L)) {
+    return value.L.map(unwrapDynamoJsonValue);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(value, 'N')) {
+    const asNumber = Number(value.N);
+    return Number.isFinite(asNumber) ? asNumber : value.N;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(value, 'S')) {
+    return value.S;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(value, 'BOOL')) {
+    return Boolean(value.BOOL);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(value, 'NULL')) {
+    return null;
+  }
+
+  const unwrappedObject = {};
+  Object.entries(value).forEach(([key, nestedValue]) => {
+    unwrappedObject[key] = unwrapDynamoJsonValue(nestedValue);
+  });
+  return unwrappedObject;
+};
+
 const normalizeAttemptBlocks = (rawAttempts) => {
   if (!rawAttempts) return [];
 
@@ -112,6 +153,12 @@ const normalizeAttemptBlocks = (rawAttempts) => {
     } catch (error) {
       return [];
     }
+  }
+
+  parsed = unwrapDynamoJsonValue(parsed);
+
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.L)) {
+    parsed = parsed.L.map(unwrapDynamoJsonValue);
   }
 
   if (!Array.isArray(parsed) && parsed && typeof parsed === 'object') {

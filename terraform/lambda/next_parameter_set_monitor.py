@@ -517,6 +517,20 @@ def _build_failure_next_parameter_set(participant_id, attempt_count, stage, erro
     return _round_parameter_precision(payload)
 
 
+def _build_completion_next_parameter_set(attempt_count):
+    safe_attempt_count = int(attempt_count) if isinstance(attempt_count, int) else 0
+    completed_block_count = math.floor(safe_attempt_count / RUNS_PER_BLOCK) if safe_attempt_count >= 0 else 0
+    return {
+        "status": "completed",
+        "source": "terraform-appsync-sagemaker-active-learning",
+        "generatedFromAttemptCount": completed_block_count * RUNS_PER_BLOCK,
+        "completedBlockCount": completed_block_count,
+        "blockSize": RUNS_PER_BLOCK,
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "message": "Study completed. No further parameter generation.",
+    }
+
+
 def _store_failure_state(table_name, participant_id, failure_payload):
     if not table_name or not participant_id:
         return
@@ -580,6 +594,30 @@ def handler(event, context):
         attempts = participant_state.get("attempts", [])
         block_records = _build_block_records_for_ml(attempts)
         completed_block_count = attempt_count // RUNS_PER_BLOCK
+
+        if completed_block_count >= TOTAL_STUDY_BLOCKS:
+            _log_info(
+                "study already completed; skipping parameter generation",
+                participantId=participant_id,
+                attemptCount=attempt_count,
+                completedBlockCount=completed_block_count,
+                maxStudyBlocks=TOTAL_STUDY_BLOCKS,
+            )
+
+            completion_payload = _build_completion_next_parameter_set(attempt_count)
+
+            table = dynamodb.Table(table_name)
+            table.update_item(
+                Key={"id": participant_id},
+                UpdateExpression="SET nextParameterSet = :nextParameterSet",
+                ExpressionAttributeValues={
+                    ":nextParameterSet": _to_dynamo(completion_payload),
+                },
+            )
+
+            return {
+                "nextParameterSet": json.dumps(completion_payload)
+            }
 
         if len(block_records) < completed_block_count:
             _log_warning(

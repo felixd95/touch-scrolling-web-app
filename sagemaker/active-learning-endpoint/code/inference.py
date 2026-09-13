@@ -42,8 +42,13 @@ BO_PROBE_COUNT = 16
 
 # Numerical stability configuration for GP fitting.
 DEDUPLICATION_ROUND_DECIMALS = 6
-OBSERVATION_NOISE_FLOOR = 1e-4
+OBSERVATION_NOISE_FLOOR = 1e-3
 CHOLESKY_JITTER = 1e-3
+
+# Convergence configuration: transition from global exploration to local refinement.
+TRUST_REGION_START_BLOCK = 8
+TRUST_REGION_TOP_K = 3
+TRUST_REGION_HALF_SPAN_RATIO = 0.2
 
 PARAMETER_DECIMALS = {
     "scrollFriction": 3,
@@ -298,12 +303,27 @@ def _denormalize_candidate_params(candidate_norm: np.ndarray, scales: Dict[str, 
 
 
 def _sample_quantized_candidate_matrix(candidate_count: int) -> np.ndarray:
+    return _sample_quantized_candidate_matrix_with_bounds(candidate_count)
+
+
+def _sample_quantized_candidate_matrix_with_bounds(
+    candidate_count: int,
+    bounds_override: Optional[Dict[str, Tuple[float, float]]] = None,
+    rng: Optional[np.random.Generator] = None,
+) -> np.ndarray:
     if candidate_count <= 0:
         candidate_count = 1
+
+    local_rng = rng if rng is not None else np.random.default_rng()
 
     columns = []
     for key in REQUIRED_KEYS:
         low, high = PARAMETER_BOUNDS[key]
+        if bounds_override and key in bounds_override:
+            override_low, override_high = bounds_override[key]
+            low = max(low, float(override_low))
+            high = min(high, float(override_high))
+
         decimals = PARAMETER_DECIMALS[key]
         scale = 10 ** decimals
         low_i = int(np.ceil(low * scale))
@@ -311,10 +331,49 @@ def _sample_quantized_candidate_matrix(candidate_count: int) -> np.ndarray:
         if high_i < low_i:
             low_i = high_i = int(round(DEFAULT_PARAMETER_SET[key] * scale))
 
-        sampled_i = np.random.randint(low_i, high_i + 1, size=candidate_count)
+        sampled_i = local_rng.integers(low_i, high_i + 1, size=candidate_count)
         columns.append(sampled_i.astype(float) / float(scale))
 
     return np.stack(columns, axis=1)
+
+
+def _build_refinement_bounds(
+    participant_blocks: List[Dict[str, Any]],
+) -> Optional[Dict[str, Tuple[float, float]]]:
+    if len(participant_blocks) < TRUST_REGION_START_BLOCK:
+        return None
+
+    ranked_blocks = sorted(
+        participant_blocks,
+        key=lambda block: float(block.get("timeVector", [float("inf")])[0]),
+    )
+    top_blocks = ranked_blocks[: max(1, TRUST_REGION_TOP_K)]
+    if not top_blocks:
+        return None
+
+    top_x = np.array([block["x"] for block in top_blocks], dtype=float)
+    center = np.mean(top_x, axis=0)
+
+    bounds: Dict[str, Tuple[float, float]] = {}
+    for dim, key in enumerate(REQUIRED_KEYS):
+        base_low, base_high = PARAMETER_BOUNDS[key]
+        span = max(base_high - base_low, 1e-9)
+        half_span = max(TRUST_REGION_HALF_SPAN_RATIO * span, 1.0 / (10 ** PARAMETER_DECIMALS[key]))
+        local_low = max(base_low, float(center[dim]) - half_span)
+        local_high = min(base_high, float(center[dim]) + half_span)
+
+        if local_high <= local_low:
+            bounds[key] = (base_low, base_high)
+        else:
+            bounds[key] = (local_low, local_high)
+
+    return bounds
+
+
+def _build_deterministic_rng(participant_blocks: List[Dict[str, Any]]) -> np.random.Generator:
+    seed_source = _payload_signature(participant_blocks)
+    seed = int(seed_source[:16], 16) % (2 ** 32)
+    return np.random.default_rng(seed)
 
 
 def _normalize_candidate_matrix(candidate_params: np.ndarray, input_scales: Dict[str, Any]) -> np.ndarray:
@@ -440,7 +499,14 @@ def _select_candidate_with_single_objective(
         train_x=train_x,
     )
 
-    candidate_params_np = _sample_quantized_candidate_matrix(BO_GRID_CANDIDATE_COUNT)
+    sampling_bounds = _build_refinement_bounds(participant_blocks)
+    rng = _build_deterministic_rng(participant_blocks)
+
+    candidate_params_np = _sample_quantized_candidate_matrix_with_bounds(
+        BO_GRID_CANDIDATE_COUNT,
+        bounds_override=sampling_bounds,
+        rng=rng,
+    )
     candidate_norm_np = _normalize_candidate_matrix(candidate_params_np, input_scales)
     candidate_norm = torch.tensor(candidate_norm_np, dtype=dtype, device=device)
     candidate_values = acquisition(candidate_norm.unsqueeze(1)).detach().cpu().numpy()
@@ -459,7 +525,11 @@ def _select_candidate_with_single_objective(
     probe_count = BO_PROBE_COUNT
     candidate_rank_approx = None
     if selection_mode == "acquisition":
-        probe_params_np = _sample_quantized_candidate_matrix(probe_count)
+        probe_params_np = _sample_quantized_candidate_matrix_with_bounds(
+            probe_count,
+            bounds_override=sampling_bounds,
+            rng=rng,
+        )
         probe_norm_np = _normalize_candidate_matrix(probe_params_np, input_scales)
         probe = torch.tensor(probe_norm_np, dtype=dtype, device=device)
         probe_values = acquisition(probe.unsqueeze(1)).detach().cpu().numpy().tolist()
@@ -507,6 +577,10 @@ def _select_candidate_with_single_objective(
         "predictedImprovementVsBestObserved": predicted_improvement_vs_best_observed,
         "candidateUncertaintyStd": candidate_std,
         "currentUncertaintyStd": current_std,
+        "searchBounds": sampling_bounds or {
+            key: [float(PARAMETER_BOUNDS[key][0]), float(PARAMETER_BOUNDS[key][1])]
+            for key in REQUIRED_KEYS
+        },
     }
 
     if candidate_rank_approx is not None:
