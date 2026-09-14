@@ -405,7 +405,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     return json.data?.listParticipants?.items?.[0] || null;
   }, [participantId, isTestMode]);
 
-  const triggerNextParameterSetUpdate = async (attemptCount) => {
+  const triggerNextParameterSetUpdate = useCallback(async (attemptCount) => {
     if (isTestMode || !participantId) return null;
 
     const resp = await fetch(outputs.data.url, {
@@ -423,11 +423,11 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     }
 
     return normalizeParameterSet(json.data?.triggerNextParameterSet?.nextParameterSet);
-  };
+  }, [isTestMode, participantId]);
 
-  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const wait = useCallback((ms) => new Promise((resolve) => setTimeout(resolve, ms)), []);
 
-  const updateParticipantParameterSets = async (updatedSets) => {
+  const updateParticipantParameterSets = useCallback(async (updatedSets) => {
     if (isTestMode || !participantId) return null;
 
     const resp = await fetch(outputs.data.url, {
@@ -445,9 +445,9 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     }
 
     return json.data?.updateParticipant || null;
-  };
+  }, [isTestMode, participantId]);
 
-  const synchronizeNextParameterSet = async (attemptCount) => {
+  const synchronizeNextParameterSet = useCallback(async (attemptCount) => {
     if (isTestMode) return false;
 
     try {
@@ -484,16 +484,16 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         );
       }
     }
-  };
+  }, [isTestMode, loadParticipantState, triggerNextParameterSetUpdate, wait]);
 
-  const waitForMinimumNextBlockLoadDelay = async (startedAtMs) => {
+  const waitForMinimumNextBlockLoadDelay = useCallback(async (startedAtMs) => {
     const elapsedMs = Date.now() - startedAtMs;
     if (elapsedMs < MIN_NEXT_BLOCK_LOAD_DELAY_MS) {
       await wait(MIN_NEXT_BLOCK_LOAD_DELAY_MS - elapsedMs);
     }
-  };
+  }, [wait]);
 
-  const activateNextParameterSet = async (rawNextParameterSet, startedAtMs) => {
+  const activateNextParameterSet = useCallback(async (rawNextParameterSet, startedAtMs) => {
     const nextParameterSetCandidate = normalizeParameterSet(rawNextParameterSet);
     if (!nextParameterSetCandidate) {
       return false;
@@ -520,9 +520,18 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     setParametersReadyForNextBlock(true);
     setParameterSyncError('');
     return true;
-  };
+  }, [
+    applyCurrentParameterSet,
+    setAwaitingNextParameterSet,
+    setCurrentParameterSet,
+    setNextParameterSet,
+    setParametersReadyForNextBlock,
+    setParameterSyncError,
+    waitForMinimumNextBlockLoadDelay,
+    updateParticipantParameterSets,
+  ]);
 
-  const loadAndActivateNextBlock = async ({
+  const loadAndActivateNextBlock = useCallback(async ({
     participantState = null,
     allowGenerationWhenMissing = true,
   } = {}) => {
@@ -583,7 +592,20 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
       setParameterSyncError('Parameter konnten nicht geladen werden. Bitte erneut prüfen.');
       return false;
     }
-  };
+  }, [
+    activateNextParameterSet,
+    isTestMode,
+    participantId,
+    loadParticipantState,
+    setAwaitingNextParameterSet,
+    setParametersReadyForNextBlock,
+    setParameterSyncError,
+    setStoredAttemptsCount,
+    setStoredCompletedBlockCount,
+    setStudyCompleted,
+    synchronizeNextParameterSet,
+    updateParticipantParameterSets,
+  ]);
 
   const handleRefreshParameterStatus = async () => {
     if (isTestMode) return;
@@ -592,11 +614,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     await loadAndActivateNextBlock({ allowGenerationWhenMissing: true });
   };
 
-  // This initialization intentionally uses the current loader shape and must not rerun on every callback identity change.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadParticipantParameters = async () => {
       if (isTestMode) {
@@ -663,7 +680,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     };
 
     loadParticipantParameters();
-  }, [participantId, applyCurrentParameterSet, loadParticipantState, isTestMode]);
+  }, [participantId, applyCurrentParameterSet, loadParticipantState, isTestMode, loadAndActivateNextBlock]);
 
   useEffect(() => {
     if (!isTestMode) return;
