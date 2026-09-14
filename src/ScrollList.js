@@ -1346,6 +1346,13 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
       setRoundCompleted(true);
       setActiveMultiplier(null);
       setRunCount(nextRunCount);
+      if (runBlockFinished && !isTestMode) {
+        // Cover the list immediately (same render as the new target) so the
+        // participant cannot scroll the freshly generated number before the
+        // block is saved and the next parameter set has been generated.
+        setAwaitingNextParameterSet(true);
+        setParametersReadyForNextBlock(false);
+      }
       if (runBlockFinished) {
         setTargetSequence(createShuffledTargetNumbers());
         setTargetIndex(0);

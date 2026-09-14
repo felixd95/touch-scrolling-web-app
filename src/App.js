@@ -137,6 +137,7 @@ function ParticipantsList({ onBack }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingParticipantId, setDownloadingParticipantId] = useState(null);
   const [error, setError] = useState('');
   const [, setResults] = useState([]);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
@@ -575,6 +576,44 @@ function ParticipantsList({ onBack }) {
     }
   };
 
+  const buildParticipantExport = (p) => {
+    const parsedAttempts = parseAttemptsPayload(p.attempts);
+    return {
+      participantId: p.id,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      email: p.email,
+      birthDate: p.birthDate,
+      privateSmartphone: p.privateSmartphone,
+      screenTimePerDay: p.screenTimePerDay,
+      currentParameterSet: normalizeParameterSet(p.currentParameterSet),
+      nextParameterSet: normalizeParameterSet(p.nextParameterSet),
+      parameterBlockMetrics: parseParameterBlockMetrics(p.parameterBlockMetrics),
+      attemptBlocks: parsedAttempts.blocks,
+      attempts: parsedAttempts.flat,
+    };
+  };
+
+  const triggerJsonDownload = (data, filename) => {
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const sanitizeForFilename = (value) =>
+    String(value ?? '')
+      .trim()
+      .replace(/[^a-zA-Z0-9-_]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
   const handleDownloadAllData = async () => {
     setDownloading(true);
     setError('');
@@ -582,42 +621,42 @@ function ParticipantsList({ onBack }) {
       const freshItems = await fetchParticipantsFromBackend();
       setItems(freshItems);
 
-      const dataToExport = freshItems.map((p) => {
-        const parsedAttempts = parseAttemptsPayload(p.attempts);
-        return {
-          participantId: p.id,
-          firstName: p.firstName,
-          lastName: p.lastName,
-          email: p.email,
-          birthDate: p.birthDate,
-          privateSmartphone: p.privateSmartphone,
-          screenTimePerDay: p.screenTimePerDay,
-          currentParameterSet: normalizeParameterSet(p.currentParameterSet),
-          nextParameterSet: normalizeParameterSet(p.nextParameterSet),
-          parameterBlockMetrics: parseParameterBlockMetrics(p.parameterBlockMetrics),
-          attemptBlocks: parsedAttempts.blocks,
-          attempts: parsedAttempts.flat,
-        };
-      });
+      const dataToExport = freshItems.map((p) => buildParticipantExport(p));
 
       const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `touch-scrolling-data-${timestamp}.json`;
-      const jsonString = JSON.stringify(dataToExport, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      triggerJsonDownload(dataToExport, `touch-scrolling-data-${timestamp}.json`);
     } catch (err) {
       console.error(err);
       setError('Fehler beim Download der Daten');
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleDownloadParticipant = async (participant) => {
+    if (!participant?.id) return;
+    setDownloadingParticipantId(participant.id);
+    setError('');
+    try {
+      const freshItems = await fetchParticipantsFromBackend();
+      setItems(freshItems);
+
+      const target = freshItems.find((p) => p.id === participant.id) || participant;
+      const participantNumber = buildParticipantNumberMap(freshItems).get(target.id);
+
+      const timestamp = new Date().toISOString().split('T')[0];
+      const namePart = sanitizeForFilename(
+        [target.firstName, target.lastName].filter(Boolean).join('-')
+      );
+      const numberPart = participantNumber ? `p${participantNumber}` : sanitizeForFilename(target.id);
+      const filenameParts = ['touch-scrolling-data', numberPart, namePart, timestamp].filter(Boolean);
+
+      triggerJsonDownload(buildParticipantExport(target), `${filenameParts.join('-')}.json`);
+    } catch (err) {
+      console.error(err);
+      setError('Fehler beim Download der Teilnehmerdaten');
+    } finally {
+      setDownloadingParticipantId(null);
     }
   };
 
@@ -713,6 +752,14 @@ function ParticipantsList({ onBack }) {
                             disabled={!hasStoredAttempts}
                           >
                             View Attempts
+                          </button>
+                          <button
+                            className="nav-button"
+                            onClick={() => handleDownloadParticipant(p)}
+                            disabled={downloading || downloadingParticipantId === p.id}
+                            style={{ marginLeft: 8, background: '#0066cc' }}
+                          >
+                            {downloadingParticipantId === p.id ? 'Download...' : 'Download JSON'}
                           </button>
                         </td>
                       </tr>
