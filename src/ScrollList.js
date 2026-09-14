@@ -568,7 +568,13 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
       setParametersReadyForNextBlock(false);
       setParameterSyncError('');
 
-      let nextParameterSet = participantNextSet;
+      // Only reuse an already stored nextParameterSet if it was generated for the
+      // current attempt count. A set generated for an earlier block is stale and
+      // must not be reused, otherwise the study keeps applying the same parameters
+      // instead of triggering a fresh inference for the next block.
+      let nextParameterSet = isNextParameterSetForAttemptCount(participantNextSet, attemptsCount)
+        ? participantNextSet
+        : null;
 
       if (!nextParameterSet && allowGenerationWhenMissing) {
         if (isRandomBootstrapPhase(completedBlockCount)) {
@@ -655,8 +661,9 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
 
         const currentSet = normalizeParameterSet(participant?.currentParameterSet);
         const nextSet = normalizeParameterSet(participant?.nextParameterSet);
+        const nextSetMatchesProgress = isNextParameterSetForAttemptCount(nextSet, attemptsCount);
         let activeSet = currentSet;
-        let pendingNext = nextSet;
+        let pendingNext = nextSetMatchesProgress ? nextSet : null;
 
         if (!activeSet && nextSet) {
           applyCurrentParameterSet(nextSet);
