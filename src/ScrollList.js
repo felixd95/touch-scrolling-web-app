@@ -31,6 +31,7 @@ const TOTAL_STUDY_BLOCKS = INITIAL_ANDROID_BLOCKS
   + RANDOM_BOOTSTRAP_BLOCKS
   + ADAPTIVE_QNEI_BLOCKS
   + LATE_REFINEMENT_BLOCKS;
+const MIN_NEXT_BLOCK_LOAD_DELAY_MS = 2000;
 const NEXT_PARAMETER_POLL_INITIAL_MS = 2000;
 const NEXT_PARAMETER_POLL_MAX_MS = 10000;
 const ANDROID_SAMPLE_WINDOW_MS = 100;
@@ -287,7 +288,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
   const [multiplierTarget, setMultiplierTarget] = useState(null);
   const [runCount, setRunCount] = useState(0);
   const [awaitingNextParameterSet, setAwaitingNextParameterSet] = useState(false);
-  const [awaitingBlockStartConfirmation, setAwaitingBlockStartConfirmation] = useState(false);
   const [parametersReadyForNextBlock, setParametersReadyForNextBlock] = useState(true);
   const [parameterSyncError, setParameterSyncError] = useState('');
   const [nextParameterSet, setNextParameterSet] = useState(null);
@@ -453,8 +453,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     try {
       const immediateParameterSet = await triggerNextParameterSetUpdate(attemptCount);
       if (isNextParameterSetForAttemptCount(immediateParameterSet, attemptCount)) {
-        setNextParameterSet(immediateParameterSet);
-        return true;
+        return immediateParameterSet;
       }
     } catch (error) {
       // AppSync can time out while Lambda continues in the background.
@@ -470,8 +469,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         const participant = await loadParticipantState();
         const nextSet = normalizeParameterSet(participant?.nextParameterSet);
         if (isNextParameterSetForAttemptCount(nextSet, attemptCount)) {
-          setNextParameterSet(nextSet);
-          return true;
+          return nextSet;
         }
 
         pollIntervalMs = Math.min(
@@ -488,61 +486,110 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     }
   };
 
-  const handleRefreshParameterStatus = async () => {
-    if (isTestMode) return;
-    if (!participantId) return;
+  const waitForMinimumNextBlockLoadDelay = async (startedAtMs) => {
+    const elapsedMs = Date.now() - startedAtMs;
+    if (elapsedMs < MIN_NEXT_BLOCK_LOAD_DELAY_MS) {
+      await wait(MIN_NEXT_BLOCK_LOAD_DELAY_MS - elapsedMs);
+    }
+  };
 
-    setAwaitingNextParameterSet(true);
-    setParameterSyncError('');
+  const activateNextParameterSet = async (rawNextParameterSet, startedAtMs) => {
+    const nextParameterSetCandidate = normalizeParameterSet(rawNextParameterSet);
+    if (!nextParameterSetCandidate) {
+      return false;
+    }
+
+    await waitForMinimumNextBlockLoadDelay(startedAtMs);
 
     try {
-      const participant = await loadParticipantState();
+      await updateParticipantParameterSets({
+        currentParameterSet: JSON.stringify(nextParameterSetCandidate),
+        nextParameterSet: null,
+      });
+    } catch (error) {
+      console.error('Error promoting next parameter set', error);
+      setAwaitingNextParameterSet(false);
+      setParameterSyncError('Fehler beim Aktivieren des neuen Parametersatzes. Bitte erneut versuchen.');
+      return false;
+    }
+
+    applyCurrentParameterSet(nextParameterSetCandidate);
+    setCurrentParameterSet(nextParameterSetCandidate);
+    setNextParameterSet(null);
+    setAwaitingNextParameterSet(false);
+    setParametersReadyForNextBlock(true);
+    setParameterSyncError('');
+    return true;
+  };
+
+  const loadAndActivateNextBlock = async ({
+    participantState = null,
+    allowGenerationWhenMissing = true,
+  } = {}) => {
+    if (isTestMode || !participantId) return false;
+
+    const loadingStartedAt = Date.now();
+
+    try {
+      const participant = participantState ?? await loadParticipantState();
       const progress = getProgressFromParticipantState(participant);
       const attemptsCount = progress.attemptsCount;
       const completedBlockCount = progress.completedBlockCount;
       setStoredAttemptsCount(attemptsCount);
       setStoredCompletedBlockCount(completedBlockCount);
-      const nextSet = normalizeParameterSet(participant?.nextParameterSet);
-
-      if (nextSet?.status === 'completed') {
-        setAwaitingNextParameterSet(false);
-        setAwaitingBlockStartConfirmation(false);
-        setParametersReadyForNextBlock(false);
-        setStudyCompleted(true);
-        return;
-      }
-
-      if (nextSet) {
-        setNextParameterSet(nextSet);
-        setAwaitingNextParameterSet(false);
-        setAwaitingBlockStartConfirmation(true);
-        return;
-      }
 
       if (hasStudyCompleted(completedBlockCount)) {
         setAwaitingNextParameterSet(false);
-        setAwaitingBlockStartConfirmation(false);
         setParametersReadyForNextBlock(false);
         setStudyCompleted(true);
-        return;
+        setParameterSyncError('');
+        return true;
       }
 
-      if (isRandomBootstrapPhase(completedBlockCount)) {
-        const randomParameterSet = createRandomParameterSet(attemptsCount);
-        await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(randomParameterSet) });
-        setNextParameterSet(randomParameterSet);
+      const participantNextSet = normalizeParameterSet(participant?.nextParameterSet);
+      if (participantNextSet?.status === 'completed') {
         setAwaitingNextParameterSet(false);
-        setAwaitingBlockStartConfirmation(true);
-        return;
+        setParametersReadyForNextBlock(false);
+        setStudyCompleted(true);
+        setParameterSyncError('');
+        return true;
       }
 
-      setAwaitingNextParameterSet(false);
-      setParameterSyncError('Parameter-Update ausstehend: bitte erneut prüfen.');
+      setAwaitingNextParameterSet(true);
+      setParametersReadyForNextBlock(false);
+      setParameterSyncError('');
+
+      let nextParameterSet = participantNextSet;
+
+      if (!nextParameterSet && allowGenerationWhenMissing) {
+        if (isRandomBootstrapPhase(completedBlockCount)) {
+          nextParameterSet = createRandomParameterSet(attemptsCount);
+          await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
+        } else {
+          nextParameterSet = await synchronizeNextParameterSet(attemptsCount);
+        }
+      }
+
+      if (!nextParameterSet) {
+        setAwaitingNextParameterSet(false);
+        setParameterSyncError('Parameter-Update ausstehend: bitte erneut prüfen.');
+        return false;
+      }
+
+      return activateNextParameterSet(nextParameterSet, loadingStartedAt);
     } catch (error) {
-      console.error('Error refreshing parameter status', error);
+      console.error('Error loading next parameter set', error);
       setAwaitingNextParameterSet(false);
       setParameterSyncError('Parameter konnten nicht geladen werden. Bitte erneut prüfen.');
+      return false;
     }
+  };
+
+  const handleRefreshParameterStatus = async () => {
+    if (isTestMode) return;
+    if (!participantId) return;
+
+    await loadAndActivateNextBlock({ allowGenerationWhenMissing: true });
   };
 
   useEffect(() => {
@@ -550,7 +597,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
       if (isTestMode) {
         setNextParameterSet(null);
         setAwaitingNextParameterSet(false);
-        setAwaitingBlockStartConfirmation(false);
         setParametersReadyForNextBlock(true);
         setStudyCompleted(false);
         setParameterSyncError('');
@@ -570,7 +616,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         if (participantNextSet?.status === 'completed') {
           setNextParameterSet(null);
           setAwaitingNextParameterSet(false);
-          setAwaitingBlockStartConfirmation(false);
           setParametersReadyForNextBlock(false);
           setStudyCompleted(true);
           setParameterSyncError('');
@@ -580,7 +625,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         if (hasStudyCompleted(completedBlockCount)) {
           setNextParameterSet(null);
           setAwaitingNextParameterSet(false);
-          setAwaitingBlockStartConfirmation(false);
           setParametersReadyForNextBlock(false);
           setStudyCompleted(true);
           setParameterSyncError('');
@@ -604,6 +648,10 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         setNextParameterSet(pendingNext);
         setParametersReadyForNextBlock(!pendingNext);
         setParameterSyncError('');
+
+        if (pendingNext) {
+          await loadAndActivateNextBlock({ participantState: participant, allowGenerationWhenMissing: false });
+        }
       } catch (error) {
         console.error('Error loading participant parameters', error);
       }
@@ -1059,7 +1107,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
   const handleTouchStart = (event) => {
     if (event.touches.length !== 1) return;
 
-    if (awaitingNextParameterSet || awaitingBlockStartConfirmation || !parametersReadyForNextBlock) {
+    if (awaitingNextParameterSet || !parametersReadyForNextBlock) {
       setLastTouchY(null);
       touchStatsRef.current.active = false;
       return;
@@ -1285,7 +1333,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         if (isTestMode) {
           setPendingBlockAttempts([]);
           setAwaitingNextParameterSet(false);
-          setAwaitingBlockStartConfirmation(false);
           setParametersReadyForNextBlock(true);
           setParameterSyncError('');
           setMultiplierTarget(null);
@@ -1315,7 +1362,6 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
           trialMetricsRef.current = null;
           touchStatsRef.current.active = false;
           setAwaitingNextParameterSet(false);
-          setAwaitingBlockStartConfirmation(false);
           setParametersReadyForNextBlock(false);
           setParameterSyncError(
             `Backend-Speichern fehlgeschlagen. Der Versuch wurde nicht uebernommen. Grund: ${saveOutcome?.error || 'Unbekannter Fehler'}`
@@ -1324,97 +1370,39 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         }
 
         setPendingBlockAttempts([]);
-        setAwaitingNextParameterSet(true);
-        setAwaitingBlockStartConfirmation(false);
-        setParametersReadyForNextBlock(false);
         setStudyCompleted(false);
         setParameterSyncError('');
         setMultiplierTarget(null);
         setRunCount(0);
 
-        let receivedUpdatedParameters = false;
         const attemptsCount = getAttemptCount(saveOutcome?.attemptsCount);
         const completedBlockCount = getCompletedBlockCount(attemptsCount);
         setStoredAttemptsCount(attemptsCount);
         setStoredCompletedBlockCount(completedBlockCount);
-        if (hasStudyCompleted(completedBlockCount)) {
+
+        const freshParticipant = await loadParticipantState();
+        const freshProgress = getProgressFromParticipantState(freshParticipant);
+
+        if (hasStudyCompleted(freshProgress.completedBlockCount)) {
           setAwaitingNextParameterSet(false);
-          setAwaitingBlockStartConfirmation(false);
           setParametersReadyForNextBlock(false);
           setStudyCompleted(true);
           return;
         }
 
-        if (saveOutcome?.savedRemotely) {
-          try {
-            if (isRandomBootstrapPhase(completedBlockCount)) {
-              const randomParameterSet = createRandomParameterSet(attemptsCount);
-              await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(randomParameterSet) });
-              setNextParameterSet(randomParameterSet);
-              receivedUpdatedParameters = true;
-            } else {
-              receivedUpdatedParameters = await synchronizeNextParameterSet(attemptsCount);
-            }
-          } catch (error) {
-            console.error('Error setting next parameter set after block finish', error);
-            if (isRandomBootstrapPhase(completedBlockCount)) {
-              const randomParameterSet = createRandomParameterSet(attemptsCount);
-              setNextParameterSet(randomParameterSet);
-              receivedUpdatedParameters = true;
-            }
-          }
-        } else if (isRandomBootstrapPhase(completedBlockCount)) {
-          const randomParameterSet = createRandomParameterSet(attemptsCount);
-          setNextParameterSet(randomParameterSet);
-          receivedUpdatedParameters = true;
-        }
-
-        if (receivedUpdatedParameters) {
-          setAwaitingNextParameterSet(false);
-          setAwaitingBlockStartConfirmation(true);
-        } else {
-          setAwaitingNextParameterSet(false);
-          setParameterSyncError('Parameter-Update ausstehend: Der nächste 10er-Block bleibt gesperrt, bis neue Parameter geladen wurden.');
-        }
+        await loadAndActivateNextBlock({ participantState: freshParticipant, allowGenerationWhenMissing: true });
       }
-    }
-  };
-
-  const handleConfirmNextBlockStart = async () => {
-    if (!nextParameterSet || !participantId) {
-      setAwaitingBlockStartConfirmation(false);
-      setParameterSyncError('Keine neuen Parameter zum Starten des nächsten Blocks vorhanden.');
-      return;
-    }
-
-    try {
-      const serializedNext = JSON.stringify(nextParameterSet);
-      await updateParticipantParameterSets({
-        currentParameterSet: serializedNext,
-        nextParameterSet: null,
-      });
-      applyCurrentParameterSet(nextParameterSet);
-      setCurrentParameterSet(nextParameterSet);
-      setNextParameterSet(null);
-      setAwaitingBlockStartConfirmation(false);
-      setParametersReadyForNextBlock(true);
-      setStudyCompleted(false);
-      setRoundCompleted(false);
-      setParameterSyncError('');
-    } catch (error) {
-      console.error('Error promoting next parameter set', error);
-      setParameterSyncError('Fehler beim Aktivieren des neuen Parametersatzes. Bitte erneut versuchen.');
     }
   };
 
   const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
   const showStudyCompletionDialog = !isTestMode && studyCompleted;
-  const showParameterDialog = !isTestMode && !studyCompleted && (awaitingNextParameterSet || awaitingBlockStartConfirmation || Boolean(parameterSyncError));
-  const showStudyList = isTestMode || (!showParameterDialog && !showStudyCompletionDialog);
+  const showParameterOverlay = !isTestMode && !studyCompleted && (awaitingNextParameterSet || Boolean(parameterSyncError));
+  const showStudyList = isTestMode || !showStudyCompletionDialog;
   const completedBlockCountForDialog = Math.min(TOTAL_STUDY_BLOCKS, getAttemptCount(storedCompletedBlockCount));
   const nextBlockNumberForDialog = Math.min(TOTAL_STUDY_BLOCKS, completedBlockCountForDialog + 1);
-  const completedRunsForProgress = awaitingNextParameterSet || awaitingBlockStartConfirmation
+  const completedRunsForProgress = awaitingNextParameterSet
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
   const listItemHeightPx = containerHeight > 0 ? containerHeight / ITEMS_PER_SCREEN : null;
@@ -1527,32 +1515,27 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         </>
       )}
 
-      {showParameterDialog && (
+      {showParameterOverlay && (
         <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="next-block-dialog-title">
           <div className="block-confirm-dialog">
             <h3 id="next-block-dialog-title">
-              {awaitingBlockStartConfirmation ? 'Neuer Block bereit' : 'Parameter-Update'}
+              {awaitingNextParameterSet ? 'Neue Parameter werden geladen' : 'Parameter-Update'}
             </h3>
             <p>
               Block {nextBlockNumberForDialog} von {TOTAL_STUDY_BLOCKS}
             </p>
             <p>
-              {awaitingBlockStartConfirmation
-                ? 'Neue Parameter sind da. Starte den nächsten 10er-Block.'
-                : (parameterSyncError || 'Parameter werden geladen. Bitte warten.')}
+              {awaitingNextParameterSet
+                ? 'Bitte warten. Die Liste bleibt verdeckt, bis die neuen Parameter aktiv sind.'
+                : (parameterSyncError || 'Parameter konnten nicht geladen werden.')}
             </p>
-            {awaitingBlockStartConfirmation ? (
-              <button type="button" className="block-confirm-button" onClick={handleConfirmNextBlockStart}>
-                Nächsten Durchlauf starten
-              </button>
-            ) : (
+            {!awaitingNextParameterSet && (
               <button
                 type="button"
                 className="block-confirm-button"
                 onClick={handleRefreshParameterStatus}
-                disabled={awaitingNextParameterSet}
               >
-                {awaitingNextParameterSet ? 'Prüfe...' : 'Erneut prüfen'}
+                Erneut prüfen
               </button>
             )}
           </div>
