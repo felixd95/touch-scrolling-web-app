@@ -805,6 +805,8 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
             : null,
           timeMs: Number(attempt?.timeMs ?? 0),
           scrollDistance: Number(attempt?.scrollDistance ?? 0),
+          flickCount: Number(attempt?.flickCount ?? 0),
+          switchbackCount: Number(attempt?.switchbackCount ?? 0),
           timestamp: attempt?.timestamp,
         })),
       };
@@ -1330,6 +1332,8 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         timeMs: totalTime,
         scrollDistance,
         timestamp,
+        flickCount: trialMetrics && Array.isArray(trialMetrics.flicks) ? trialMetrics.flicks.length : 0,
+        switchbackCount: trialMetrics ? trialMetrics.switchbackCount : 0,
         overshootCount: trialMetrics ? trialMetrics.overshootCount : 0,
         maxOvershootDistancePx: trialMetrics ? trialMetrics.maxOvershootDistancePx : 0,
         didOvershoot: trialMetrics ? trialMetrics.didOvershoot : false,
