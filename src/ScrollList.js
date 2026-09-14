@@ -290,7 +290,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
   const [awaitingNextParameterSet, setAwaitingNextParameterSet] = useState(false);
   const [parametersReadyForNextBlock, setParametersReadyForNextBlock] = useState(true);
   const [parameterSyncError, setParameterSyncError] = useState('');
-  const [nextParameterSet, setNextParameterSet] = useState(null);
+  const [, setNextParameterSet] = useState(null);
   const [studyCompleted, setStudyCompleted] = useState(false);
   const [, setStoredAttemptsCount] = useState(0);
   const [storedCompletedBlockCount, setStoredCompletedBlockCount] = useState(0);
@@ -592,6 +592,11 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     await loadAndActivateNextBlock({ allowGenerationWhenMissing: true });
   };
 
+  // This initialization intentionally uses the current loader shape and must not rerun on every callback identity change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadParticipantParameters = async () => {
       if (isTestMode) {
