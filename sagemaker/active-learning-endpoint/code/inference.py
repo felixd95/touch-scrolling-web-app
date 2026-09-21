@@ -29,9 +29,9 @@ DEFAULT_PARAMETER_SET = {
 }
 
 PARAMETER_BOUNDS = {
-    "scrollFriction": (0.005, 0.05),
-    "decelerationRate": (1.2, 4.0),
-    "inflexion": (0.15, 0.65),
+    "scrollFriction": (0.005, 0.1),
+    "decelerationRate": (1.2, 5.0),
+    "inflexion": (0.15, 1.0),
 }
 
 MIN_OBSERVATIONS_FOR_BO = 2

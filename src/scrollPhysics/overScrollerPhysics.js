@@ -26,15 +26,15 @@ export const FLING_PHYSICS_CONFIG = {
 export const FLING_PHYSICS_BOUNDS = {
   scrollFriction: {
     min: 0.005,
-    max: 0.05,
+    max: 0.1,
   },
   decelerationRate: {
     min: 1.2,
-    max: 4.0,
+    max: 5.0,
   },
   inflexion: {
     min: 0.15,
-    max: 0.65,
+    max: 1.0,
   },
 };
 
