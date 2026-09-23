@@ -582,10 +582,16 @@ function ParticipantsList({ onBack }) {
     setDownloading(true);
     setError('');
     try {
-      const freshItems = await fetchParticipantsFromBackend();
-      setItems(freshItems);
+      let sourceItems = items;
+      try {
+        const freshItems = await fetchParticipantsFromBackend();
+        setItems(freshItems);
+        sourceItems = freshItems;
+      } catch (refreshErr) {
+        console.warn('Teilnehmerdaten konnten nicht aktualisiert werden; verwende bereits geladene Daten.', refreshErr);
+      }
 
-      const dataToExport = freshItems.map((p) => buildParticipantExport(p));
+      const dataToExport = sourceItems.map((p) => buildParticipantExport(p));
 
       const timestamp = new Date().toISOString().split('T')[0];
       triggerJsonDownload(dataToExport, `touch-scrolling-data-${timestamp}.json`);
@@ -602,11 +608,17 @@ function ParticipantsList({ onBack }) {
     setDownloadingParticipantId(participant.id);
     setError('');
     try {
-      const freshItems = await fetchParticipantsFromBackend();
-      setItems(freshItems);
+      let sourceItems = items;
+      try {
+        const freshItems = await fetchParticipantsFromBackend();
+        setItems(freshItems);
+        sourceItems = freshItems;
+      } catch (refreshErr) {
+        console.warn('Teilnehmerdaten konnten nicht aktualisiert werden; verwende bereits geladene Daten.', refreshErr);
+      }
 
-      const target = freshItems.find((p) => p.id === participant.id) || participant;
-      const participantNumber = buildParticipantNumberMap(freshItems).get(target.id);
+      const target = sourceItems.find((p) => p.id === participant.id) || participant;
+      const participantNumber = buildParticipantNumberMap(sourceItems).get(target.id);
 
       const timestamp = new Date().toISOString().split('T')[0];
       const namePart = sanitizeForFilename(target.prolificPid);
