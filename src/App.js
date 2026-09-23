@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import outputs from './backend_config.json';
 import ScrollList from './ScrollList';
+import { FLING_PHYSICS_BOUNDS } from './scrollPhysics/overScrollerPhysics';
 import './App.css';
 
 const RUNS_PER_BLOCK = 10;
@@ -17,9 +18,25 @@ const DEFAULT_NEXT_PARAMETER_SET = {
   generatedFromAttemptCount: 0,
 };
 
-const createAndroidParameterSet = () => ({
-  ...DEFAULT_NEXT_PARAMETER_SET,
-  source: 'android-default-parameter-set',
+const getRandomInRange = (min, max) => min + Math.random() * (max - min);
+
+const createInitialRandomParameterSet = () => ({
+  scrollFriction: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.scrollFriction.min,
+    FLING_PHYSICS_BOUNDS.scrollFriction.max,
+  ).toFixed(3)),
+  decelerationRate: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.decelerationRate.min,
+    FLING_PHYSICS_BOUNDS.decelerationRate.max,
+  ).toFixed(4)),
+  inflexion: Number(getRandomInRange(
+    FLING_PHYSICS_BOUNDS.inflexion.min,
+    FLING_PHYSICS_BOUNDS.inflexion.max,
+  ).toFixed(2)),
+  blockSize: RUNS_PER_BLOCK,
+  status: 'ready',
+  source: 'random-initial-parameter-set',
+  generatedFromAttemptCount: 0,
   completedBlockCount: 0,
 });
 
@@ -117,11 +134,14 @@ function ParticipantsList({ onBack }) {
   const formatGenerationPhase = (value) => {
     switch (String(value ?? '').toLowerCase()) {
       case 'bootstrap-random':
+      case 'initial-design':
         return 'Bootstrap';
       case 'exploration-qucb':
-        return 'Exploration';
+      case 'adaptive-qnei':
+        return 'Active Learning';
       case 'exploitation-qnei':
-        return 'Exploitation';
+      case 'final-recommendation-posterior-mean':
+        return 'Final Recommendation';
       default:
         return value || '-';
     }
@@ -1104,7 +1124,7 @@ function App() {
               smartphone: formData.smartphone,
               handedness: formData.handedness,
               attempts: JSON.stringify([]),
-              currentParameterSet: JSON.stringify(createAndroidParameterSet()),
+              currentParameterSet: JSON.stringify(createInitialRandomParameterSet()),
               nextParameterSet: null,
             },
           },

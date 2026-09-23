@@ -9,18 +9,20 @@ from decimal import Decimal
 import boto3
 
 RUNS_PER_BLOCK = 10
-INITIAL_ANDROID_BLOCKS = 1
-RANDOM_BOOTSTRAP_BLOCKS = 2
-ADAPTIVE_QNEI_BLOCKS = 9
-LATE_REFINEMENT_BLOCKS = 3
-INITIAL_DESIGN_BLOCKS = INITIAL_ANDROID_BLOCKS + RANDOM_BOOTSTRAP_BLOCKS
+RANDOM_BOOTSTRAP_BLOCKS = 3
+ADAPTIVE_QNEI_BLOCKS = 10
+FINAL_RECOMMENDATION_BLOCKS = 1
+FINAL_ANDROID_BLOCKS = 1
+INITIAL_DESIGN_BLOCKS = RANDOM_BOOTSTRAP_BLOCKS
 FIRST_INFERENCE_BLOCK = INITIAL_DESIGN_BLOCKS
 ADAPTIVE_QNEI_END_BLOCK = INITIAL_DESIGN_BLOCKS + ADAPTIVE_QNEI_BLOCKS
-LATE_REFINEMENT_START_BLOCK = ADAPTIVE_QNEI_END_BLOCK + 1
-LATE_REFINEMENT_END_BLOCK = LATE_REFINEMENT_START_BLOCK + LATE_REFINEMENT_BLOCKS - 1
-FINAL_RECOMMENDATION_TRIGGER_BLOCK = LATE_REFINEMENT_END_BLOCK
-TOTAL_STUDY_BLOCKS = LATE_REFINEMENT_END_BLOCK
-INITIAL_TRUST_REGION_HALF_SPAN_RATIO = 0.35
+FINAL_RECOMMENDATION_TRIGGER_BLOCK = ADAPTIVE_QNEI_END_BLOCK
+TOTAL_STUDY_BLOCKS = (
+    RANDOM_BOOTSTRAP_BLOCKS
+    + ADAPTIVE_QNEI_BLOCKS
+    + FINAL_RECOMMENDATION_BLOCKS
+    + FINAL_ANDROID_BLOCKS
+)
 FINAL_TRUST_REGION_HALF_SPAN_RATIO = 0.10
 
 DEFAULT_PARAMETER_SET = {
@@ -303,6 +305,7 @@ def _build_acquisition_config(completed_block_count):
             "posteriorMeanWeight": 0.0,
         }
 
+    # Active-learning exploration blocks: acquisition-driven qNEI proposals.
     if safe_completed_block_count < ADAPTIVE_QNEI_END_BLOCK:
         return {
             "strategy": "qnei",
@@ -312,38 +315,14 @@ def _build_acquisition_config(completed_block_count):
             "posteriorMeanWeight": 0.0,
         }
 
-    if safe_completed_block_count >= FINAL_RECOMMENDATION_TRIGGER_BLOCK:
-        return {
-            "strategy": "qnei",
-            "phase": "final-recommendation-posterior-mean",
-            "selectionMode": "posterior-mean-minimizer",
-            "trustRegionHalfSpanRatio": float(FINAL_TRUST_REGION_HALF_SPAN_RATIO),
-            "posteriorMeanWeight": 1.0,
-        }
-
-    if safe_completed_block_count >= ADAPTIVE_QNEI_END_BLOCK:
-        hybrid_progress = (safe_completed_block_count - ADAPTIVE_QNEI_END_BLOCK + 1) / (
-            FINAL_RECOMMENDATION_TRIGGER_BLOCK - ADAPTIVE_QNEI_END_BLOCK + 1
-        )
-        hybrid_progress = max(0.0, min(1.0, hybrid_progress))
-        trust_region_half_span_ratio = (
-            INITIAL_TRUST_REGION_HALF_SPAN_RATIO
-            + (FINAL_TRUST_REGION_HALF_SPAN_RATIO - INITIAL_TRUST_REGION_HALF_SPAN_RATIO) * hybrid_progress
-        )
-        return {
-            "strategy": "qnei",
-            "phase": "late-qnei-local-refinement",
-            "selectionMode": "hybrid",
-            "trustRegionHalfSpanRatio": float(trust_region_half_span_ratio),
-            "posteriorMeanWeight": float(hybrid_progress),
-        }
-
+    # Single pure-exploitation recommendation block: the best estimated transfer
+    # function via the posterior-mean minimizer (no exploration).
     return {
         "strategy": "qnei",
-        "phase": "adaptive-qnei",
-        "selectionMode": "acquisition",
-        "trustRegionHalfSpanRatio": None,
-        "posteriorMeanWeight": 0.0,
+        "phase": "final-recommendation-posterior-mean",
+        "selectionMode": "posterior-mean-minimizer",
+        "trustRegionHalfSpanRatio": float(FINAL_TRUST_REGION_HALF_SPAN_RATIO),
+        "posteriorMeanWeight": 1.0,
     }
 
 

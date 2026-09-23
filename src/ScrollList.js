@@ -23,14 +23,16 @@ import {
 const NUM_ITEMS = 330;
 const ITEMS_PER_SCREEN = 15;
 const RUNS_PER_BLOCK = 10;
-const INITIAL_ANDROID_BLOCKS = 1;
-const RANDOM_BOOTSTRAP_BLOCKS = 2;
-const ADAPTIVE_QNEI_BLOCKS = 9;
-const LATE_REFINEMENT_BLOCKS = 3;
+const INITIAL_ANDROID_BLOCKS = 0;
+const RANDOM_BOOTSTRAP_BLOCKS = 3;
+const ADAPTIVE_QNEI_BLOCKS = 10;
+const FINAL_RECOMMENDATION_BLOCKS = 1;
+const FINAL_ANDROID_BLOCKS = 1;
 const TOTAL_STUDY_BLOCKS = INITIAL_ANDROID_BLOCKS
   + RANDOM_BOOTSTRAP_BLOCKS
   + ADAPTIVE_QNEI_BLOCKS
-  + LATE_REFINEMENT_BLOCKS;
+  + FINAL_RECOMMENDATION_BLOCKS
+  + FINAL_ANDROID_BLOCKS;
 const MIN_NEXT_BLOCK_LOAD_DELAY_MS = 2000;
 const NEXT_PARAMETER_POLL_INITIAL_MS = 2000;
 const NEXT_PARAMETER_POLL_MAX_MS = 10000;
@@ -80,6 +82,17 @@ const createRandomParameterSet = (attemptCount = 0) => ({
   completedBlockCount: Math.floor(attemptCount / RUNS_PER_BLOCK),
 });
 
+const createAndroidParameterSet = (attemptCount = 0) => ({
+  scrollFriction: 0.015,
+  decelerationRate: DEFAULT_DECELERATION_RATE,
+  inflexion: 0.35,
+  blockSize: RUNS_PER_BLOCK,
+  status: 'ready',
+  source: 'android-default-parameter-set',
+  generatedFromAttemptCount: attemptCount,
+  completedBlockCount: Math.floor(attemptCount / RUNS_PER_BLOCK),
+});
+
 const getAttemptCount = (value) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
@@ -90,6 +103,10 @@ const getCompletedBlockCount = (attemptCount) => Math.floor(getAttemptCount(atte
 const isRandomBootstrapPhase = (completedBlockCount) => {
   return completedBlockCount >= INITIAL_ANDROID_BLOCKS
     && completedBlockCount < INITIAL_ANDROID_BLOCKS + RANDOM_BOOTSTRAP_BLOCKS;
+};
+
+const isFinalAndroidBlock = (completedBlockCount) => {
+  return getAttemptCount(completedBlockCount) === TOTAL_STUDY_BLOCKS - FINAL_ANDROID_BLOCKS;
 };
 
 const hasStudyCompleted = (completedBlockCount) => getAttemptCount(completedBlockCount) >= TOTAL_STUDY_BLOCKS;
@@ -579,6 +596,9 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
       if (!nextParameterSet && allowGenerationWhenMissing) {
         if (isRandomBootstrapPhase(completedBlockCount)) {
           nextParameterSet = createRandomParameterSet(attemptsCount);
+          await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
+        } else if (isFinalAndroidBlock(completedBlockCount)) {
+          nextParameterSet = createAndroidParameterSet(attemptsCount);
           await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
         } else {
           nextParameterSet = await synchronizeNextParameterSet(attemptsCount);
