@@ -23,8 +23,6 @@ const createAndroidParameterSet = () => ({
   completedBlockCount: 0,
 });
 
-const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
-
 const normalizeParameterSet = (raw) => {
   if (!raw) return null;
 
@@ -80,58 +78,6 @@ const parseParameterBlockMetrics = (raw) => {
 
   return Array.isArray(parsed) ? parsed : [];
 };
-
-function LoginForm({ onSuccess, onUserInteraction }) {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const checkEmail = async (e) => {
-    e && e.preventDefault();
-    onUserInteraction && onUserInteraction();
-    setError('');
-    const normalizedEmail = normalizeEmail(email);
-    if (!normalizedEmail) return setError('Bitte E-Mail eingeben');
-    setLoading(true);
-    try {
-      const resp = await fetch(outputs.data.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': outputs.data.api_key,
-        },
-        body: JSON.stringify({
-          query: `query ListParticipants { listParticipants { items { id email } } }`,
-        }),
-      });
-
-      const json = await resp.json();
-      const items = json.data?.listParticipants?.items || [];
-      const matchingParticipant = items.find((item) => normalizeEmail(item?.email) === normalizedEmail);
-      if (matchingParticipant) {
-        onSuccess(matchingParticipant.id);
-      } else {
-        setError('E-Mail nicht gefunden');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Fehler beim Prüfen der E-Mail');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={checkEmail} className="form">
-      <label>
-        E-Mail
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </label>
-      <button type="submit" disabled={loading}>{loading ? 'Prüfe...' : 'Weiter'}</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </form>
-  );
-}
 
 function ParticipantsList({ onBack }) {
   const [items, setItems] = useState([]);
@@ -492,7 +438,7 @@ function ParticipantsList({ onBack }) {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id firstName lastName email birthDate createdAt privateSmartphone screenTimePerDay attempts currentParameterSet nextParameterSet parameterBlockMetrics } } }`,
+        query: `query ListParticipants { listParticipants { items { id prolificPid gender smartphone handedness createdAt attempts currentParameterSet nextParameterSet parameterBlockMetrics } } }`,
       }),
     });
 
@@ -580,12 +526,10 @@ function ParticipantsList({ onBack }) {
     const parsedAttempts = parseAttemptsPayload(p.attempts);
     return {
       participantId: p.id,
-      firstName: p.firstName,
-      lastName: p.lastName,
-      email: p.email,
-      birthDate: p.birthDate,
-      privateSmartphone: p.privateSmartphone,
-      screenTimePerDay: p.screenTimePerDay,
+      prolificPid: p.prolificPid,
+      gender: p.gender,
+      smartphone: p.smartphone,
+      handedness: p.handedness,
       currentParameterSet: normalizeParameterSet(p.currentParameterSet),
       nextParameterSet: normalizeParameterSet(p.nextParameterSet),
       parameterBlockMetrics: parseParameterBlockMetrics(p.parameterBlockMetrics),
@@ -645,9 +589,7 @@ function ParticipantsList({ onBack }) {
       const participantNumber = buildParticipantNumberMap(freshItems).get(target.id);
 
       const timestamp = new Date().toISOString().split('T')[0];
-      const namePart = sanitizeForFilename(
-        [target.firstName, target.lastName].filter(Boolean).join('-')
-      );
+      const namePart = sanitizeForFilename(target.prolificPid);
       const numberPart = participantNumber ? `p${participantNumber}` : sanitizeForFilename(target.id);
       const filenameParts = ['touch-scrolling-data', numberPart, namePart, timestamp].filter(Boolean);
 
@@ -713,11 +655,10 @@ function ParticipantsList({ onBack }) {
               <tr>
                 <th style={{ textAlign: 'left', padding: 6 }}>Teilnehmer</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>ID</th>
-                <th style={{ textAlign: 'left', padding: 6 }}>Name</th>
-                <th style={{ textAlign: 'left', padding: 6 }}>E-Mail</th>
-                <th style={{ textAlign: 'left', padding: 6 }}>Geburtstag</th>
-                <th style={{ textAlign: 'left', padding: 6 }}>Device</th>
-                <th style={{ textAlign: 'left', padding: 6 }}>ScreenTime</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>PROLIFIC_PID</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>Gender</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>Smartphone</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>Handedness</th>
               </tr>
             </thead>
             <tbody>
@@ -730,11 +671,10 @@ function ParticipantsList({ onBack }) {
                       <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
                         <td style={{ padding: 6 }}>{participantNumber}</td>
                         <td style={{ padding: 6 }}>{p.id}</td>
-                        <td style={{ padding: 6 }}>{(p.firstName || '') + ' ' + (p.lastName || '')}</td>
-                        <td style={{ padding: 6 }}>{p.email}</td>
-                        <td style={{ padding: 6 }}>{p.birthDate}</td>
-                        <td style={{ padding: 6 }}>{p.privateSmartphone}</td>
-                        <td style={{ padding: 6 }}>{p.screenTimePerDay}</td>
+                        <td style={{ padding: 6 }}>{p.prolificPid}</td>
+                        <td style={{ padding: 6 }}>{p.gender}</td>
+                        <td style={{ padding: 6 }}>{p.smartphone}</td>
+                        <td style={{ padding: 6 }}>{p.handedness}</td>
                         <td style={{ padding: 6 }}>
                           <button
                             className="nav-button"
@@ -771,7 +711,7 @@ function ParticipantsList({ onBack }) {
       )}
           {selectedParticipant && (
             <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
-              <h3>Teilnehmer {selectedParticipant.participantNumber ?? buildParticipantNumberMap(items).get(selectedParticipant.id) ?? '-'} · {selectedParticipant.firstName} {selectedParticipant.lastName} (ID: {selectedParticipant.id})</h3>
+              <h3>Teilnehmer {selectedParticipant.participantNumber ?? buildParticipantNumberMap(items).get(selectedParticipant.id) ?? '-'} · {selectedParticipant.prolificPid} (ID: {selectedParticipant.id})</h3>
               <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
                 {(selectedParticipant.runGroups || []).length === 0 ? (
                   <p>Keine Durchläufe vorhanden.</p>
@@ -1027,14 +967,19 @@ function ParticipantsList({ onBack }) {
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'form', 'scrolllist', 'test'
+  const searchParams = new URLSearchParams(window.location.search);
+  const prolificPid = (searchParams.get('PROLIFIC_PID') || '').trim();
+  const hasProlific = prolificPid.length > 0;
+  const isAdmin = searchParams.get('admin') === '1';
+
+  // 'checking' | 'landing' | 'form' | 'list' | 'test' | 'done' | 'scrolllist'
+  const [currentPage, setCurrentPage] = useState(
+    hasProlific ? 'checking' : (isAdmin ? 'list' : 'landing')
+  );
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    birthDate: '',
-    privateSmartphone: '',
-    screenTimePerDay: '',
+    gender: '',
+    smartphone: '',
+    handedness: '',
   });
 
   const [status, setStatus] = useState('');
@@ -1048,41 +993,70 @@ function App() {
     }));
   };
 
+  const findParticipantByProlificPid = async () => {
+    const resp = await fetch(outputs.data.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': outputs.data.api_key,
+      },
+      body: JSON.stringify({
+        query: `query ListParticipants { listParticipants { items { id prolificPid } } }`,
+      }),
+    });
+    const json = await resp.json();
+    const items = json.data?.listParticipants?.items || [];
+    return items.find((item) => String(item?.prolificPid ?? '').trim() === prolificPid) || null;
+  };
+
+  // Resume an existing session when the page is reopened with a known PROLIFIC_PID.
+  useEffect(() => {
+    if (!hasProlific) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const existing = await findParticipantByProlificPid();
+        if (cancelled) return;
+        if (existing) {
+          setParticipantId(existing.id);
+          setCurrentPage('scrolllist');
+        } else {
+          setCurrentPage('form');
+        }
+      } catch (error) {
+        console.error(error);
+        if (!cancelled) setCurrentPage('form');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasProlific, prolificPid]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setStatus('');
+
+    if (!hasProlific) {
+      setStatus('Missing PROLIFIC_PID. Please open the study via your Prolific link.');
+      return;
+    }
+    if (!formData.gender || !formData.smartphone || !formData.handedness) {
+      setStatus('Please answer all questions.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const normalizedEmail = normalizeEmail(formData.email);
-
-      if (!normalizedEmail) {
-        setStatus('Bitte eine E-Mail eingeben.');
-        setLoading(false);
+      // Resume instead of creating a duplicate if this PROLIFIC_PID already exists.
+      const existing = await findParticipantByProlificPid();
+      if (existing) {
+        setParticipantId(existing.id);
+        setCurrentPage('scrolllist');
         return;
       }
 
-      // check if email already exists
-      const resp = await fetch(outputs.data.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': outputs.data.api_key,
-        },
-        body: JSON.stringify({
-          query: `query ListParticipants { listParticipants { items { id email } } }`,
-        }),
-      });
-
-      const json = await resp.json();
-      const items = json.data?.listParticipants?.items || [];
-      const emailAlreadyExists = items.some((item) => normalizeEmail(item?.email) === normalizedEmail);
-      if (emailAlreadyExists) {
-        setStatus('E-Mail ist bereits vergeben. Bitte andere E-Mail verwenden.');
-        setLoading(false);
-        return;
-      }
-
-      // create participant
       const createResp = await fetch(outputs.data.url, {
         method: 'POST',
         headers: {
@@ -1090,15 +1064,13 @@ function App() {
           'x-api-key': outputs.data.api_key,
         },
         body: JSON.stringify({
-          query: `mutation CreateParticipant($input: CreateParticipantInput!) { createParticipant(input: $input) { id email } }`,
+          query: `mutation CreateParticipant($input: CreateParticipantInput!) { createParticipant(input: $input) { id prolificPid } }`,
           variables: {
             input: {
-              firstName: formData.firstName.trim(),
-              lastName: formData.lastName.trim(),
-              email: normalizedEmail,
-              birthDate: formData.birthDate,
-              privateSmartphone: formData.privateSmartphone.trim(),
-              screenTimePerDay: formData.screenTimePerDay,
+              prolificPid,
+              gender: formData.gender,
+              smartphone: formData.smartphone,
+              handedness: formData.handedness,
               attempts: JSON.stringify([]),
               currentParameterSet: JSON.stringify(createAndroidParameterSet()),
               nextParameterSet: null,
@@ -1110,18 +1082,8 @@ function App() {
       const createJson = await createResp.json();
       if (createJson.errors) {
         console.error(createJson.errors);
-        setStatus('Fehler beim Anlegen des Benutzers.');
+        setStatus('Could not save your data. Please try again.');
       } else {
-        setStatus('Registrierung erfolgreich. Weiterleitung...');
-        // clear form
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          birthDate: '',
-          privateSmartphone: '',
-          screenTimePerDay: '',
-        });
         const newId = createJson.data?.createParticipant?.id;
         if (newId) {
           setParticipantId(newId);
@@ -1138,129 +1100,85 @@ function App() {
 
   return (
     <main className="page">
-      {currentPage === 'landing' ? (
+      {currentPage === 'checking' ? (
+        <div className="card">
+          <p>Loading...</p>
+        </div>
+      ) : currentPage === 'landing' ? (
         <div className="card">
           <h1>Willkommen</h1>
+          <p style={{ color: '#555' }}>
+            Die Studie kann nur über den persönlichen Studien-Link (mit PROLIFIC_PID) gestartet werden.
+          </p>
           <div style={{ display: 'grid', gap: 12 }}>
-            <button className="nav-button" onClick={() => setCurrentPage('login')}>
-              Ich habe mich bereits registriert
-            </button>
-            <button className="nav-button" onClick={() => setCurrentPage('form')}>
-              Ich möchte mich registrieren
-            </button>
-            <button className="nav-button" onClick={() => setCurrentPage('list')}>
-              Teilnehmer anzeigen
-            </button>
             <button className="nav-button" onClick={() => setCurrentPage('test')} style={{ background: '#455a64' }}>
               Zur Testumgebung
             </button>
           </div>
         </div>
-      ) : currentPage === 'login' ? (
-        <div className="card">
-          <h2>Login</h2>
-          <LoginForm
-            onSuccess={(id) => {
-              setParticipantId(id);
-              setCurrentPage('scrolllist');
-            }}
-          />
-          <div style={{ marginTop: 12 }}>
-            <button className="nav-button" onClick={() => setCurrentPage('landing')}>Zurück</button>
-          </div>
-        </div>
       ) : currentPage === 'form' ? (
         <div className="card">
+          <h2>Before you start</h2>
+          <p style={{ color: '#555' }}>Please answer a few questions before the study begins.</p>
           <form onSubmit={handleSubmit} className="form">
             <label>
-              First name
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-              />
-            </label>
-
-            <label>
-              Last name
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-            </label>
-
-            <label>
-              Email
-              <input
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </label>
-
-            <label>
-              Date of birth
-              <input
-                type="date"
-                name="birthDate"
-                value={formData.birthDate}
-                onChange={handleChange}
-                required
-              />
-            </label>
-
-            <label>
-              Private smartphone
-              <input
-                type="text"
-                name="privateSmartphone"
-                value={formData.privateSmartphone}
-                onChange={handleChange}
-                placeholder="e.g. iPhone 14, Galaxy S23"
-                required
-              />
-            </label>
-
-            <label>
-              Screen time per day
-              <select
-                name="screenTimePerDay"
-                value={formData.screenTimePerDay}
-                onChange={handleChange}
-                required
-              >
+              Gender
+              <select name="gender" value={formData.gender} onChange={handleChange} required>
                 <option value="">Please select</option>
-                <option value="<1h">Less than 1 hour</option>
-                <option value="1-2h">1–2 hours</option>
-                <option value="2-4h">2–4 hours</option>
-                <option value="4-6h">4–6 hours</option>
-                <option value=">6h">More than 6 hours</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="diverse">Diverse</option>
+                <option value="no_answer">Prefer not to say</option>
               </select>
             </label>
 
-              <button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : 'Start study'}
-              </button>
+            <label>
+              Smartphone
+              <select name="smartphone" value={formData.smartphone} onChange={handleChange} required>
+                <option value="">Please select</option>
+                <option value="iPhone 14">iPhone 14</option>
+                <option value="iPhone 14 Pro">iPhone 14 Pro</option>
+                <option value="iPhone 15">iPhone 15</option>
+                <option value="iPhone 15 Pro">iPhone 15 Pro</option>
+                <option value="iPhone 16">iPhone 16</option>
+                <option value="iPhone 16 Pro">iPhone 16 Pro</option>
+                <option value="iPhone 17">iPhone 17</option>
+                <option value="iPhone 17 Pro">iPhone 17 Pro</option>
+              </select>
+            </label>
 
-              {status && <p>{status}</p>}
-            </form>
+            <label>
+              Handedness
+              <select name="handedness" value={formData.handedness} onChange={handleChange} required>
+                <option value="">Please select</option>
+                <option value="left">Left-handed</option>
+                <option value="right">Right-handed</option>
+                <option value="ambidextrous">Ambidextrous</option>
+              </select>
+            </label>
+
+            <button type="submit" disabled={loading}>
+              {loading ? 'Saving...' : 'Start study'}
+            </button>
+
+            {status && <p>{status}</p>}
+          </form>
         </div>
       ) : currentPage === 'list' ? (
-        <ParticipantsList onBack={() => setCurrentPage('landing')} />
+        <ParticipantsList onBack={() => setCurrentPage(hasProlific ? 'checking' : 'landing')} />
       ) : currentPage === 'test' ? (
         <ScrollList mode="test" onExitTestEnvironment={() => setCurrentPage('landing')} />
+      ) : currentPage === 'done' ? (
+        <div className="card">
+          <h1>Thank you!</h1>
+          <p>You have completed the study. You can now return to Prolific.</p>
+        </div>
       ) : (
         <ScrollList
           participantId={participantId}
           onStudyCompleted={() => {
             setParticipantId(null);
-            setCurrentPage('landing');
+            setCurrentPage('done');
           }}
         />
       )}

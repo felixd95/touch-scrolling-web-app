@@ -1,6 +1,6 @@
 const fs = require("fs");
 const outputs = JSON.parse(fs.readFileSync("src/backend_config.json", "utf8"));
-const query = `query ListParticipants { listParticipants { items { id email attempts } } }`;
+const query = `query ListParticipants { listParticipants { items { id prolificPid attempts } } }`;
 fetch(outputs.data.url, {
   method: "POST",
   headers: { "Content-Type": "application/json", "x-api-key": outputs.data.api_key },

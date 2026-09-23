@@ -20,12 +20,10 @@ type Mutation {
 
 type Participant {
   id: ID!
-  firstName: String!
-  lastName: String!
-  email: String!
-  birthDate: AWSDate!
-  privateSmartphone: String!
-  screenTimePerDay: String!
+  prolificPid: String
+  gender: String
+  smartphone: String
+  handedness: String
   attempts: AWSJSON
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON
@@ -44,12 +42,10 @@ type ModelParticipantConnection {
 
 input CreateParticipantInput {
   id: ID
-  firstName: String!
-  lastName: String!
-  email: String!
-  birthDate: AWSDate!
-  privateSmartphone: String!
-  screenTimePerDay: String!
+  prolificPid: String
+  gender: String
+  smartphone: String
+  handedness: String
   attempts: AWSJSON
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON
@@ -57,12 +53,10 @@ input CreateParticipantInput {
 
 input UpdateParticipantInput {
   id: ID!
-  firstName: String
-  lastName: String
-  email: String
-  birthDate: AWSDate
-  privateSmartphone: String
-  screenTimePerDay: String
+  prolificPid: String
+  gender: String
+  smartphone: String
+  handedness: String
   attempts: AWSJSON
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON
@@ -78,5 +72,5 @@ input ModelStringInput {
 
 input ModelParticipantFilterInput {
   id: ModelIDInput
-  email: ModelStringInput
+  prolificPid: ModelStringInput
 }
