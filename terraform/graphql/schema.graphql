@@ -28,6 +28,7 @@ type Participant {
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON
   parameterBlockMetrics: AWSJSON
+  completedAt: AWSDateTime
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
@@ -60,6 +61,7 @@ input UpdateParticipantInput {
   attempts: AWSJSON
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON
+  completedAt: AWSDateTime
 }
 
 input ModelIDInput {

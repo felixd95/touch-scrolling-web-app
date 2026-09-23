@@ -1001,12 +1001,38 @@ function App() {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id prolificPid } } }`,
+        query: `query ListParticipants { listParticipants { items { id prolificPid completedAt } } }`,
       }),
     });
     const json = await resp.json();
     const items = json.data?.listParticipants?.items || [];
     return items.find((item) => String(item?.prolificPid ?? '').trim() === prolificPid) || null;
+  };
+
+  const markParticipantCompleted = async (id) => {
+    await fetch(outputs.data.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': outputs.data.api_key,
+      },
+      body: JSON.stringify({
+        query: `mutation UpdateParticipant($input: UpdateParticipantInput!) { updateParticipant(input: $input) { id completedAt } }`,
+        variables: { input: { id, completedAt: new Date().toISOString() } },
+      }),
+    });
+  };
+
+  // Marks the study as completed (first completion only) and redirects the participant away.
+  const handleStudyCompleted = async () => {
+    try {
+      if (participantId) {
+        await markParticipantCompleted(participantId);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    window.location.href = 'https://www.google.com/';
   };
 
   // Resume an existing session when the page is reopened with a known PROLIFIC_PID.
@@ -1017,7 +1043,9 @@ function App() {
       try {
         const existing = await findParticipantByProlificPid();
         if (cancelled) return;
-        if (existing) {
+        if (existing && existing.completedAt) {
+          setCurrentPage('alreadyCompleted');
+        } else if (existing) {
           setParticipantId(existing.id);
           setCurrentPage('scrolllist');
         } else {
@@ -1051,6 +1079,10 @@ function App() {
     try {
       // Resume instead of creating a duplicate if this PROLIFIC_PID already exists.
       const existing = await findParticipantByProlificPid();
+      if (existing && existing.completedAt) {
+        setCurrentPage('alreadyCompleted');
+        return;
+      }
       if (existing) {
         setParticipantId(existing.id);
         setCurrentPage('scrolllist');
@@ -1168,18 +1200,15 @@ function App() {
         <ParticipantsList onBack={() => setCurrentPage(hasProlific ? 'checking' : 'landing')} />
       ) : currentPage === 'test' ? (
         <ScrollList mode="test" onExitTestEnvironment={() => setCurrentPage('landing')} />
-      ) : currentPage === 'done' ? (
+      ) : currentPage === 'alreadyCompleted' ? (
         <div className="card">
-          <h1>Thank you!</h1>
-          <p>You have completed the study. You can now return to Prolific.</p>
+          <h1>Study completed</h1>
+          <p>This study has already been completed successfully. Thank you for your participation.</p>
         </div>
       ) : (
         <ScrollList
           participantId={participantId}
-          onStudyCompleted={() => {
-            setParticipantId(null);
-            setCurrentPage('done');
-          }}
+          onStudyCompleted={handleStudyCompleted}
         />
       )}
     </main>
