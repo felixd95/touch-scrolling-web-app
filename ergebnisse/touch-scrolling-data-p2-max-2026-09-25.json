@@ -1,0 +1,4859 @@
+{
+  "participantId": "e9f6d09f-0d14-4780-8f71-145569905d77",
+  "prolificPid": "max",
+  "gender": "male",
+  "smartphone": "iPhone 14 Pro",
+  "handedness": "right",
+  "currentParameterSet": {
+    "generatedFromAttemptCount": 0,
+    "completedBlockCount": 0,
+    "decelerationRate": 3.1485,
+    "inflexion": 0.74,
+    "source": "random-initial-parameter-set",
+    "scrollFriction": 0.034,
+    "blockSize": 10,
+    "status": "ready",
+    "flickDistanceThreshold": 6
+  },
+  "nextParameterSet": {
+    "generation": {
+      "phase": "final-recommendation-posterior-mean",
+      "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+      "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+      "source": "terraform-appsync-sagemaker-active-learning",
+      "strategy": "qlognei",
+      "selectionMode": "posterior-mean-minimizer"
+    },
+    "generatedFromAttemptCount": 130,
+    "completedBlockCount": 13,
+    "decelerationRate": 2.8808,
+    "inflexion": 0.76,
+    "source": "terraform-appsync-sagemaker-active-learning",
+    "scrollFriction": 0.017,
+    "blockSize": 10,
+    "status": "ready",
+    "flickDistanceThreshold": 6
+  },
+  "parameterBlockMetrics": [
+    {
+      "generatedFromAttemptCount": 30,
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "runsInBlock": 3,
+      "blockNumber": 3,
+      "generatedAt": "2026-09-25T07:50:36.367161+00:00",
+      "model": {
+        "totalBlockObservations": 3,
+        "bestObservedNormalizedTime": 195.7346560846561,
+        "acquisitionValue": 0.4486352260944715,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 6.440946741685775,
+        "objectiveType": "total_normalized_time",
+        "predictedImprovementVsCurrent": -2.347333425049925,
+        "trustRegionHalfSpanRatio": 0.2,
+        "candidateRankApprox": 1,
+        "predictedImprovementVsBestObserved": -2.347481423412205,
+        "predictedCurrentNormalizedTime": 195.7348040830184,
+        "candidateRankProbeCount": 16,
+        "lastObservedNormalizedTime": 206.5884391534391,
+        "predictedCandidateNormalizedTime": 198.0821375080683,
+        "trainingRowCount": 3,
+        "currentUncertaintyStd": 0.03162252862538871,
+        "collapsedDuplicateRowCount": 0
+      },
+      "sagemakerLatencyMs": 424.8,
+      "completionTimeMs": {
+        "std": 5.054537889550378,
+        "min": 195.7346560846561,
+        "median": 206.3204365079365,
+        "max": 206.5884391534391,
+        "mean": 202.88117724867723,
+        "count": 3
+      },
+      "trainingObservationCount": 3,
+      "generatedParameterSet": {
+        "decelerationRate": 3.0534,
+        "inflexion": 0.58,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "generatedFromAttemptCount": 40,
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "runsInBlock": 4,
+      "blockNumber": 4,
+      "generatedAt": "2026-09-25T07:51:09.291064+00:00",
+      "model": {
+        "totalBlockObservations": 4,
+        "bestObservedNormalizedTime": 195.7346560846561,
+        "acquisitionValue": 0.44879299050793886,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 5.391245073290814,
+        "predictedImprovementVsCurrent": -1.2855007371362603,
+        "objectiveType": "total_normalized_time",
+        "trustRegionHalfSpanRatio": 0.2,
+        "predictedImprovementVsBestObserved": -1.285689747575958,
+        "candidateRankApprox": 1,
+        "predictedCurrentNormalizedTime": 195.7348450950958,
+        "candidateRankProbeCount": 16,
+        "lastObservedNormalizedTime": 211.68453703703702,
+        "predictedCandidateNormalizedTime": 197.02034583223207,
+        "trainingRowCount": 4,
+        "currentUncertaintyStd": 0.03162254880833298,
+        "collapsedDuplicateRowCount": 0
+      },
+      "sagemakerLatencyMs": 150.1,
+      "completionTimeMs": {
+        "std": 5.804511553593109,
+        "min": 195.7346560846561,
+        "median": 206.45443783068782,
+        "max": 211.68453703703702,
+        "mean": 205.08201719576718,
+        "count": 4
+      },
+      "trainingObservationCount": 4,
+      "generatedParameterSet": {
+        "decelerationRate": 3.0738,
+        "inflexion": 0.83,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "generatedFromAttemptCount": 50,
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "blockNumber": 5,
+      "runsInBlock": 5,
+      "generatedAt": "2026-09-25T07:51:45.637113+00:00",
+      "sagemakerLatencyMs": 154.7,
+      "model": {
+        "totalBlockObservations": 5,
+        "bestObservedNormalizedTime": 195.7346560846561,
+        "acquisitionValue": 1.7907846705183514,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 13.062779711795535,
+        "objectiveType": "total_normalized_time",
+        "predictedImprovementVsCurrent": 1.4781667925951467,
+        "trustRegionHalfSpanRatio": 0.2,
+        "candidateRankApprox": 1,
+        "predictedImprovementVsBestObserved": 1.4781050309023556,
+        "predictedCurrentNormalizedTime": 195.7347178463489,
+        "candidateRankProbeCount": 16,
+        "lastObservedNormalizedTime": 237.71593915343917,
+        "predictedCandidateNormalizedTime": 194.25655105375375,
+        "trainingRowCount": 5,
+        "currentUncertaintyStd": 0.031622737460721764,
+        "collapsedDuplicateRowCount": 0
+      },
+      "completionTimeMs": {
+        "std": 14.048115228561615,
+        "min": 195.7346560846561,
+        "median": 206.5884391534391,
+        "max": 237.71593915343917,
+        "mean": 211.6088015873016,
+        "count": 5
+      },
+      "trainingObservationCount": 5,
+      "generatedParameterSet": {
+        "decelerationRate": 3.0299,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04
+      }
+    },
+    {
+      "generatedFromAttemptCount": 60,
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "runsInBlock": 6,
+      "blockNumber": 6,
+      "generatedAt": "2026-09-25T07:52:24.203279+00:00",
+      "sagemakerLatencyMs": 164.2,
+      "model": {
+        "totalBlockObservations": 6,
+        "bestObservedNormalizedTime": 195.7346560846561,
+        "acquisitionValue": 1.253650587632861,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 16.38620105069636,
+        "objectiveType": "total_normalized_time",
+        "predictedImprovementVsCurrent": -7.351686500471459,
+        "trustRegionHalfSpanRatio": 0.2,
+        "candidateRankApprox": 1,
+        "predictedImprovementVsBestObserved": -7.351769728255903,
+        "candidateRankProbeCount": 16,
+        "predictedCurrentNormalizedTime": 195.73473931244055,
+        "lastObservedNormalizedTime": 227.84699735449738,
+        "predictedCandidateNormalizedTime": 203.086425812912,
+        "trainingRowCount": 6,
+        "currentUncertaintyStd": 0.031622727639559464,
+        "collapsedDuplicateRowCount": 0
+      },
+      "completionTimeMs": {
+        "std": 14.180269207910394,
+        "min": 195.7346560846561,
+        "median": 209.13648809523806,
+        "max": 237.71593915343917,
+        "mean": 214.31516754850088,
+        "count": 6
+      },
+      "trainingObservationCount": 6,
+      "generatedParameterSet": {
+        "decelerationRate": 4.0534,
+        "inflexion": 0.74,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "generatedFromAttemptCount": 70,
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "runsInBlock": 7,
+      "blockNumber": 7,
+      "generatedAt": "2026-09-25T07:52:59.814864+00:00",
+      "sagemakerLatencyMs": 134.3,
+      "model": {
+        "totalBlockObservations": 7,
+        "bestObservedNormalizedTime": 195.7346560846561,
+        "acquisitionValue": 1.874107866289692,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 11.386493518071138,
+        "predictedImprovementVsCurrent": 3.5138384098645474,
+        "objectiveType": "total_normalized_time",
+        "trustRegionHalfSpanRatio": 0.2,
+        "candidateRankApprox": 2,
+        "predictedImprovementVsBestObserved": 3.5137238577753465,
+        "predictedCurrentNormalizedTime": 195.7347706367453,
+        "candidateRankProbeCount": 16,
+        "lastObservedNormalizedTime": 209.7053703703704,
+        "predictedCandidateNormalizedTime": 192.22093222688076,
+        "trainingRowCount": 7,
+        "currentUncertaintyStd": 0.03162271171976785,
+        "collapsedDuplicateRowCount": 0
+      },
+      "completionTimeMs": {
+        "std": 13.227107942890592,
+        "min": 195.7346560846561,
+        "median": 209.7053703703704,
+        "max": 237.71593915343917,
+        "mean": 213.65662509448225,
+        "count": 7
+      },
+      "trainingObservationCount": 7,
+      "generatedParameterSet": {
+        "decelerationRate": 3.1509,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038
+      }
+    },
+    {
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "generatedFromAttemptCount": 80,
+      "blockNumber": 8,
+      "runsInBlock": 8,
+      "generatedAt": "2026-09-25T07:53:37.768382+00:00",
+      "sagemakerLatencyMs": 148.4,
+      "model": {
+        "totalBlockObservations": 8,
+        "bestObservedNormalizedTime": 195.7346560846561,
+        "acquisitionValue": 1.302114738568653,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 9.818008973991827,
+        "predictedImprovementVsCurrent": -0.4828117427719576,
+        "objectiveType": "total_normalized_time",
+        "trustRegionHalfSpanRatio": 0.2,
+        "predictedImprovementVsBestObserved": -0.48294363026465703,
+        "candidateRankApprox": 1,
+        "candidateRankProbeCount": 16,
+        "predictedCurrentNormalizedTime": 195.7347879721488,
+        "lastObservedNormalizedTime": 217.46968253968257,
+        "predictedCandidateNormalizedTime": 196.21759971492077,
+        "trainingRowCount": 8,
+        "currentUncertaintyStd": 0.03162267697115927,
+        "collapsedDuplicateRowCount": 0
+      },
+      "completionTimeMs": {
+        "std": 12.436924222479123,
+        "min": 195.7346560846561,
+        "median": 210.6949537037037,
+        "max": 237.71593915343917,
+        "mean": 214.13325727513228,
+        "count": 8
+      },
+      "trainingObservationCount": 8,
+      "generatedParameterSet": {
+        "decelerationRate": 2.704,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026
+      }
+    },
+    {
+      "generatedFromAttemptCount": 90,
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "blockNumber": 9,
+      "runsInBlock": 9,
+      "generatedAt": "2026-09-25T07:54:10.769667+00:00",
+      "model": {
+        "totalBlockObservations": 9,
+        "bestObservedNormalizedTime": 194.43559523809526,
+        "acquisitionValue": 0.9173796247205308,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 8.746850942007244,
+        "objectiveType": "total_normalized_time",
+        "predictedImprovementVsCurrent": -0.8906281061536845,
+        "trustRegionHalfSpanRatio": 0.2,
+        "predictedImprovementVsBestObserved": -2.189838657314368,
+        "candidateRankApprox": 1,
+        "predictedCurrentNormalizedTime": 195.73480578925594,
+        "candidateRankProbeCount": 16,
+        "lastObservedNormalizedTime": 194.43559523809526,
+        "predictedCandidateNormalizedTime": 196.62543389540963,
+        "trainingRowCount": 9,
+        "currentUncertaintyStd": 0.03162244166240102,
+        "collapsedDuplicateRowCount": 0
+      },
+      "sagemakerLatencyMs": 108.9,
+      "completionTimeMs": {
+        "std": 13.259393676495858,
+        "min": 194.43559523809526,
+        "median": 209.7053703703704,
+        "max": 237.71593915343917,
+        "mean": 211.94462815990593,
+        "count": 9
+      },
+      "trainingObservationCount": 9,
+      "generatedParameterSet": {
+        "decelerationRate": 2.9229,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047
+      }
+    },
+    {
+      "generatedFromAttemptCount": 100,
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "blockNumber": 10,
+      "runsInBlock": 10,
+      "generatedAt": "2026-09-25T07:54:41.666151+00:00",
+      "sagemakerLatencyMs": 244.6,
+      "model": {
+        "totalBlockObservations": 10,
+        "bestObservedNormalizedTime": 194.43559523809526,
+        "acquisitionValue": 0.6435229576117214,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 8.108050407504667,
+        "predictedImprovementVsCurrent": -1.8427148827381927,
+        "objectiveType": "total_normalized_time",
+        "trustRegionHalfSpanRatio": 0.2,
+        "predictedImprovementVsBestObserved": -3.1419952689042816,
+        "candidateRankApprox": 1,
+        "candidateRankProbeCount": 16,
+        "predictedCurrentNormalizedTime": 195.73487562426135,
+        "lastObservedNormalizedTime": 209.94574074074075,
+        "predictedCandidateNormalizedTime": 197.57759050699954,
+        "trainingRowCount": 10,
+        "currentUncertaintyStd": 0.03162238410201009,
+        "collapsedDuplicateRowCount": 0
+      },
+      "completionTimeMs": {
+        "std": 12.593250898150693,
+        "min": 194.43559523809526,
+        "median": 209.82555555555558,
+        "max": 237.71593915343917,
+        "mean": 211.74473941798942,
+        "count": 10
+      },
+      "trainingObservationCount": 10,
+      "generatedParameterSet": {
+        "decelerationRate": 3.1121,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017
+      }
+    },
+    {
+      "generatedFromAttemptCount": 110,
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "blockNumber": 11,
+      "runsInBlock": 10,
+      "generatedAt": "2026-09-25T07:55:08.607628+00:00",
+      "model": {
+        "totalBlockObservations": 11,
+        "bestObservedNormalizedTime": 167.966917989418,
+        "acquisitionValue": 1.3469123263565619,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 9.008989657988295,
+        "predictedImprovementVsCurrent": 28.2671847943015,
+        "objectiveType": "total_normalized_time",
+        "trustRegionHalfSpanRatio": 0.2,
+        "predictedImprovementVsBestObserved": 0.4994546745782884,
+        "candidateRankApprox": 1,
+        "candidateRankProbeCount": 16,
+        "predictedCurrentNormalizedTime": 195.7346481091412,
+        "lastObservedNormalizedTime": 167.966917989418,
+        "predictedCandidateNormalizedTime": 167.4674633148397,
+        "trainingRowCount": 11,
+        "currentUncertaintyStd": 0.03162256548697713,
+        "collapsedDuplicateRowCount": 0
+      },
+      "sagemakerLatencyMs": 405.9,
+      "completionTimeMs": {
+        "std": 17.80160058712915,
+        "min": 167.966917989418,
+        "median": 209.82555555555558,
+        "max": 237.71593915343917,
+        "mean": 208.9679656084656,
+        "count": 10
+      },
+      "trainingObservationCount": 11,
+      "generatedParameterSet": {
+        "decelerationRate": 3.1963,
+        "inflexion": 0.74,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "generatedFromAttemptCount": 120,
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "generation": {
+        "phase": "adaptive-qnei",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "acquisition"
+      },
+      "blockNumber": 12,
+      "runsInBlock": 10,
+      "generatedAt": "2026-09-25T07:55:42.439190+00:00",
+      "sagemakerLatencyMs": 180.4,
+      "model": {
+        "totalBlockObservations": 12,
+        "bestObservedNormalizedTime": 167.966917989418,
+        "acquisitionValue": 0.8693892622950159,
+        "posteriorMeanWeight": 0,
+        "candidateUncertaintyStd": 15.159837819653214,
+        "predictedImprovementVsCurrent": 18.050425979218602,
+        "objectiveType": "total_normalized_time",
+        "trustRegionHalfSpanRatio": 0.2,
+        "candidateRankApprox": 1,
+        "predictedImprovementVsBestObserved": -9.717398742799077,
+        "candidateRankProbeCount": 16,
+        "predictedCurrentNormalizedTime": 195.73474271143567,
+        "lastObservedNormalizedTime": 233.05933862433864,
+        "predictedCandidateNormalizedTime": 177.68431673221707,
+        "trainingRowCount": 12,
+        "currentUncertaintyStd": 0.031622730692010104,
+        "collapsedDuplicateRowCount": 0
+      },
+      "completionTimeMs": {
+        "std": 19.159482742103197,
+        "min": 167.966917989418,
+        "median": 210.8151388888889,
+        "max": 237.71593915343917,
+        "mean": 211.64185582010583,
+        "count": 10
+      },
+      "trainingObservationCount": 12,
+      "generatedParameterSet": {
+        "decelerationRate": 3.2789,
+        "inflexion": 0.71,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "generatedFromAttemptCount": 130,
+      "generation": {
+        "phase": "final-recommendation-posterior-mean",
+        "modelVersion": "v7-qnei-decayed-exploration-single-objective-per-participant-total-time",
+        "generator": "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time",
+        "strategy": "qlognei",
+        "selectionMode": "posterior-mean-minimizer"
+      },
+      "testedParameterSet": {
+        "decelerationRate": 3.1485,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034
+      },
+      "runsInBlock": 10,
+      "blockNumber": 13,
+      "generatedAt": "2026-09-25T07:56:12.558734+00:00",
+      "sagemakerLatencyMs": 176.8,
+      "model": {
+        "totalBlockObservations": 13,
+        "bestObservedNormalizedTime": 167.966917989418,
+        "acquisitionValue": 0.4740167635127017,
+        "posteriorMeanWeight": 1,
+        "candidateUncertaintyStd": 5.705058959244629,
+        "predictedImprovementVsCurrent": 26.277536925044956,
+        "objectiveType": "total_normalized_time",
+        "trustRegionHalfSpanRatio": 0.1,
+        "predictedImprovementVsBestObserved": -1.4902833197335497,
+        "candidateRankProbeCount": 16,
+        "predictedCurrentNormalizedTime": 195.7347382341965,
+        "lastObservedNormalizedTime": 187.1390211640212,
+        "predictedCandidateNormalizedTime": 169.45720130915154,
+        "trainingRowCount": 13,
+        "currentUncertaintyStd": 0.03162272869343347,
+        "collapsedDuplicateRowCount": 0
+      },
+      "completionTimeMs": {
+        "std": 20.513121872628922,
+        "min": 167.966917989418,
+        "median": 210.8151388888889,
+        "max": 237.71593915343917,
+        "mean": 209.69691402116405,
+        "count": 10
+      },
+      "trainingObservationCount": 13,
+      "generatedParameterSet": {
+        "decelerationRate": 2.8808,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017
+      }
+    }
+  ],
+  "attemptBlocks": [
+    {
+      "runNumber": 1,
+      "parameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      },
+      "attempts": [
+        {
+          "targetNumber": 180,
+          "switchbackCount": 0,
+          "flickCount": 1,
+          "scrollDistance": 7509.1783267582605,
+          "attemptInBlock": 1,
+          "timeMs": 1369,
+          "timestamp": "2026-09-25T07:49:06.533Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 150,
+          "flickCount": 4,
+          "scrollDistance": 6290.364335645512,
+          "attemptInBlock": 2,
+          "timeMs": 2229,
+          "timestamp": "2026-09-25T07:49:08.912Z"
+        },
+        {
+          "targetNumber": 120,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 4791.059563521194,
+          "attemptInBlock": 3,
+          "timeMs": 2503,
+          "timestamp": "2026-09-25T07:49:11.701Z"
+        },
+        {
+          "targetNumber": 300,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 12454.683286880716,
+          "attemptInBlock": 4,
+          "timestamp": "2026-09-25T07:49:14.847Z",
+          "timeMs": 2742
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 90,
+          "flickCount": 3,
+          "scrollDistance": 3606.0844895151577,
+          "attemptInBlock": 5,
+          "timeMs": 2100,
+          "timestamp": "2026-09-25T07:49:17.180Z"
+        },
+        {
+          "targetNumber": 60,
+          "switchbackCount": 1,
+          "flickCount": 3,
+          "scrollDistance": 2461.5443244165185,
+          "attemptInBlock": 6,
+          "timeMs": 1940,
+          "timestamp": "2026-09-25T07:49:19.530Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 1190.136722982505,
+          "attemptInBlock": 7,
+          "timestamp": "2026-09-25T07:49:21.347Z",
+          "timeMs": 1410
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 270,
+          "flickCount": 4,
+          "scrollDistance": 11342.316844931058,
+          "attemptInBlock": 8,
+          "timeMs": 3703,
+          "timestamp": "2026-09-25T07:49:25.498Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 210,
+          "flickCount": 4,
+          "scrollDistance": 8799.31765728848,
+          "attemptInBlock": 9,
+          "timestamp": "2026-09-25T07:49:29.232Z",
+          "timeMs": 3398
+        },
+        {
+          "targetNumber": 240,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 9951.422823667754,
+          "attemptInBlock": 10,
+          "timeMs": 2570,
+          "timestamp": "2026-09-25T07:49:32.331Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 2,
+      "parameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      },
+      "attempts": [
+        {
+          "targetNumber": 120,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 4751.826661780671,
+          "attemptInBlock": 1,
+          "timeMs": 1686,
+          "timestamp": "2026-09-25T07:49:36.848Z"
+        },
+        {
+          "targetNumber": 300,
+          "switchbackCount": 0,
+          "flickCount": 6,
+          "scrollDistance": 12688.401333598462,
+          "attemptInBlock": 2,
+          "timeMs": 3663,
+          "timestamp": "2026-09-25T07:49:40.732Z"
+        },
+        {
+          "targetNumber": 270,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 11267.991615673827,
+          "attemptInBlock": 3,
+          "timestamp": "2026-09-25T07:49:45.282Z",
+          "timeMs": 4035
+        },
+        {
+          "targetNumber": 150,
+          "switchbackCount": 1,
+          "flickCount": 4,
+          "scrollDistance": 6261.3988634171255,
+          "attemptInBlock": 4,
+          "timeMs": 2546,
+          "timestamp": "2026-09-25T07:49:48.182Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 90,
+          "flickCount": 2,
+          "scrollDistance": 3674.720288216745,
+          "attemptInBlock": 5,
+          "timeMs": 1190,
+          "timestamp": "2026-09-25T07:49:49.799Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 240,
+          "flickCount": 3,
+          "scrollDistance": 9880.258089384699,
+          "attemptInBlock": 6,
+          "timeMs": 3531,
+          "timestamp": "2026-09-25T07:49:53.667Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 60,
+          "flickCount": 3,
+          "scrollDistance": 2303.6753091015403,
+          "attemptInBlock": 7,
+          "timeMs": 1783,
+          "timestamp": "2026-09-25T07:49:55.734Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 2,
+          "flickCount": 3,
+          "scrollDistance": 875.5503868400108,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-25T07:49:57.966Z",
+          "timeMs": 1931
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 180,
+          "flickCount": 2,
+          "scrollDistance": 7532.613103500208,
+          "attemptInBlock": 9,
+          "timeMs": 2047,
+          "timestamp": "2026-09-25T07:50:00.351Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 210,
+          "flickCount": 3,
+          "scrollDistance": 8811.058642622584,
+          "attemptInBlock": 10,
+          "timeMs": 3098,
+          "timestamp": "2026-09-25T07:50:03.767Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 3,
+      "parameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      },
+      "attempts": [
+        {
+          "switchbackCount": 1,
+          "targetNumber": 90,
+          "flickCount": 4,
+          "scrollDistance": 3724.9708127284143,
+          "attemptInBlock": 1,
+          "timeMs": 2752,
+          "timestamp": "2026-09-25T07:50:10.017Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 2,
+          "flickCount": 3,
+          "scrollDistance": 816.6542994409075,
+          "attemptInBlock": 2,
+          "timeMs": 1981,
+          "timestamp": "2026-09-25T07:50:12.317Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 180,
+          "flickCount": 3,
+          "scrollDistance": 7405.133295792881,
+          "attemptInBlock": 3,
+          "timestamp": "2026-09-25T07:50:15.133Z",
+          "timeMs": 2480
+        },
+        {
+          "targetNumber": 150,
+          "switchbackCount": 0,
+          "flickCount": 1,
+          "scrollDistance": 6079.068105519058,
+          "attemptInBlock": 4,
+          "timestamp": "2026-09-25T07:50:17.367Z",
+          "timeMs": 1897
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 60,
+          "flickCount": 2,
+          "scrollDistance": 2399.5945792363846,
+          "attemptInBlock": 5,
+          "timeMs": 1329,
+          "timestamp": "2026-09-25T07:50:19.186Z"
+        },
+        {
+          "targetNumber": 270,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 11478.36953159739,
+          "attemptInBlock": 6,
+          "timestamp": "2026-09-25T07:50:22.034Z",
+          "timeMs": 2477
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 120,
+          "flickCount": 3,
+          "scrollDistance": 4707.677614484944,
+          "attemptInBlock": 7,
+          "timeMs": 2008,
+          "timestamp": "2026-09-25T07:50:24.434Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 300,
+          "flickCount": 4,
+          "scrollDistance": 12553.506679029977,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-25T07:50:28.502Z",
+          "timeMs": 3594
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 210,
+          "flickCount": 2,
+          "scrollDistance": 8636.831933252319,
+          "attemptInBlock": 9,
+          "timeMs": 1965,
+          "timestamp": "2026-09-25T07:50:30.768Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 240,
+          "flickCount": 4,
+          "scrollDistance": 9809.80924294476,
+          "attemptInBlock": 10,
+          "timestamp": "2026-09-25T07:50:34.485Z",
+          "timeMs": 3398
+        }
+      ]
+    },
+    {
+      "runNumber": 4,
+      "parameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      },
+      "attempts": [
+        {
+          "switchbackCount": 0,
+          "targetNumber": 150,
+          "flickCount": 3,
+          "scrollDistance": 6034.555660819865,
+          "attemptInBlock": 1,
+          "timeMs": 2652,
+          "timestamp": "2026-09-25T07:50:40.218Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 270,
+          "flickCount": 5,
+          "scrollDistance": 11376.737021197607,
+          "attemptInBlock": 2,
+          "timeMs": 3715,
+          "timestamp": "2026-09-25T07:50:44.185Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 1065.565428946024,
+          "attemptInBlock": 3,
+          "timeMs": 1521,
+          "timestamp": "2026-09-25T07:50:46.136Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 180,
+          "flickCount": 3,
+          "scrollDistance": 7530.553454493108,
+          "attemptInBlock": 4,
+          "timestamp": "2026-09-25T07:50:48.587Z",
+          "timeMs": 2061
+        },
+        {
+          "targetNumber": 120,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 5154.588743654128,
+          "attemptInBlock": 5,
+          "timeMs": 2769,
+          "timestamp": "2026-09-25T07:50:51.836Z"
+        },
+        {
+          "switchbackCount": 2,
+          "targetNumber": 240,
+          "flickCount": 5,
+          "scrollDistance": 10001.764868040318,
+          "attemptInBlock": 6,
+          "timeMs": 3871,
+          "timestamp": "2026-09-25T07:50:56.188Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 300,
+          "flickCount": 6,
+          "scrollDistance": 12638.541470649323,
+          "attemptInBlock": 7,
+          "timeMs": 4384,
+          "timestamp": "2026-09-25T07:51:00.890Z"
+        },
+        {
+          "targetNumber": 60,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 2565.137199670874,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-25T07:51:03.154Z",
+          "timeMs": 1930
+        },
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 3542.4520353457906,
+          "attemptInBlock": 9,
+          "timestamp": "2026-09-25T07:51:05.221Z",
+          "timeMs": 1570
+        },
+        {
+          "targetNumber": 210,
+          "switchbackCount": 2,
+          "flickCount": 6,
+          "scrollDistance": 8718.293549331831,
+          "attemptInBlock": 10,
+          "timeMs": 3080,
+          "timestamp": "2026-09-25T07:51:08.521Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 5,
+      "parameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      },
+      "attempts": [
+        {
+          "switchbackCount": 1,
+          "targetNumber": 60,
+          "flickCount": 3,
+          "scrollDistance": 2249.4702317096744,
+          "attemptInBlock": 1,
+          "timeMs": 1885,
+          "timestamp": "2026-09-25T07:51:13.271Z"
+        },
+        {
+          "targetNumber": 270,
+          "switchbackCount": 1,
+          "flickCount": 7,
+          "scrollDistance": 11421.400578369621,
+          "attemptInBlock": 2,
+          "timeMs": 5225,
+          "timestamp": "2026-09-25T07:51:18.938Z"
+        },
+        {
+          "targetNumber": 120,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 5053.89514215723,
+          "attemptInBlock": 3,
+          "timeMs": 1853,
+          "timestamp": "2026-09-25T07:51:21.304Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 30,
+          "flickCount": 3,
+          "scrollDistance": 1073.643346318779,
+          "attemptInBlock": 4,
+          "timeMs": 2002,
+          "timestamp": "2026-09-25T07:51:23.888Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 300,
+          "flickCount": 5,
+          "scrollDistance": 12901.603920029118,
+          "attemptInBlock": 5,
+          "timestamp": "2026-09-25T07:51:28.505Z",
+          "timeMs": 4225
+        },
+        {
+          "targetNumber": 180,
+          "switchbackCount": 0,
+          "flickCount": 1,
+          "scrollDistance": 7177.589129388884,
+          "attemptInBlock": 6,
+          "timeMs": 1885,
+          "timestamp": "2026-09-25T07:51:30.838Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 210,
+          "flickCount": 2,
+          "scrollDistance": 8872.917305584824,
+          "attemptInBlock": 7,
+          "timeMs": 2546,
+          "timestamp": "2026-09-25T07:51:33.722Z"
+        },
+        {
+          "targetNumber": 150,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 5935.463201028855,
+          "attemptInBlock": 8,
+          "timeMs": 2515,
+          "timestamp": "2026-09-25T07:51:36.592Z"
+        },
+        {
+          "targetNumber": 240,
+          "switchbackCount": 1,
+          "flickCount": 5,
+          "scrollDistance": 10244.97948229537,
+          "attemptInBlock": 9,
+          "timeMs": 4665,
+          "timestamp": "2026-09-25T07:51:41.573Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 90,
+          "flickCount": 3,
+          "scrollDistance": 3867.5379815655997,
+          "attemptInBlock": 10,
+          "timeMs": 2870,
+          "timestamp": "2026-09-25T07:51:44.872Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 6,
+      "parameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      },
+      "attempts": [
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 3601.0316099870765,
+          "attemptInBlock": 1,
+          "timeMs": 2119,
+          "timestamp": "2026-09-25T07:51:50.073Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 60,
+          "flickCount": 2,
+          "scrollDistance": 2344.1382598290957,
+          "attemptInBlock": 2,
+          "timestamp": "2026-09-25T07:51:52.389Z",
+          "timeMs": 2048
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 967.1046629486553,
+          "attemptInBlock": 3,
+          "timeMs": 1286,
+          "timestamp": "2026-09-25T07:51:54.173Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 150,
+          "flickCount": 3,
+          "scrollDistance": 6394.725993138351,
+          "attemptInBlock": 4,
+          "timeMs": 2909,
+          "timestamp": "2026-09-25T07:51:57.492Z"
+        },
+        {
+          "targetNumber": 120,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 4899.930652677193,
+          "attemptInBlock": 5,
+          "timeMs": 2342,
+          "timestamp": "2026-09-25T07:52:00.224Z"
+        },
+        {
+          "targetNumber": 210,
+          "switchbackCount": 1,
+          "flickCount": 4,
+          "scrollDistance": 8637.443140426283,
+          "attemptInBlock": 6,
+          "timeMs": 4003,
+          "timestamp": "2026-09-25T07:52:04.707Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 300,
+          "flickCount": 5,
+          "scrollDistance": 12953.060536435547,
+          "attemptInBlock": 7,
+          "timestamp": "2026-09-25T07:52:09.625Z",
+          "timeMs": 4471
+        },
+        {
+          "targetNumber": 270,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 11155.595952114987,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-25T07:52:13.861Z",
+          "timeMs": 3637
+        },
+        {
+          "targetNumber": 180,
+          "switchbackCount": 1,
+          "flickCount": 4,
+          "scrollDistance": 7394.771929298172,
+          "attemptInBlock": 9,
+          "timeMs": 4070,
+          "timestamp": "2026-09-25T07:52:18.391Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 240,
+          "flickCount": 5,
+          "scrollDistance": 10022.669405940609,
+          "attemptInBlock": 10,
+          "timestamp": "2026-09-25T07:52:23.309Z",
+          "timeMs": 4403
+        }
+      ]
+    },
+    {
+      "runNumber": 7,
+      "parameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      },
+      "attempts": [
+        {
+          "targetNumber": 210,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 8517.585539834163,
+          "attemptInBlock": 1,
+          "timestamp": "2026-09-25T07:52:28.893Z",
+          "timeMs": 2604
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 120,
+          "flickCount": 2,
+          "scrollDistance": 4810.368928432072,
+          "attemptInBlock": 2,
+          "timeMs": 2503,
+          "timestamp": "2026-09-25T07:52:31.876Z"
+        },
+        {
+          "targetNumber": 240,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 9790.103660521196,
+          "attemptInBlock": 3,
+          "timeMs": 3820,
+          "timestamp": "2026-09-25T07:52:36.192Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 150,
+          "flickCount": 2,
+          "scrollDistance": 6053.28045745892,
+          "attemptInBlock": 4,
+          "timeMs": 2587,
+          "timestamp": "2026-09-25T07:52:39.362Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 270,
+          "flickCount": 3,
+          "scrollDistance": 11265.142513510233,
+          "attemptInBlock": 5,
+          "timeMs": 3604,
+          "timestamp": "2026-09-25T07:52:43.376Z"
+        },
+        {
+          "switchbackCount": 2,
+          "targetNumber": 60,
+          "flickCount": 3,
+          "scrollDistance": 2078.504718404499,
+          "attemptInBlock": 6,
+          "timestamp": "2026-09-25T07:52:46.110Z",
+          "timeMs": 2302
+        },
+        {
+          "targetNumber": 180,
+          "switchbackCount": 2,
+          "flickCount": 3,
+          "scrollDistance": 7259.1740869248815,
+          "attemptInBlock": 7,
+          "timeMs": 2941,
+          "timestamp": "2026-09-25T07:52:49.444Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 0,
+          "flickCount": 1,
+          "scrollDistance": 920.9034854868913,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-25T07:52:51.243Z",
+          "timeMs": 1203
+        },
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 1,
+          "scrollDistance": 3582.2909200932454,
+          "attemptInBlock": 9,
+          "timestamp": "2026-09-25T07:52:53.243Z",
+          "timeMs": 1566
+        },
+        {
+          "switchbackCount": 2,
+          "targetNumber": 300,
+          "flickCount": 6,
+          "scrollDistance": 12428.258347133089,
+          "attemptInBlock": 10,
+          "timeMs": 5319,
+          "timestamp": "2026-09-25T07:52:58.994Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 8,
+      "parameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      },
+      "attempts": [
+        {
+          "switchbackCount": 0,
+          "targetNumber": 60,
+          "flickCount": 1,
+          "scrollDistance": 1979.3260211099846,
+          "attemptInBlock": 1,
+          "timeMs": 1437,
+          "timestamp": "2026-09-25T07:53:03.478Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 210,
+          "flickCount": 3,
+          "scrollDistance": 8604.100737973376,
+          "attemptInBlock": 2,
+          "timeMs": 3219,
+          "timestamp": "2026-09-25T07:53:07.211Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 120,
+          "flickCount": 6,
+          "scrollDistance": 5012.0523771698445,
+          "attemptInBlock": 3,
+          "timestamp": "2026-09-25T07:53:11.995Z",
+          "timeMs": 4269
+        },
+        {
+          "targetNumber": 180,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 7485.12924269303,
+          "attemptInBlock": 4,
+          "timeMs": 2867,
+          "timestamp": "2026-09-25T07:53:15.358Z"
+        },
+        {
+          "targetNumber": 240,
+          "switchbackCount": 2,
+          "flickCount": 6,
+          "scrollDistance": 9939.814694487079,
+          "attemptInBlock": 5,
+          "timestamp": "2026-09-25T07:53:20.596Z",
+          "timeMs": 4386
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 270,
+          "flickCount": 3,
+          "scrollDistance": 11501.554703950478,
+          "attemptInBlock": 6,
+          "timestamp": "2026-09-25T07:53:24.279Z",
+          "timeMs": 3219
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 150,
+          "flickCount": 4,
+          "scrollDistance": 5931.405216771316,
+          "attemptInBlock": 7,
+          "timeMs": 3469,
+          "timestamp": "2026-09-25T07:53:28.329Z"
+        },
+        {
+          "targetNumber": 300,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 12742.105916067208,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-25T07:53:32.582Z",
+          "timeMs": 3916
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 0,
+          "flickCount": 1,
+          "scrollDistance": 1183.7225385231532,
+          "attemptInBlock": 9,
+          "timestamp": "2026-09-25T07:53:34.263Z",
+          "timeMs": 1103
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 90,
+          "flickCount": 2,
+          "scrollDistance": 3294.8055239099285,
+          "attemptInBlock": 10,
+          "timeMs": 2119,
+          "timestamp": "2026-09-25T07:53:36.963Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 9,
+      "parameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      },
+      "attempts": [
+        {
+          "targetNumber": 210,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 8668.910318951934,
+          "attemptInBlock": 1,
+          "timeMs": 3403,
+          "timestamp": "2026-09-25T07:53:43.997Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 150,
+          "flickCount": 4,
+          "scrollDistance": 6117.051412354749,
+          "attemptInBlock": 2,
+          "timestamp": "2026-09-25T07:53:47.531Z",
+          "timeMs": 3121
+        },
+        {
+          "targetNumber": 60,
+          "switchbackCount": 1,
+          "flickCount": 3,
+          "scrollDistance": 2375.9255906538633,
+          "attemptInBlock": 3,
+          "timeMs": 1922,
+          "timestamp": "2026-09-25T07:53:49.847Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 120,
+          "flickCount": 2,
+          "scrollDistance": 5042.975123428848,
+          "attemptInBlock": 4,
+          "timeMs": 1886,
+          "timestamp": "2026-09-25T07:53:52.181Z"
+        },
+        {
+          "targetNumber": 300,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 12421.092055205921,
+          "attemptInBlock": 5,
+          "timeMs": 3171,
+          "timestamp": "2026-09-25T07:53:55.781Z"
+        },
+        {
+          "targetNumber": 270,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 11210.744058921384,
+          "attemptInBlock": 6,
+          "timeMs": 4095,
+          "timestamp": "2026-09-25T07:54:00.231Z"
+        },
+        {
+          "targetNumber": 240,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 10139.624751064206,
+          "attemptInBlock": 7,
+          "timestamp": "2026-09-25T07:54:02.815Z",
+          "timeMs": 2209
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 0,
+          "flickCount": 1,
+          "scrollDistance": 1060.1400126502326,
+          "attemptInBlock": 8,
+          "timeMs": 869,
+          "timestamp": "2026-09-25T07:54:04.298Z"
+        },
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 3382.3241289944967,
+          "attemptInBlock": 9,
+          "timeMs": 3080,
+          "timestamp": "2026-09-25T07:54:07.532Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 180,
+          "flickCount": 3,
+          "scrollDistance": 7520.242504865957,
+          "attemptInBlock": 10,
+          "timeMs": 2078,
+          "timestamp": "2026-09-25T07:54:09.982Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 10,
+      "parameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      },
+      "attempts": [
+        {
+          "targetNumber": 30,
+          "switchbackCount": 2,
+          "flickCount": 3,
+          "scrollDistance": 834.4170738007278,
+          "attemptInBlock": 1,
+          "timeMs": 2070,
+          "timestamp": "2026-09-25T07:54:15.283Z"
+        },
+        {
+          "targetNumber": 210,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 8519.014251050281,
+          "attemptInBlock": 2,
+          "timeMs": 3381,
+          "timestamp": "2026-09-25T07:54:19.000Z"
+        },
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 3433.862044656792,
+          "attemptInBlock": 3,
+          "timestamp": "2026-09-25T07:54:21.283Z",
+          "timeMs": 2016
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 150,
+          "flickCount": 2,
+          "scrollDistance": 6193.920332355983,
+          "attemptInBlock": 4,
+          "timeMs": 1947,
+          "timestamp": "2026-09-25T07:54:23.584Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 300,
+          "flickCount": 4,
+          "scrollDistance": 12354.42526267378,
+          "attemptInBlock": 5,
+          "timeMs": 3830,
+          "timestamp": "2026-09-25T07:54:27.500Z"
+        },
+        {
+          "targetNumber": 270,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 11209.767866702226,
+          "attemptInBlock": 6,
+          "timeMs": 2663,
+          "timestamp": "2026-09-25T07:54:30.500Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 180,
+          "flickCount": 2,
+          "scrollDistance": 7712.05645485013,
+          "attemptInBlock": 7,
+          "timestamp": "2026-09-25T07:54:32.850Z",
+          "timeMs": 1919
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 120,
+          "flickCount": 4,
+          "scrollDistance": 4832.76293207148,
+          "attemptInBlock": 8,
+          "timeMs": 2855,
+          "timestamp": "2026-09-25T07:54:36.117Z"
+        },
+        {
+          "targetNumber": 240,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 10078.103334099413,
+          "attemptInBlock": 9,
+          "timestamp": "2026-09-25T07:54:38.820Z",
+          "timeMs": 2292
+        },
+        {
+          "targetNumber": 60,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 2382.5585746594224,
+          "attemptInBlock": 10,
+          "timeMs": 1370,
+          "timestamp": "2026-09-25T07:54:40.668Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 11,
+      "parameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      },
+      "attempts": [
+        {
+          "switchbackCount": 0,
+          "targetNumber": 210,
+          "flickCount": 2,
+          "scrollDistance": 8699.813224850754,
+          "attemptInBlock": 1,
+          "timestamp": "2026-09-25T07:54:45.535Z",
+          "timeMs": 1803
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 240,
+          "flickCount": 3,
+          "scrollDistance": 9914.996541910927,
+          "attemptInBlock": 2,
+          "timeMs": 2323,
+          "timestamp": "2026-09-25T07:54:48.268Z"
+        },
+        {
+          "targetNumber": 60,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 2426.530566263916,
+          "attemptInBlock": 3,
+          "timestamp": "2026-09-25T07:54:49.652Z",
+          "timeMs": 1082
+        },
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 3594.8439896837126,
+          "attemptInBlock": 4,
+          "timeMs": 1636,
+          "timestamp": "2026-09-25T07:54:51.752Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 270,
+          "flickCount": 2,
+          "scrollDistance": 11312.469369243678,
+          "attemptInBlock": 5,
+          "timeMs": 2080,
+          "timestamp": "2026-09-25T07:54:54.168Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 1057.284984140289,
+          "attemptInBlock": 6,
+          "timeMs": 1580,
+          "timestamp": "2026-09-25T07:54:55.885Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 300,
+          "flickCount": 4,
+          "scrollDistance": 12497.78443819262,
+          "attemptInBlock": 7,
+          "timeMs": 3456,
+          "timestamp": "2026-09-25T07:54:59.853Z"
+        },
+        {
+          "targetNumber": 120,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 5073.31443448174,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-25T07:55:02.236Z",
+          "timeMs": 1973
+        },
+        {
+          "targetNumber": 180,
+          "switchbackCount": 1,
+          "flickCount": 3,
+          "scrollDistance": 7567.343930665077,
+          "attemptInBlock": 9,
+          "timeMs": 2605,
+          "timestamp": "2026-09-25T07:55:05.252Z"
+        },
+        {
+          "targetNumber": 150,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 6017.117438783206,
+          "attemptInBlock": 10,
+          "timeMs": 1603,
+          "timestamp": "2026-09-25T07:55:07.470Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 12,
+      "parameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      },
+      "attempts": [
+        {
+          "targetNumber": 270,
+          "switchbackCount": 2,
+          "flickCount": 4,
+          "scrollDistance": 11267.365202387566,
+          "attemptInBlock": 1,
+          "timeMs": 5236,
+          "timestamp": "2026-09-25T07:55:15.703Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 60,
+          "flickCount": 4,
+          "scrollDistance": 2385.836835156548,
+          "attemptInBlock": 2,
+          "timeMs": 2638,
+          "timestamp": "2026-09-25T07:55:18.888Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 120,
+          "flickCount": 3,
+          "scrollDistance": 4958.969713966764,
+          "attemptInBlock": 3,
+          "timestamp": "2026-09-25T07:55:21.737Z",
+          "timeMs": 2353
+        },
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 3534.813797485808,
+          "attemptInBlock": 4,
+          "timeMs": 2137,
+          "timestamp": "2026-09-25T07:55:24.421Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 180,
+          "flickCount": 3,
+          "scrollDistance": 7621.50941088293,
+          "attemptInBlock": 5,
+          "timestamp": "2026-09-25T07:55:27.138Z",
+          "timeMs": 2306
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 300,
+          "flickCount": 3,
+          "scrollDistance": 12878.369600710745,
+          "attemptInBlock": 6,
+          "timeMs": 2968,
+          "timestamp": "2026-09-25T07:55:30.721Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 240,
+          "flickCount": 4,
+          "scrollDistance": 10040.139489764453,
+          "attemptInBlock": 7,
+          "timestamp": "2026-09-25T07:55:34.454Z",
+          "timeMs": 3136
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 210,
+          "flickCount": 2,
+          "scrollDistance": 8582.30435524183,
+          "attemptInBlock": 8,
+          "timeMs": 1794,
+          "timestamp": "2026-09-25T07:55:36.638Z"
+        },
+        {
+          "targetNumber": 150,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 6015.601131807451,
+          "attemptInBlock": 9,
+          "timeMs": 2230,
+          "timestamp": "2026-09-25T07:55:39.188Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 2,
+          "flickCount": 3,
+          "scrollDistance": 844.2780802729643,
+          "attemptInBlock": 10,
+          "timestamp": "2026-09-25T07:55:41.505Z",
+          "timeMs": 2015
+        }
+      ]
+    },
+    {
+      "runNumber": 13,
+      "parameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      },
+      "attempts": [
+        {
+          "switchbackCount": 0,
+          "targetNumber": 180,
+          "flickCount": 3,
+          "scrollDistance": 7310.261054541905,
+          "attemptInBlock": 1,
+          "timeMs": 3036,
+          "timestamp": "2026-09-25T07:55:47.405Z"
+        },
+        {
+          "targetNumber": 150,
+          "switchbackCount": 1,
+          "flickCount": 4,
+          "scrollDistance": 6323.385969414571,
+          "attemptInBlock": 2,
+          "timeMs": 3079,
+          "timestamp": "2026-09-25T07:55:50.705Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 120,
+          "flickCount": 2,
+          "scrollDistance": 5065.396261174971,
+          "attemptInBlock": 3,
+          "timeMs": 1438,
+          "timestamp": "2026-09-25T07:55:52.572Z"
+        },
+        {
+          "targetNumber": 60,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 2298.859136398721,
+          "attemptInBlock": 4,
+          "timestamp": "2026-09-25T07:55:54.389Z",
+          "timeMs": 1405
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 240,
+          "flickCount": 5,
+          "scrollDistance": 10187.987699017389,
+          "attemptInBlock": 5,
+          "timeMs": 3730,
+          "timestamp": "2026-09-25T07:55:58.456Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 210,
+          "flickCount": 2,
+          "scrollDistance": 8499.565854900531,
+          "attemptInBlock": 6,
+          "timeMs": 2094,
+          "timestamp": "2026-09-25T07:56:00.924Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 1,
+          "flickCount": 3,
+          "scrollDistance": 960.4219647244283,
+          "attemptInBlock": 7,
+          "timestamp": "2026-09-25T07:56:02.743Z",
+          "timeMs": 1501
+        },
+        {
+          "targetNumber": 300,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 12690.430476661233,
+          "attemptInBlock": 8,
+          "timeMs": 2402,
+          "timestamp": "2026-09-25T07:56:05.589Z"
+        },
+        {
+          "targetNumber": 270,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 11314.092527007018,
+          "attemptInBlock": 9,
+          "timeMs": 3922,
+          "timestamp": "2026-09-25T07:56:09.924Z"
+        },
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 3712.776470564227,
+          "attemptInBlock": 10,
+          "timestamp": "2026-09-25T07:56:11.691Z",
+          "timeMs": 1464
+        }
+      ]
+    },
+    {
+      "runNumber": 14,
+      "parameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      },
+      "attempts": [
+        {
+          "targetNumber": 60,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 2559.8901594601334,
+          "attemptInBlock": 1,
+          "timestamp": "2026-09-25T07:56:15.891Z",
+          "timeMs": 1220
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 805.7501910563192,
+          "attemptInBlock": 2,
+          "timeMs": 1534,
+          "timestamp": "2026-09-25T07:56:17.974Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 240,
+          "flickCount": 4,
+          "scrollDistance": 9819.468417565286,
+          "attemptInBlock": 3,
+          "timeMs": 2699,
+          "timestamp": "2026-09-25T07:56:20.958Z"
+        },
+        {
+          "targetNumber": 120,
+          "switchbackCount": 1,
+          "flickCount": 2,
+          "scrollDistance": 5015.594696935773,
+          "attemptInBlock": 4,
+          "timeMs": 1729,
+          "timestamp": "2026-09-25T07:56:23.041Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 150,
+          "flickCount": 2,
+          "scrollDistance": 6248.383671108153,
+          "attemptInBlock": 5,
+          "timeMs": 1469,
+          "timestamp": "2026-09-25T07:56:24.991Z"
+        },
+        {
+          "targetNumber": 300,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 12659.836210898691,
+          "attemptInBlock": 6,
+          "timestamp": "2026-09-25T07:56:28.025Z",
+          "timeMs": 2714
+        },
+        {
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 3419.7668930523623,
+          "attemptInBlock": 7,
+          "timeMs": 1530,
+          "timestamp": "2026-09-25T07:56:29.909Z"
+        },
+        {
+          "targetNumber": 270,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 11332.899219209843,
+          "attemptInBlock": 8,
+          "timeMs": 2567,
+          "timestamp": "2026-09-25T07:56:32.709Z"
+        },
+        {
+          "targetNumber": 210,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 8961.914724460563,
+          "attemptInBlock": 9,
+          "timeMs": 2191,
+          "timestamp": "2026-09-25T07:56:35.292Z"
+        },
+        {
+          "targetNumber": 180,
+          "switchbackCount": 0,
+          "flickCount": 2,
+          "scrollDistance": 7698.434118290232,
+          "attemptInBlock": 10,
+          "timestamp": "2026-09-25T07:56:37.592Z",
+          "timeMs": 1908
+        }
+      ]
+    },
+    {
+      "runNumber": 15,
+      "parameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      },
+      "attempts": [
+        {
+          "targetNumber": 300,
+          "switchbackCount": 0,
+          "flickCount": 5,
+          "scrollDistance": 12407.92554846377,
+          "attemptInBlock": 1,
+          "timeMs": 3920,
+          "timestamp": "2026-09-25T07:56:45.059Z"
+        },
+        {
+          "targetNumber": 120,
+          "switchbackCount": 2,
+          "flickCount": 4,
+          "scrollDistance": 4856.029843377389,
+          "attemptInBlock": 2,
+          "timestamp": "2026-09-25T07:56:47.743Z",
+          "timeMs": 2202
+        },
+        {
+          "targetNumber": 210,
+          "switchbackCount": 1,
+          "flickCount": 3,
+          "scrollDistance": 8556.011493197771,
+          "attemptInBlock": 3,
+          "timeMs": 2169,
+          "timestamp": "2026-09-25T07:56:50.343Z"
+        },
+        {
+          "targetNumber": 30,
+          "switchbackCount": 1,
+          "flickCount": 3,
+          "scrollDistance": 1040.5362138355538,
+          "attemptInBlock": 4,
+          "timeMs": 2065,
+          "timestamp": "2026-09-25T07:56:52.710Z"
+        },
+        {
+          "targetNumber": 150,
+          "switchbackCount": 0,
+          "flickCount": 3,
+          "scrollDistance": 6223.897937927335,
+          "attemptInBlock": 5,
+          "timeMs": 2730,
+          "timestamp": "2026-09-25T07:56:55.742Z"
+        },
+        {
+          "targetNumber": 180,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 7424.5906179284775,
+          "attemptInBlock": 6,
+          "timeMs": 3191,
+          "timestamp": "2026-09-25T07:56:59.310Z"
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 270,
+          "flickCount": 3,
+          "scrollDistance": 11031.583730334498,
+          "attemptInBlock": 7,
+          "timeMs": 3094,
+          "timestamp": "2026-09-25T07:57:02.760Z"
+        },
+        {
+          "targetNumber": 240,
+          "switchbackCount": 0,
+          "flickCount": 4,
+          "scrollDistance": 9876.852152261834,
+          "attemptInBlock": 8,
+          "timeMs": 3140,
+          "timestamp": "2026-09-25T07:57:06.293Z"
+        },
+        {
+          "switchbackCount": 1,
+          "targetNumber": 90,
+          "flickCount": 2,
+          "scrollDistance": 3626.84513728158,
+          "attemptInBlock": 9,
+          "timeMs": 1431,
+          "timestamp": "2026-09-25T07:57:08.027Z"
+        },
+        {
+          "targetNumber": 60,
+          "switchbackCount": 2,
+          "flickCount": 4,
+          "scrollDistance": 2152.3434866620833,
+          "attemptInBlock": 10,
+          "timeMs": 2469,
+          "timestamp": "2026-09-25T07:57:11.077Z"
+        }
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "targetNumber": 180,
+      "switchbackCount": 0,
+      "flickCount": 1,
+      "scrollDistance": 7509.1783267582605,
+      "attemptInBlock": 1,
+      "timeMs": 1369,
+      "timestamp": "2026-09-25T07:49:06.533Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 150,
+      "flickCount": 4,
+      "scrollDistance": 6290.364335645512,
+      "attemptInBlock": 2,
+      "timeMs": 2229,
+      "timestamp": "2026-09-25T07:49:08.912Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "targetNumber": 120,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 4791.059563521194,
+      "attemptInBlock": 3,
+      "timeMs": 2503,
+      "timestamp": "2026-09-25T07:49:11.701Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "targetNumber": 300,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 12454.683286880716,
+      "attemptInBlock": 4,
+      "timestamp": "2026-09-25T07:49:14.847Z",
+      "timeMs": 2742,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 90,
+      "flickCount": 3,
+      "scrollDistance": 3606.0844895151577,
+      "attemptInBlock": 5,
+      "timeMs": 2100,
+      "timestamp": "2026-09-25T07:49:17.180Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "targetNumber": 60,
+      "switchbackCount": 1,
+      "flickCount": 3,
+      "scrollDistance": 2461.5443244165185,
+      "attemptInBlock": 6,
+      "timeMs": 1940,
+      "timestamp": "2026-09-25T07:49:19.530Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 1190.136722982505,
+      "attemptInBlock": 7,
+      "timestamp": "2026-09-25T07:49:21.347Z",
+      "timeMs": 1410,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 270,
+      "flickCount": 4,
+      "scrollDistance": 11342.316844931058,
+      "attemptInBlock": 8,
+      "timeMs": 3703,
+      "timestamp": "2026-09-25T07:49:25.498Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 210,
+      "flickCount": 4,
+      "scrollDistance": 8799.31765728848,
+      "attemptInBlock": 9,
+      "timestamp": "2026-09-25T07:49:29.232Z",
+      "timeMs": 3398,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "targetNumber": 240,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 9951.422823667754,
+      "attemptInBlock": 10,
+      "timeMs": 2570,
+      "timestamp": "2026-09-25T07:49:32.331Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 3.1485,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "scrollFriction": 0.034,
+        "decelerationRateInputValue": 3.1485
+      }
+    },
+    {
+      "targetNumber": 120,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 4751.826661780671,
+      "attemptInBlock": 1,
+      "timeMs": 1686,
+      "timestamp": "2026-09-25T07:49:36.848Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "targetNumber": 300,
+      "switchbackCount": 0,
+      "flickCount": 6,
+      "scrollDistance": 12688.401333598462,
+      "attemptInBlock": 2,
+      "timeMs": 3663,
+      "timestamp": "2026-09-25T07:49:40.732Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 11267.991615673827,
+      "attemptInBlock": 3,
+      "timestamp": "2026-09-25T07:49:45.282Z",
+      "timeMs": 4035,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "targetNumber": 150,
+      "switchbackCount": 1,
+      "flickCount": 4,
+      "scrollDistance": 6261.3988634171255,
+      "attemptInBlock": 4,
+      "timeMs": 2546,
+      "timestamp": "2026-09-25T07:49:48.182Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 90,
+      "flickCount": 2,
+      "scrollDistance": 3674.720288216745,
+      "attemptInBlock": 5,
+      "timeMs": 1190,
+      "timestamp": "2026-09-25T07:49:49.799Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 240,
+      "flickCount": 3,
+      "scrollDistance": 9880.258089384699,
+      "attemptInBlock": 6,
+      "timeMs": 3531,
+      "timestamp": "2026-09-25T07:49:53.667Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 60,
+      "flickCount": 3,
+      "scrollDistance": 2303.6753091015403,
+      "attemptInBlock": 7,
+      "timeMs": 1783,
+      "timestamp": "2026-09-25T07:49:55.734Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 2,
+      "flickCount": 3,
+      "scrollDistance": 875.5503868400108,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-25T07:49:57.966Z",
+      "timeMs": 1931,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 180,
+      "flickCount": 2,
+      "scrollDistance": 7532.613103500208,
+      "attemptInBlock": 9,
+      "timeMs": 2047,
+      "timestamp": "2026-09-25T07:50:00.351Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 210,
+      "flickCount": 3,
+      "scrollDistance": 8811.058642622584,
+      "attemptInBlock": 10,
+      "timeMs": 3098,
+      "timestamp": "2026-09-25T07:50:03.767Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.3972,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.94,
+        "scrollFriction": 0.036,
+        "decelerationRateInputValue": 4.3972
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 90,
+      "flickCount": 4,
+      "scrollDistance": 3724.9708127284143,
+      "attemptInBlock": 1,
+      "timeMs": 2752,
+      "timestamp": "2026-09-25T07:50:10.017Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 2,
+      "flickCount": 3,
+      "scrollDistance": 816.6542994409075,
+      "attemptInBlock": 2,
+      "timeMs": 1981,
+      "timestamp": "2026-09-25T07:50:12.317Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 180,
+      "flickCount": 3,
+      "scrollDistance": 7405.133295792881,
+      "attemptInBlock": 3,
+      "timestamp": "2026-09-25T07:50:15.133Z",
+      "timeMs": 2480,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "targetNumber": 150,
+      "switchbackCount": 0,
+      "flickCount": 1,
+      "scrollDistance": 6079.068105519058,
+      "attemptInBlock": 4,
+      "timestamp": "2026-09-25T07:50:17.367Z",
+      "timeMs": 1897,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 60,
+      "flickCount": 2,
+      "scrollDistance": 2399.5945792363846,
+      "attemptInBlock": 5,
+      "timeMs": 1329,
+      "timestamp": "2026-09-25T07:50:19.186Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 11478.36953159739,
+      "attemptInBlock": 6,
+      "timestamp": "2026-09-25T07:50:22.034Z",
+      "timeMs": 2477,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 120,
+      "flickCount": 3,
+      "scrollDistance": 4707.677614484944,
+      "attemptInBlock": 7,
+      "timeMs": 2008,
+      "timestamp": "2026-09-25T07:50:24.434Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 300,
+      "flickCount": 4,
+      "scrollDistance": 12553.506679029977,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-25T07:50:28.502Z",
+      "timeMs": 3594,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 210,
+      "flickCount": 2,
+      "scrollDistance": 8636.831933252319,
+      "attemptInBlock": 9,
+      "timeMs": 1965,
+      "timestamp": "2026-09-25T07:50:30.768Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 240,
+      "flickCount": 4,
+      "scrollDistance": 9809.80924294476,
+      "attemptInBlock": 10,
+      "timestamp": "2026-09-25T07:50:34.485Z",
+      "timeMs": 3398,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 1.6236,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.81,
+        "decelerationRateInputValue": 1.6236,
+        "scrollFriction": 0.016
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 150,
+      "flickCount": 3,
+      "scrollDistance": 6034.555660819865,
+      "attemptInBlock": 1,
+      "timeMs": 2652,
+      "timestamp": "2026-09-25T07:50:40.218Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 270,
+      "flickCount": 5,
+      "scrollDistance": 11376.737021197607,
+      "attemptInBlock": 2,
+      "timeMs": 3715,
+      "timestamp": "2026-09-25T07:50:44.185Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 1065.565428946024,
+      "attemptInBlock": 3,
+      "timeMs": 1521,
+      "timestamp": "2026-09-25T07:50:46.136Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 180,
+      "flickCount": 3,
+      "scrollDistance": 7530.553454493108,
+      "attemptInBlock": 4,
+      "timestamp": "2026-09-25T07:50:48.587Z",
+      "timeMs": 2061,
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "targetNumber": 120,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 5154.588743654128,
+      "attemptInBlock": 5,
+      "timeMs": 2769,
+      "timestamp": "2026-09-25T07:50:51.836Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "switchbackCount": 2,
+      "targetNumber": 240,
+      "flickCount": 5,
+      "scrollDistance": 10001.764868040318,
+      "attemptInBlock": 6,
+      "timeMs": 3871,
+      "timestamp": "2026-09-25T07:50:56.188Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 300,
+      "flickCount": 6,
+      "scrollDistance": 12638.541470649323,
+      "attemptInBlock": 7,
+      "timeMs": 4384,
+      "timestamp": "2026-09-25T07:51:00.890Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "targetNumber": 60,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 2565.137199670874,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-25T07:51:03.154Z",
+      "timeMs": 1930,
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 3542.4520353457906,
+      "attemptInBlock": 9,
+      "timestamp": "2026-09-25T07:51:05.221Z",
+      "timeMs": 1570,
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "targetNumber": 210,
+      "switchbackCount": 2,
+      "flickCount": 6,
+      "scrollDistance": 8718.293549331831,
+      "attemptInBlock": 10,
+      "timeMs": 3080,
+      "timestamp": "2026-09-25T07:51:08.521Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 3.0534,
+        "fingerVelocityPxMs": -0.04678362573099448,
+        "decay": 0.98,
+        "inflexion": 0.58,
+        "decelerationRateInputValue": 3.0534,
+        "scrollFriction": 0.049
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 60,
+      "flickCount": 3,
+      "scrollDistance": 2249.4702317096744,
+      "attemptInBlock": 1,
+      "timeMs": 1885,
+      "timestamp": "2026-09-25T07:51:13.271Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 1,
+      "flickCount": 7,
+      "scrollDistance": 11421.400578369621,
+      "attemptInBlock": 2,
+      "timeMs": 5225,
+      "timestamp": "2026-09-25T07:51:18.938Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "targetNumber": 120,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 5053.89514215723,
+      "attemptInBlock": 3,
+      "timeMs": 1853,
+      "timestamp": "2026-09-25T07:51:21.304Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 30,
+      "flickCount": 3,
+      "scrollDistance": 1073.643346318779,
+      "attemptInBlock": 4,
+      "timeMs": 2002,
+      "timestamp": "2026-09-25T07:51:23.888Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 300,
+      "flickCount": 5,
+      "scrollDistance": 12901.603920029118,
+      "attemptInBlock": 5,
+      "timestamp": "2026-09-25T07:51:28.505Z",
+      "timeMs": 4225,
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "targetNumber": 180,
+      "switchbackCount": 0,
+      "flickCount": 1,
+      "scrollDistance": 7177.589129388884,
+      "attemptInBlock": 6,
+      "timeMs": 1885,
+      "timestamp": "2026-09-25T07:51:30.838Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 210,
+      "flickCount": 2,
+      "scrollDistance": 8872.917305584824,
+      "attemptInBlock": 7,
+      "timeMs": 2546,
+      "timestamp": "2026-09-25T07:51:33.722Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "targetNumber": 150,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 5935.463201028855,
+      "attemptInBlock": 8,
+      "timeMs": 2515,
+      "timestamp": "2026-09-25T07:51:36.592Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "targetNumber": 240,
+      "switchbackCount": 1,
+      "flickCount": 5,
+      "scrollDistance": 10244.97948229537,
+      "attemptInBlock": 9,
+      "timeMs": 4665,
+      "timestamp": "2026-09-25T07:51:41.573Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 90,
+      "flickCount": 3,
+      "scrollDistance": 3867.5379815655997,
+      "attemptInBlock": 10,
+      "timeMs": 2870,
+      "timestamp": "2026-09-25T07:51:44.872Z",
+      "blockIndex": 5,
+      "blockParameterSet": {
+        "decelerationRate": 3.0738,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.83,
+        "decelerationRateInputValue": 3.0738,
+        "scrollFriction": 0.034
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 3601.0316099870765,
+      "attemptInBlock": 1,
+      "timeMs": 2119,
+      "timestamp": "2026-09-25T07:51:50.073Z",
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 60,
+      "flickCount": 2,
+      "scrollDistance": 2344.1382598290957,
+      "attemptInBlock": 2,
+      "timestamp": "2026-09-25T07:51:52.389Z",
+      "timeMs": 2048,
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 967.1046629486553,
+      "attemptInBlock": 3,
+      "timeMs": 1286,
+      "timestamp": "2026-09-25T07:51:54.173Z",
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 150,
+      "flickCount": 3,
+      "scrollDistance": 6394.725993138351,
+      "attemptInBlock": 4,
+      "timeMs": 2909,
+      "timestamp": "2026-09-25T07:51:57.492Z",
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "targetNumber": 120,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 4899.930652677193,
+      "attemptInBlock": 5,
+      "timeMs": 2342,
+      "timestamp": "2026-09-25T07:52:00.224Z",
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "targetNumber": 210,
+      "switchbackCount": 1,
+      "flickCount": 4,
+      "scrollDistance": 8637.443140426283,
+      "attemptInBlock": 6,
+      "timeMs": 4003,
+      "timestamp": "2026-09-25T07:52:04.707Z",
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 300,
+      "flickCount": 5,
+      "scrollDistance": 12953.060536435547,
+      "attemptInBlock": 7,
+      "timestamp": "2026-09-25T07:52:09.625Z",
+      "timeMs": 4471,
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 11155.595952114987,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-25T07:52:13.861Z",
+      "timeMs": 3637,
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "targetNumber": 180,
+      "switchbackCount": 1,
+      "flickCount": 4,
+      "scrollDistance": 7394.771929298172,
+      "attemptInBlock": 9,
+      "timeMs": 4070,
+      "timestamp": "2026-09-25T07:52:18.391Z",
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 240,
+      "flickCount": 5,
+      "scrollDistance": 10022.669405940609,
+      "attemptInBlock": 10,
+      "timestamp": "2026-09-25T07:52:23.309Z",
+      "timeMs": 4403,
+      "blockIndex": 6,
+      "blockParameterSet": {
+        "decelerationRate": 3.0299,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.7,
+        "scrollFriction": 0.04,
+        "decelerationRateInputValue": 3.0299
+      }
+    },
+    {
+      "targetNumber": 210,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 8517.585539834163,
+      "attemptInBlock": 1,
+      "timestamp": "2026-09-25T07:52:28.893Z",
+      "timeMs": 2604,
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 120,
+      "flickCount": 2,
+      "scrollDistance": 4810.368928432072,
+      "attemptInBlock": 2,
+      "timeMs": 2503,
+      "timestamp": "2026-09-25T07:52:31.876Z",
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "targetNumber": 240,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 9790.103660521196,
+      "attemptInBlock": 3,
+      "timeMs": 3820,
+      "timestamp": "2026-09-25T07:52:36.192Z",
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 150,
+      "flickCount": 2,
+      "scrollDistance": 6053.28045745892,
+      "attemptInBlock": 4,
+      "timeMs": 2587,
+      "timestamp": "2026-09-25T07:52:39.362Z",
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 270,
+      "flickCount": 3,
+      "scrollDistance": 11265.142513510233,
+      "attemptInBlock": 5,
+      "timeMs": 3604,
+      "timestamp": "2026-09-25T07:52:43.376Z",
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "switchbackCount": 2,
+      "targetNumber": 60,
+      "flickCount": 3,
+      "scrollDistance": 2078.504718404499,
+      "attemptInBlock": 6,
+      "timestamp": "2026-09-25T07:52:46.110Z",
+      "timeMs": 2302,
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "targetNumber": 180,
+      "switchbackCount": 2,
+      "flickCount": 3,
+      "scrollDistance": 7259.1740869248815,
+      "attemptInBlock": 7,
+      "timeMs": 2941,
+      "timestamp": "2026-09-25T07:52:49.444Z",
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 0,
+      "flickCount": 1,
+      "scrollDistance": 920.9034854868913,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-25T07:52:51.243Z",
+      "timeMs": 1203,
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 1,
+      "scrollDistance": 3582.2909200932454,
+      "attemptInBlock": 9,
+      "timestamp": "2026-09-25T07:52:53.243Z",
+      "timeMs": 1566,
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "switchbackCount": 2,
+      "targetNumber": 300,
+      "flickCount": 6,
+      "scrollDistance": 12428.258347133089,
+      "attemptInBlock": 10,
+      "timeMs": 5319,
+      "timestamp": "2026-09-25T07:52:58.994Z",
+      "blockIndex": 7,
+      "blockParameterSet": {
+        "decelerationRate": 4.0534,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 4.0534,
+        "scrollFriction": 0.027
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 60,
+      "flickCount": 1,
+      "scrollDistance": 1979.3260211099846,
+      "attemptInBlock": 1,
+      "timeMs": 1437,
+      "timestamp": "2026-09-25T07:53:03.478Z",
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 210,
+      "flickCount": 3,
+      "scrollDistance": 8604.100737973376,
+      "attemptInBlock": 2,
+      "timeMs": 3219,
+      "timestamp": "2026-09-25T07:53:07.211Z",
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 120,
+      "flickCount": 6,
+      "scrollDistance": 5012.0523771698445,
+      "attemptInBlock": 3,
+      "timestamp": "2026-09-25T07:53:11.995Z",
+      "timeMs": 4269,
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "targetNumber": 180,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 7485.12924269303,
+      "attemptInBlock": 4,
+      "timeMs": 2867,
+      "timestamp": "2026-09-25T07:53:15.358Z",
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "targetNumber": 240,
+      "switchbackCount": 2,
+      "flickCount": 6,
+      "scrollDistance": 9939.814694487079,
+      "attemptInBlock": 5,
+      "timestamp": "2026-09-25T07:53:20.596Z",
+      "timeMs": 4386,
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 270,
+      "flickCount": 3,
+      "scrollDistance": 11501.554703950478,
+      "attemptInBlock": 6,
+      "timestamp": "2026-09-25T07:53:24.279Z",
+      "timeMs": 3219,
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 150,
+      "flickCount": 4,
+      "scrollDistance": 5931.405216771316,
+      "attemptInBlock": 7,
+      "timeMs": 3469,
+      "timestamp": "2026-09-25T07:53:28.329Z",
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "targetNumber": 300,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 12742.105916067208,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-25T07:53:32.582Z",
+      "timeMs": 3916,
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 0,
+      "flickCount": 1,
+      "scrollDistance": 1183.7225385231532,
+      "attemptInBlock": 9,
+      "timestamp": "2026-09-25T07:53:34.263Z",
+      "timeMs": 1103,
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 90,
+      "flickCount": 2,
+      "scrollDistance": 3294.8055239099285,
+      "attemptInBlock": 10,
+      "timeMs": 2119,
+      "timestamp": "2026-09-25T07:53:36.963Z",
+      "blockIndex": 8,
+      "blockParameterSet": {
+        "decelerationRate": 3.1509,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.6,
+        "scrollFriction": 0.038,
+        "decelerationRateInputValue": 3.1509
+      }
+    },
+    {
+      "targetNumber": 210,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 8668.910318951934,
+      "attemptInBlock": 1,
+      "timeMs": 3403,
+      "timestamp": "2026-09-25T07:53:43.997Z",
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 150,
+      "flickCount": 4,
+      "scrollDistance": 6117.051412354749,
+      "attemptInBlock": 2,
+      "timestamp": "2026-09-25T07:53:47.531Z",
+      "timeMs": 3121,
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "targetNumber": 60,
+      "switchbackCount": 1,
+      "flickCount": 3,
+      "scrollDistance": 2375.9255906538633,
+      "attemptInBlock": 3,
+      "timeMs": 1922,
+      "timestamp": "2026-09-25T07:53:49.847Z",
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 120,
+      "flickCount": 2,
+      "scrollDistance": 5042.975123428848,
+      "attemptInBlock": 4,
+      "timeMs": 1886,
+      "timestamp": "2026-09-25T07:53:52.181Z",
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "targetNumber": 300,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 12421.092055205921,
+      "attemptInBlock": 5,
+      "timeMs": 3171,
+      "timestamp": "2026-09-25T07:53:55.781Z",
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 11210.744058921384,
+      "attemptInBlock": 6,
+      "timeMs": 4095,
+      "timestamp": "2026-09-25T07:54:00.231Z",
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "targetNumber": 240,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 10139.624751064206,
+      "attemptInBlock": 7,
+      "timestamp": "2026-09-25T07:54:02.815Z",
+      "timeMs": 2209,
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 0,
+      "flickCount": 1,
+      "scrollDistance": 1060.1400126502326,
+      "attemptInBlock": 8,
+      "timeMs": 869,
+      "timestamp": "2026-09-25T07:54:04.298Z",
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 3382.3241289944967,
+      "attemptInBlock": 9,
+      "timeMs": 3080,
+      "timestamp": "2026-09-25T07:54:07.532Z",
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 180,
+      "flickCount": 3,
+      "scrollDistance": 7520.242504865957,
+      "attemptInBlock": 10,
+      "timeMs": 2078,
+      "timestamp": "2026-09-25T07:54:09.982Z",
+      "blockIndex": 9,
+      "blockParameterSet": {
+        "decelerationRate": 2.704,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.026,
+        "decelerationRateInputValue": 2.704
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 2,
+      "flickCount": 3,
+      "scrollDistance": 834.4170738007278,
+      "attemptInBlock": 1,
+      "timeMs": 2070,
+      "timestamp": "2026-09-25T07:54:15.283Z",
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "targetNumber": 210,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 8519.014251050281,
+      "attemptInBlock": 2,
+      "timeMs": 3381,
+      "timestamp": "2026-09-25T07:54:19.000Z",
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 3433.862044656792,
+      "attemptInBlock": 3,
+      "timestamp": "2026-09-25T07:54:21.283Z",
+      "timeMs": 2016,
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 150,
+      "flickCount": 2,
+      "scrollDistance": 6193.920332355983,
+      "attemptInBlock": 4,
+      "timeMs": 1947,
+      "timestamp": "2026-09-25T07:54:23.584Z",
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 300,
+      "flickCount": 4,
+      "scrollDistance": 12354.42526267378,
+      "attemptInBlock": 5,
+      "timeMs": 3830,
+      "timestamp": "2026-09-25T07:54:27.500Z",
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 11209.767866702226,
+      "attemptInBlock": 6,
+      "timeMs": 2663,
+      "timestamp": "2026-09-25T07:54:30.500Z",
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 180,
+      "flickCount": 2,
+      "scrollDistance": 7712.05645485013,
+      "attemptInBlock": 7,
+      "timestamp": "2026-09-25T07:54:32.850Z",
+      "timeMs": 1919,
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 120,
+      "flickCount": 4,
+      "scrollDistance": 4832.76293207148,
+      "attemptInBlock": 8,
+      "timeMs": 2855,
+      "timestamp": "2026-09-25T07:54:36.117Z",
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "targetNumber": 240,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 10078.103334099413,
+      "attemptInBlock": 9,
+      "timestamp": "2026-09-25T07:54:38.820Z",
+      "timeMs": 2292,
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "targetNumber": 60,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 2382.5585746594224,
+      "attemptInBlock": 10,
+      "timeMs": 1370,
+      "timestamp": "2026-09-25T07:54:40.668Z",
+      "blockIndex": 10,
+      "blockParameterSet": {
+        "decelerationRate": 2.9229,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.75,
+        "scrollFriction": 0.047,
+        "decelerationRateInputValue": 2.9229
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 210,
+      "flickCount": 2,
+      "scrollDistance": 8699.813224850754,
+      "attemptInBlock": 1,
+      "timestamp": "2026-09-25T07:54:45.535Z",
+      "timeMs": 1803,
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 240,
+      "flickCount": 3,
+      "scrollDistance": 9914.996541910927,
+      "attemptInBlock": 2,
+      "timeMs": 2323,
+      "timestamp": "2026-09-25T07:54:48.268Z",
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "targetNumber": 60,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 2426.530566263916,
+      "attemptInBlock": 3,
+      "timestamp": "2026-09-25T07:54:49.652Z",
+      "timeMs": 1082,
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 3594.8439896837126,
+      "attemptInBlock": 4,
+      "timeMs": 1636,
+      "timestamp": "2026-09-25T07:54:51.752Z",
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 270,
+      "flickCount": 2,
+      "scrollDistance": 11312.469369243678,
+      "attemptInBlock": 5,
+      "timeMs": 2080,
+      "timestamp": "2026-09-25T07:54:54.168Z",
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 1057.284984140289,
+      "attemptInBlock": 6,
+      "timeMs": 1580,
+      "timestamp": "2026-09-25T07:54:55.885Z",
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 300,
+      "flickCount": 4,
+      "scrollDistance": 12497.78443819262,
+      "attemptInBlock": 7,
+      "timeMs": 3456,
+      "timestamp": "2026-09-25T07:54:59.853Z",
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "targetNumber": 120,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 5073.31443448174,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-25T07:55:02.236Z",
+      "timeMs": 1973,
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "targetNumber": 180,
+      "switchbackCount": 1,
+      "flickCount": 3,
+      "scrollDistance": 7567.343930665077,
+      "attemptInBlock": 9,
+      "timeMs": 2605,
+      "timestamp": "2026-09-25T07:55:05.252Z",
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "targetNumber": 150,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 6017.117438783206,
+      "attemptInBlock": 10,
+      "timeMs": 1603,
+      "timestamp": "2026-09-25T07:55:07.470Z",
+      "blockIndex": 11,
+      "blockParameterSet": {
+        "decelerationRate": 3.1121,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.75,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 3.1121
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 2,
+      "flickCount": 4,
+      "scrollDistance": 11267.365202387566,
+      "attemptInBlock": 1,
+      "timeMs": 5236,
+      "timestamp": "2026-09-25T07:55:15.703Z",
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 60,
+      "flickCount": 4,
+      "scrollDistance": 2385.836835156548,
+      "attemptInBlock": 2,
+      "timeMs": 2638,
+      "timestamp": "2026-09-25T07:55:18.888Z",
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 120,
+      "flickCount": 3,
+      "scrollDistance": 4958.969713966764,
+      "attemptInBlock": 3,
+      "timestamp": "2026-09-25T07:55:21.737Z",
+      "timeMs": 2353,
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 3534.813797485808,
+      "attemptInBlock": 4,
+      "timeMs": 2137,
+      "timestamp": "2026-09-25T07:55:24.421Z",
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 180,
+      "flickCount": 3,
+      "scrollDistance": 7621.50941088293,
+      "attemptInBlock": 5,
+      "timestamp": "2026-09-25T07:55:27.138Z",
+      "timeMs": 2306,
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 300,
+      "flickCount": 3,
+      "scrollDistance": 12878.369600710745,
+      "attemptInBlock": 6,
+      "timeMs": 2968,
+      "timestamp": "2026-09-25T07:55:30.721Z",
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 240,
+      "flickCount": 4,
+      "scrollDistance": 10040.139489764453,
+      "attemptInBlock": 7,
+      "timestamp": "2026-09-25T07:55:34.454Z",
+      "timeMs": 3136,
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 210,
+      "flickCount": 2,
+      "scrollDistance": 8582.30435524183,
+      "attemptInBlock": 8,
+      "timeMs": 1794,
+      "timestamp": "2026-09-25T07:55:36.638Z",
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "targetNumber": 150,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 6015.601131807451,
+      "attemptInBlock": 9,
+      "timeMs": 2230,
+      "timestamp": "2026-09-25T07:55:39.188Z",
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 2,
+      "flickCount": 3,
+      "scrollDistance": 844.2780802729643,
+      "attemptInBlock": 10,
+      "timestamp": "2026-09-25T07:55:41.505Z",
+      "timeMs": 2015,
+      "blockIndex": 12,
+      "blockParameterSet": {
+        "decelerationRate": 3.1963,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.74,
+        "decelerationRateInputValue": 3.1963,
+        "scrollFriction": 0.008
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 180,
+      "flickCount": 3,
+      "scrollDistance": 7310.261054541905,
+      "attemptInBlock": 1,
+      "timeMs": 3036,
+      "timestamp": "2026-09-25T07:55:47.405Z",
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "targetNumber": 150,
+      "switchbackCount": 1,
+      "flickCount": 4,
+      "scrollDistance": 6323.385969414571,
+      "attemptInBlock": 2,
+      "timeMs": 3079,
+      "timestamp": "2026-09-25T07:55:50.705Z",
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 120,
+      "flickCount": 2,
+      "scrollDistance": 5065.396261174971,
+      "attemptInBlock": 3,
+      "timeMs": 1438,
+      "timestamp": "2026-09-25T07:55:52.572Z",
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "targetNumber": 60,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 2298.859136398721,
+      "attemptInBlock": 4,
+      "timestamp": "2026-09-25T07:55:54.389Z",
+      "timeMs": 1405,
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 240,
+      "flickCount": 5,
+      "scrollDistance": 10187.987699017389,
+      "attemptInBlock": 5,
+      "timeMs": 3730,
+      "timestamp": "2026-09-25T07:55:58.456Z",
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 210,
+      "flickCount": 2,
+      "scrollDistance": 8499.565854900531,
+      "attemptInBlock": 6,
+      "timeMs": 2094,
+      "timestamp": "2026-09-25T07:56:00.924Z",
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 1,
+      "flickCount": 3,
+      "scrollDistance": 960.4219647244283,
+      "attemptInBlock": 7,
+      "timestamp": "2026-09-25T07:56:02.743Z",
+      "timeMs": 1501,
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "targetNumber": 300,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 12690.430476661233,
+      "attemptInBlock": 8,
+      "timeMs": 2402,
+      "timestamp": "2026-09-25T07:56:05.589Z",
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 11314.092527007018,
+      "attemptInBlock": 9,
+      "timeMs": 3922,
+      "timestamp": "2026-09-25T07:56:09.924Z",
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 3712.776470564227,
+      "attemptInBlock": 10,
+      "timestamp": "2026-09-25T07:56:11.691Z",
+      "timeMs": 1464,
+      "blockIndex": 13,
+      "blockParameterSet": {
+        "decelerationRate": 3.2789,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 0.71,
+        "decelerationRateInputValue": 3.2789,
+        "scrollFriction": 0.019
+      }
+    },
+    {
+      "targetNumber": 60,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 2559.8901594601334,
+      "attemptInBlock": 1,
+      "timestamp": "2026-09-25T07:56:15.891Z",
+      "timeMs": 1220,
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 805.7501910563192,
+      "attemptInBlock": 2,
+      "timeMs": 1534,
+      "timestamp": "2026-09-25T07:56:17.974Z",
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 240,
+      "flickCount": 4,
+      "scrollDistance": 9819.468417565286,
+      "attemptInBlock": 3,
+      "timeMs": 2699,
+      "timestamp": "2026-09-25T07:56:20.958Z",
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "targetNumber": 120,
+      "switchbackCount": 1,
+      "flickCount": 2,
+      "scrollDistance": 5015.594696935773,
+      "attemptInBlock": 4,
+      "timeMs": 1729,
+      "timestamp": "2026-09-25T07:56:23.041Z",
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 150,
+      "flickCount": 2,
+      "scrollDistance": 6248.383671108153,
+      "attemptInBlock": 5,
+      "timeMs": 1469,
+      "timestamp": "2026-09-25T07:56:24.991Z",
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "targetNumber": 300,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 12659.836210898691,
+      "attemptInBlock": 6,
+      "timestamp": "2026-09-25T07:56:28.025Z",
+      "timeMs": 2714,
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 3419.7668930523623,
+      "attemptInBlock": 7,
+      "timeMs": 1530,
+      "timestamp": "2026-09-25T07:56:29.909Z",
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "targetNumber": 270,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 11332.899219209843,
+      "attemptInBlock": 8,
+      "timeMs": 2567,
+      "timestamp": "2026-09-25T07:56:32.709Z",
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "targetNumber": 210,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 8961.914724460563,
+      "attemptInBlock": 9,
+      "timeMs": 2191,
+      "timestamp": "2026-09-25T07:56:35.292Z",
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "targetNumber": 180,
+      "switchbackCount": 0,
+      "flickCount": 2,
+      "scrollDistance": 7698.434118290232,
+      "attemptInBlock": 10,
+      "timestamp": "2026-09-25T07:56:37.592Z",
+      "timeMs": 1908,
+      "blockIndex": 14,
+      "blockParameterSet": {
+        "decelerationRate": 2.8808,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.76,
+        "scrollFriction": 0.017,
+        "decelerationRateInputValue": 2.8808
+      }
+    },
+    {
+      "targetNumber": 300,
+      "switchbackCount": 0,
+      "flickCount": 5,
+      "scrollDistance": 12407.92554846377,
+      "attemptInBlock": 1,
+      "timeMs": 3920,
+      "timestamp": "2026-09-25T07:56:45.059Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "targetNumber": 120,
+      "switchbackCount": 2,
+      "flickCount": 4,
+      "scrollDistance": 4856.029843377389,
+      "attemptInBlock": 2,
+      "timestamp": "2026-09-25T07:56:47.743Z",
+      "timeMs": 2202,
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "targetNumber": 210,
+      "switchbackCount": 1,
+      "flickCount": 3,
+      "scrollDistance": 8556.011493197771,
+      "attemptInBlock": 3,
+      "timeMs": 2169,
+      "timestamp": "2026-09-25T07:56:50.343Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "targetNumber": 30,
+      "switchbackCount": 1,
+      "flickCount": 3,
+      "scrollDistance": 1040.5362138355538,
+      "attemptInBlock": 4,
+      "timeMs": 2065,
+      "timestamp": "2026-09-25T07:56:52.710Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "targetNumber": 150,
+      "switchbackCount": 0,
+      "flickCount": 3,
+      "scrollDistance": 6223.897937927335,
+      "attemptInBlock": 5,
+      "timeMs": 2730,
+      "timestamp": "2026-09-25T07:56:55.742Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "targetNumber": 180,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 7424.5906179284775,
+      "attemptInBlock": 6,
+      "timeMs": 3191,
+      "timestamp": "2026-09-25T07:56:59.310Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 270,
+      "flickCount": 3,
+      "scrollDistance": 11031.583730334498,
+      "attemptInBlock": 7,
+      "timeMs": 3094,
+      "timestamp": "2026-09-25T07:57:02.760Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "targetNumber": 240,
+      "switchbackCount": 0,
+      "flickCount": 4,
+      "scrollDistance": 9876.852152261834,
+      "attemptInBlock": 8,
+      "timeMs": 3140,
+      "timestamp": "2026-09-25T07:57:06.293Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "targetNumber": 90,
+      "flickCount": 2,
+      "scrollDistance": 3626.84513728158,
+      "attemptInBlock": 9,
+      "timeMs": 1431,
+      "timestamp": "2026-09-25T07:57:08.027Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    },
+    {
+      "targetNumber": 60,
+      "switchbackCount": 2,
+      "flickCount": 4,
+      "scrollDistance": 2152.3434866620833,
+      "attemptInBlock": 10,
+      "timeMs": 2469,
+      "timestamp": "2026-09-25T07:57:11.077Z",
+      "blockIndex": 15,
+      "blockParameterSet": {
+        "decelerationRate": 2.3582018154259448,
+        "decay": 0.98,
+        "fingerVelocityPxMs": -0.280306905371118,
+        "inflexion": 0.35,
+        "decelerationRateInputValue": 2.3582018154259448,
+        "scrollFriction": 0.015
+      }
+    }
+  ]
+}
