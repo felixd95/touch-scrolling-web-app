@@ -126,6 +126,8 @@ function ParticipantsList({ onBack }) {
         return 'qUCB';
       case 'qnei':
         return 'qNEI';
+      case 'qlognei':
+        return 'qLogNEI';
       default:
         return value || '-';
     }

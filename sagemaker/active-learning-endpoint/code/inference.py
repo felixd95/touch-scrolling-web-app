@@ -6,7 +6,7 @@ import gpytorch  # noqa: E402
 import numpy as np  # noqa: E402
 
 import torch  # noqa: E402
-from botorch.acquisition import qNoisyExpectedImprovement  # noqa: E402
+from botorch.acquisition import qLogNoisyExpectedImprovement  # noqa: E402
 from botorch.fit import fit_gpytorch_mll  # noqa: E402
 from botorch.models import SingleTaskGP  # noqa: E402
 from botorch.models.transforms.outcome import Standardize  # noqa: E402
@@ -437,7 +437,7 @@ def _normalize_acquisition_config(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(acquisition, dict):
         acquisition = {}
 
-    strategy = "qnei"
+    strategy = "qlognei"
 
     phase = acquisition.get("phase")
     if not isinstance(phase, str) or not phase.strip():
@@ -475,7 +475,7 @@ def _build_acquisition_function(
     gp_model: SingleTaskGP,
     train_x: "torch.Tensor",
 ):
-    return qNoisyExpectedImprovement(
+    return qLogNoisyExpectedImprovement(
         model=gp_model,
         X_baseline=train_x,
         prune_baseline=True,
@@ -703,7 +703,7 @@ def predict_fn(input_data: Dict[str, Any], model: Dict[str, Any]) -> Dict[str, A
         diagnostics["payloadSignature"] = signature
         diagnostics["acquisitionCacheKey"] = cache_key
 
-    strategy = "botorch-qnoisy-ei-single-objective-per-participant-total-normalized-time"
+    strategy = "botorch-qlog-noisy-ei-single-objective-per-participant-total-normalized-time"
 
     return {
         "parameters": best_candidate,
