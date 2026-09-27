@@ -24,6 +24,7 @@ type Participant {
   gender: String
   smartphone: String
   handedness: String
+  group: Int
   attempts: AWSJSON
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON
@@ -47,6 +48,7 @@ input CreateParticipantInput {
   gender: String
   smartphone: String
   handedness: String
+  group: Int
   attempts: AWSJSON
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON
@@ -58,6 +60,7 @@ input UpdateParticipantInput {
   gender: String
   smartphone: String
   handedness: String
+  group: Int
   attempts: AWSJSON
   currentParameterSet: AWSJSON
   nextParameterSet: AWSJSON

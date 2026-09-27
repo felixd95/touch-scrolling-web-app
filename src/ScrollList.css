@@ -292,6 +292,38 @@
   cursor: not-allowed;
 }
 
+.study-progress-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.study-progress-ring-svg {
+  transform: rotate(-90deg);
+}
+
+.study-progress-ring-track {
+  fill: none;
+  stroke: #e5e9f0;
+  stroke-width: 10;
+}
+
+.study-progress-ring-fill {
+  fill: none;
+  stroke: #0b7a4b;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.study-progress-ring-label {
+  position: absolute;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
 .test-parameter-trigger {
   position: absolute;
   right: 12px;

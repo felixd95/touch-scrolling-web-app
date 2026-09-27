@@ -41,6 +41,9 @@ const ANDROID_MAX_SAMPLES = 20;
 const FIXED_TARGET_NUMBERS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
 const DEFAULT_DECELERATION_RATE = Math.log(0.78) / Math.log(0.9);
 
+const PROGRESS_RING_RADIUS = 52;
+const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
+
 const createShuffledTargetNumbers = () => {
   const shuffled = [...FIXED_TARGET_NUMBERS];
 
@@ -105,8 +108,14 @@ const isRandomBootstrapPhase = (completedBlockCount) => {
     && completedBlockCount < INITIAL_ANDROID_BLOCKS + RANDOM_BOOTSTRAP_BLOCKS;
 };
 
-const isFinalAndroidBlock = (completedBlockCount) => {
-  return getAttemptCount(completedBlockCount) === TOTAL_STUDY_BLOCKS - FINAL_ANDROID_BLOCKS;
+const isFinalAndroidBlock = (completedBlockCount, group = 1) => {
+  const blockIndex = getAttemptCount(completedBlockCount);
+  // GROUP 1: optimized block second-to-last, Android original params last.
+  // GROUP 2: Android original params second-to-last, optimized block last.
+  const androidBlockIndex = group === 2
+    ? TOTAL_STUDY_BLOCKS - FINAL_RECOMMENDATION_BLOCKS - FINAL_ANDROID_BLOCKS
+    : TOTAL_STUDY_BLOCKS - FINAL_ANDROID_BLOCKS;
+  return blockIndex === androidBlockIndex;
 };
 
 const hasStudyCompleted = (completedBlockCount) => getAttemptCount(completedBlockCount) >= TOTAL_STUDY_BLOCKS;
@@ -285,8 +294,9 @@ const getProgressFromParticipantState = (participantState) => {
   };
 };
 
-function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onStudyCompleted }) {
+function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnvironment, onStudyCompleted }) {
   const isTestMode = mode === 'test';
+  const studyGroup = Number(group) === 2 ? 2 : 1;
   const [targetSequence, setTargetSequence] = useState(() => createShuffledTargetNumbers());
   const [targetIndex, setTargetIndex] = useState(0);
   const [practiceRunCompleted, setPracticeRunCompleted] = useState(false);
@@ -597,7 +607,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
         if (isRandomBootstrapPhase(completedBlockCount)) {
           nextParameterSet = createRandomParameterSet(attemptsCount);
           await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
-        } else if (isFinalAndroidBlock(completedBlockCount)) {
+        } else if (isFinalAndroidBlock(completedBlockCount, studyGroup)) {
           nextParameterSet = createAndroidParameterSet(attemptsCount);
           await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
         } else {
@@ -629,6 +639,7 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
     setStoredAttemptsCount,
     setStoredCompletedBlockCount,
     setStudyCompleted,
+    studyGroup,
     synchronizeNextParameterSet,
     updateParticipantParameterSets,
   ]);
@@ -1462,6 +1473,9 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
   const showStudyList = isTestMode || !showStudyCompletionDialog;
   const completedBlockCountForDialog = Math.min(TOTAL_STUDY_BLOCKS, getAttemptCount(storedCompletedBlockCount));
   const nextBlockNumberForDialog = Math.min(TOTAL_STUDY_BLOCKS, completedBlockCountForDialog + 1);
+  const studyProgressRatio = TOTAL_STUDY_BLOCKS > 0
+    ? Math.max(0, Math.min(1, completedBlockCountForDialog / TOTAL_STUDY_BLOCKS))
+    : 0;
   const completedRunsForProgress = awaitingNextParameterSet
     ? RUNS_PER_BLOCK
     : Math.min(runCount, RUNS_PER_BLOCK);
@@ -1576,27 +1590,47 @@ function ScrollList({ participantId, mode = 'study', onExitTestEnvironment, onSt
       )}
 
       {showParameterOverlay && (
-        <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="next-block-dialog-title">
+        <div className="block-confirm-overlay" role="dialog" aria-modal="true" aria-label={`Fortschritt ${completedBlockCountForDialog} von ${TOTAL_STUDY_BLOCKS} Blöcken`}>
           <div className="block-confirm-dialog">
-            <h3 id="next-block-dialog-title">
-              {awaitingNextParameterSet ? 'Neue Parameter werden geladen' : 'Parameter-Update'}
-            </h3>
-            <p>
-              Block {nextBlockNumberForDialog} von {TOTAL_STUDY_BLOCKS}
-            </p>
-            <p>
-              {awaitingNextParameterSet
-                ? 'Bitte warten. Die Liste bleibt verdeckt, bis die neuen Parameter aktiv sind.'
-                : (parameterSyncError || 'Parameter konnten nicht geladen werden.')}
-            </p>
-            {!awaitingNextParameterSet && (
-              <button
-                type="button"
-                className="block-confirm-button"
-                onClick={handleRefreshParameterStatus}
-              >
-                Erneut prüfen
-              </button>
+            {awaitingNextParameterSet ? (
+              <div className="study-progress-ring">
+                <svg className="study-progress-ring-svg" viewBox="0 0 120 120" width="140" height="140">
+                  <circle
+                    className="study-progress-ring-track"
+                    cx="60"
+                    cy="60"
+                    r={PROGRESS_RING_RADIUS}
+                  />
+                  <circle
+                    className="study-progress-ring-fill"
+                    cx="60"
+                    cy="60"
+                    r={PROGRESS_RING_RADIUS}
+                    style={{
+                      strokeDasharray: PROGRESS_RING_CIRCUMFERENCE,
+                      strokeDashoffset: PROGRESS_RING_CIRCUMFERENCE * (1 - studyProgressRatio),
+                    }}
+                  />
+                </svg>
+                <span className="study-progress-ring-label">
+                  {Math.round(studyProgressRatio * 100)}%
+                </span>
+              </div>
+            ) : (
+              <>
+                <h3 id="next-block-dialog-title">Parameter-Update</h3>
+                <p>
+                  Block {nextBlockNumberForDialog} of {TOTAL_STUDY_BLOCKS}
+                </p>
+                <p>{parameterSyncError || 'Parameter konnten nicht geladen werden.'}</p>
+                <button
+                  type="button"
+                  className="block-confirm-button"
+                  onClick={handleRefreshParameterStatus}
+                >
+                  Erneut prüfen
+                </button>
+              </>
             )}
           </div>
         </div>

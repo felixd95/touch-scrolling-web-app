@@ -460,7 +460,7 @@ function ParticipantsList({ onBack }) {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id prolificPid gender smartphone handedness createdAt attempts currentParameterSet nextParameterSet parameterBlockMetrics } } }`,
+        query: `query ListParticipants { listParticipants { items { id prolificPid gender smartphone handedness group createdAt attempts currentParameterSet nextParameterSet parameterBlockMetrics } } }`,
       }),
     });
 
@@ -552,6 +552,7 @@ function ParticipantsList({ onBack }) {
       gender: p.gender,
       smartphone: p.smartphone,
       handedness: p.handedness,
+      group: p.group,
       currentParameterSet: normalizeParameterSet(p.currentParameterSet),
       nextParameterSet: normalizeParameterSet(p.nextParameterSet),
       parameterBlockMetrics: parseParameterBlockMetrics(p.parameterBlockMetrics),
@@ -693,6 +694,7 @@ function ParticipantsList({ onBack }) {
                 <th style={{ textAlign: 'left', padding: 6 }}>Gender</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Smartphone</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Handedness</th>
+                <th style={{ textAlign: 'left', padding: 6 }}>Group</th>
               </tr>
             </thead>
             <tbody>
@@ -709,6 +711,7 @@ function ParticipantsList({ onBack }) {
                         <td style={{ padding: 6 }}>{p.gender}</td>
                         <td style={{ padding: 6 }}>{p.smartphone}</td>
                         <td style={{ padding: 6 }}>{p.handedness}</td>
+                        <td style={{ padding: 6 }}>{p.group ?? '-'}</td>
                         <td style={{ padding: 6 }}>
                           <button
                             className="nav-button"
@@ -1005,8 +1008,10 @@ function App() {
   const prolificPid = (searchParams.get('PROLIFIC_PID') || '').trim();
   const hasProlific = prolificPid.length > 0;
   const isAdmin = searchParams.get('admin') === '1';
+  // Study group decides the order of the last two blocks (1 = optimized then Android, 2 = Android then optimized).
+  const studyGroup = searchParams.get('GROUP') === '2' ? 2 : 1;
 
-  // 'checking' | 'landing' | 'form' | 'list' | 'test' | 'done' | 'scrolllist'
+  // 'checking' | 'landing' | 'consent' | 'form' | 'list' | 'test' | 'done' | 'scrolllist'
   const [currentPage, setCurrentPage] = useState(
     hasProlific ? 'checking' : (isAdmin ? 'list' : 'landing')
   );
@@ -1019,6 +1024,7 @@ function App() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [participantId, setParticipantId] = useState(null);
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -1066,7 +1072,7 @@ function App() {
     } catch (error) {
       console.error(error);
     }
-    window.location.href = 'https://www.google.com/';
+    window.location.href = 'https://app.prolific.com/submissions/complete?cc=COMUXN3M';
   };
 
   // Resume an existing session when the page is reopened with a known PROLIFIC_PID.
@@ -1083,11 +1089,11 @@ function App() {
           setParticipantId(existing.id);
           setCurrentPage('scrolllist');
         } else {
-          setCurrentPage('form');
+          setCurrentPage('consent');
         }
       } catch (error) {
         console.error(error);
-        if (!cancelled) setCurrentPage('form');
+        if (!cancelled) setCurrentPage('consent');
       }
     })();
     return () => {
@@ -1137,6 +1143,7 @@ function App() {
               gender: formData.gender,
               smartphone: formData.smartphone,
               handedness: formData.handedness,
+              group: studyGroup,
               attempts: JSON.stringify([]),
               currentParameterSet: JSON.stringify(createInitialRandomParameterSet()),
               nextParameterSet: null,
@@ -1181,6 +1188,80 @@ function App() {
               Zur Testumgebung
             </button>
           </div>
+        </div>
+      ) : currentPage === 'consent' ? (
+        <div className="card">
+          <h1>Touch Scrolling Study</h1>
+          <p style={{ margin: '4px 0' }}><strong>Step:</strong> Introduction and Informed Consent</p>
+          <p style={{ margin: '4px 0' }}>
+            <strong>Researcher:</strong> Felix Dietrich (Prof. Niels Henze), University of Tübingen
+          </p>
+
+          <p>
+            In this study, you will scroll through a long list of numbered items on your
+            smartphone. Your task is to find and tap a given target number as quickly and
+            accurately as possible. The study consists of multiple trials and will take
+            approximately 10 minutes to complete.
+          </p>
+
+          <p>
+            As stated in the task description on Prolific, you must use a smartphone with a
+            touchscreen and open the study with a recent version of a mobile browser to
+            participate. Only take part if you are at least 18 years old. If you are not able to
+            fulfill these requirements, please return to Prolific.
+          </p>
+
+          <p>
+            If the browser leaves full-screen mode or the window loses focus, please continue
+            quickly from the shown screen since the study needs to be done in one sitting.
+          </p>
+
+          <p style={{ marginBottom: 4 }}><strong>Data recorded:</strong></p>
+          <ul style={{ marginTop: 4, color: '#333' }}>
+            <li>Prolific ID: used to identify the submission and link records of the task</li>
+            <li>Gender, smartphone model, handedness</li>
+            <li>timestamps, touch/pointer movements, tap coordinates, and task-condition information</li>
+            <li>
+              browser display information needed to interpret the task data, including window
+              size and device pixel ratio
+            </li>
+          </ul>
+
+          <p>
+            The data will be used for scientific research on touch scrolling. Results may be
+            reported in publications, presentations, teaching, and open research materials. Only
+            anonymised data will be shared publicly.
+          </p>
+
+          <p>
+            If you have questions or concerns, contact Felix Dietrich at{' '}
+            <a href="mailto:felix.dietrich@student.uni-tuebingen.de">
+              felix.dietrich@student.uni-tuebingen.de
+            </a>.
+          </p>
+
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontWeight: 400, marginTop: 16 }}>
+            <input
+              type="checkbox"
+              checked={consentAccepted}
+              onChange={(e) => setConsentAccepted(e.target.checked)}
+              style={{ width: 'auto', marginTop: 3 }}
+            />
+            <span>
+              I confirm that I am at least 18 years old and that I have read and understood the
+              information above. I consent to participation and to the processing of my data as
+              described.
+            </span>
+          </label>
+
+          <button
+            className="nav-button"
+            disabled={!consentAccepted}
+            onClick={() => setCurrentPage('form')}
+            style={{ width: '100%' }}
+          >
+            I agree &ndash; continue
+          </button>
         </div>
       ) : currentPage === 'form' ? (
         <div className="card">
@@ -1242,6 +1323,7 @@ function App() {
       ) : (
         <ScrollList
           participantId={participantId}
+          group={studyGroup}
           onStudyCompleted={handleStudyCompleted}
         />
       )}
