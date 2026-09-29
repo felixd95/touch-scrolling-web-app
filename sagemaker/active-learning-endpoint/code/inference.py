@@ -6,6 +6,7 @@ import numpy as np  # noqa: E402
 
 import torch  # noqa: E402
 from botorch.acquisition import qLogNoisyExpectedImprovement  # noqa: E402
+from botorch.acquisition.analytic import PosteriorMean  # noqa: E402
 from botorch.fit import fit_gpytorch_mll  # noqa: E402
 from botorch.models import SingleTaskGP  # noqa: E402
 from botorch.models.transforms.input import Normalize  # noqa: E402
@@ -260,13 +261,20 @@ def _select_candidate(
     mll = ExactMarginalLogLikelihood(model.likelihood, model)
     fit_gpytorch_mll(mll)
 
-    sampler = SobolQMCNormalSampler(sample_shape=torch.Size([MC_SAMPLES]))
-    acqf = qLogNoisyExpectedImprovement(
-        model=model,
-        X_baseline=train_x,
-        sampler=sampler,
-        prune_baseline=True,
-    )
+    # Training blocks explore/exploit with qNEI; the final recommendation returns the
+    # model's best estimate (posterior-mean optimum), not an exploratory proposal.
+    if acquisition_phase == "final-model":
+        acqf = PosteriorMean(model)
+        strategy_name = "PosteriorMean"
+    else:
+        sampler = SobolQMCNormalSampler(sample_shape=torch.Size([MC_SAMPLES]))
+        acqf = qLogNoisyExpectedImprovement(
+            model=model,
+            X_baseline=train_x,
+            sampler=sampler,
+            prune_baseline=True,
+        )
+        strategy_name = "qLogNoisyExpectedImprovement"
 
     candidate, acq_value = optimize_acqf(
         acq_function=acqf,
@@ -284,7 +292,7 @@ def _select_candidate(
         parameters[key] = round(value, PARAMETER_DECIMALS.get(key, 4))
 
     diagnostics = {
-        "acquisitionStrategy": "qLogNoisyExpectedImprovement",
+        "acquisitionStrategy": strategy_name,
         "acquisitionPhase": acquisition_phase,
         "acquisitionValue": float(acq_value.detach().cpu().item()),
         "trainingRowCount": int(train_x.shape[0]),
