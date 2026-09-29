@@ -1191,7 +1191,7 @@ function App() {
           </div>
         </div>
       ) : currentPage === 'consent' ? (
-        <div className="card">
+        <div className="card card-scrollable">
           <h1>Touch Scrolling Study</h1>
           <p style={{ margin: '4px 0' }}><strong>Step:</strong> Introduction and Informed Consent</p>
           <p style={{ margin: '4px 0' }}>
@@ -1261,7 +1261,7 @@ function App() {
           </button>
         </div>
       ) : currentPage === 'form' ? (
-        <div className="card">
+        <div className="card card-scrollable">
           <h2>Before you start</h2>
           <p style={{ color: '#555' }}>Please answer a few questions before the study begins.</p>
           <form onSubmit={handleSubmit} className="form">

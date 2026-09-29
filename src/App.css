@@ -26,6 +26,15 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
+/* Lets long pages (consent/form) scroll on viewports shorter than the card. */
+.card-scrollable {
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
 .form {
   display: grid;
   gap: 16px;
