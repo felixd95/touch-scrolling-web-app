@@ -23,7 +23,6 @@ TOTAL_STUDY_BLOCKS = (
     + FINAL_RECOMMENDATION_BLOCKS
     + FINAL_ANDROID_BLOCKS
 )
-FINAL_TRUST_REGION_HALF_SPAN_RATIO = 0.10
 
 DEFAULT_PARAMETER_SET = {
     "scrollFriction": 0.015,
@@ -296,34 +295,17 @@ def _round_parameter_precision(parameter_set):
 def _build_acquisition_config(completed_block_count):
     safe_completed_block_count = int(completed_block_count) if isinstance(completed_block_count, int) else 0
 
+    # Bootstrap blocks (1-3) never reach the Lambda; they are generated on the client.
     if safe_completed_block_count < FIRST_INFERENCE_BLOCK:
-        return {
-            "strategy": "qnei",
-            "phase": "initial-design",
-            "selectionMode": "acquisition",
-            "trustRegionHalfSpanRatio": None,
-            "posteriorMeanWeight": 0.0,
-        }
+        return {"strategy": "qnei", "phase": "initial-design"}
 
-    # Active-learning exploration blocks: acquisition-driven qNEI proposals.
+    # Training/active-learning blocks 4-13: qNEI proposals from the trained model.
     if safe_completed_block_count < ADAPTIVE_QNEI_END_BLOCK:
-        return {
-            "strategy": "qnei",
-            "phase": "adaptive-qnei",
-            "selectionMode": "acquisition",
-            "trustRegionHalfSpanRatio": None,
-            "posteriorMeanWeight": 0.0,
-        }
+        return {"strategy": "qnei", "phase": "adaptive-qnei"}
 
-    # Single pure-exploitation recommendation block: the best estimated transfer
-    # function via the posterior-mean minimizer (no exploration).
-    return {
-        "strategy": "qnei",
-        "phase": "final-recommendation-posterior-mean",
-        "selectionMode": "posterior-mean-minimizer",
-        "trustRegionHalfSpanRatio": float(FINAL_TRUST_REGION_HALF_SPAN_RATIO),
-        "posteriorMeanWeight": 1.0,
-    }
+    # Final model block (14 or 15, depending on GROUP): same qNEI proposal from the
+    # fully trained model. The Android block of the pair is generated on the client.
+    return {"strategy": "qnei", "phase": "final-model"}
 
 
 def _normalize_attempts(raw_attempts):

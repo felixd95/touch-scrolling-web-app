@@ -1,3 +1,5 @@
+import PARAMETER_BOUNDS from './parameterBounds.json';
+
 // Physical earth gravity in m/s^2. Used to approximate Android's physical model.
 const ANDROID_GRAVITY_EARTH_FIXED = 9.80665;
 // Fixed display density used in fling-scale physical coefficient.
@@ -23,20 +25,9 @@ export const FLING_PHYSICS_CONFIG = {
   inflexion: 0.35,
 };
 
-export const FLING_PHYSICS_BOUNDS = {
-  scrollFriction: {
-    min: 0.0025,
-    max: 0.2,
-  },
-  decelerationRate: {
-    min: 0.6,
-    max: 10.0,
-  },
-  inflexion: {
-    min: 0.05,
-    max: 2.0,
-  },
-};
+// Parameter search bounds are defined in the shared parameterBounds.json so that
+// the frontend and the SageMaker BO endpoint stay in sync.
+export const FLING_PHYSICS_BOUNDS = PARAMETER_BOUNDS;
 
 const getDecelerationRate = () => {
   const rate = Number(FLING_PHYSICS_CONFIG.decelerationRate);

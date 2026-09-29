@@ -1,0 +1,14 @@
+{
+  "scrollFriction": {
+    "min": 0.0025,
+    "max": 0.2
+  },
+  "decelerationRate": {
+    "min": 1,
+    "max": 10.0
+  },
+  "inflexion": {
+    "min": 0.05,
+    "max": 2.0
+  }
+}

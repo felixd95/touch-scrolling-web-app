@@ -142,8 +142,9 @@ function ParticipantsList({ onBack }) {
       case 'adaptive-qnei':
         return 'Active Learning';
       case 'exploitation-qnei':
+      case 'final-model':
       case 'final-recommendation-posterior-mean':
-        return 'Final Recommendation';
+        return 'Final Model';
       default:
         return value || '-';
     }
@@ -1220,11 +1221,7 @@ function App() {
           <ul style={{ marginTop: 4, color: '#333' }}>
             <li>Prolific ID: used to identify the submission and link records of the task</li>
             <li>Gender, smartphone model, handedness</li>
-            <li>timestamps, touch/pointer movements, tap coordinates, and task-condition information</li>
-            <li>
-              browser display information needed to interpret the task data, including window
-              size and device pixel ratio
-            </li>
+            <li>timestamps, touch/pointer movements, tap coordinates, and task-condition information</li> 
           </ul>
 
           <p>

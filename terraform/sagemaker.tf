@@ -55,6 +55,14 @@ data "archive_file" "sagemaker_model" {
     content  = file("${path.module}/../sagemaker/active-learning-endpoint/code/requirements.txt")
     filename = "code/requirements.txt"
   }
+
+  # Shared parameter search bounds (single source of truth with the frontend,
+  # src/scrollPhysics/parameterBounds.json). Packaged next to inference.py so the
+  # endpoint reads the same bounds the client uses.
+  source {
+    content  = file("${path.module}/../src/scrollPhysics/parameterBounds.json")
+    filename = "code/parameter_bounds.json"
+  }
 }
 
 resource "aws_s3_bucket" "sagemaker_model_artifacts" {
