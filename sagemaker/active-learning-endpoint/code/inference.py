@@ -291,13 +291,30 @@ def _select_candidate(
         value = float(np.clip(candidate_np[dim], low, high))
         parameters[key] = round(value, PARAMETER_DECIMALS.get(key, 4))
 
+    # Posterior of the (negated-time) objective at the chosen candidate.
+    with torch.no_grad():
+        candidate_posterior = model.posterior(candidate)
+        candidate_obj_mean = float(candidate_posterior.mean.squeeze().cpu().item())
+        candidate_obj_std = float(
+            candidate_posterior.variance.clamp_min(0.0).sqrt().squeeze().cpu().item()
+        )
+
+    best_observed_normalized_time = float(np.min(train_y_np[:, 0]))
+    predicted_candidate_normalized_time = -candidate_obj_mean
+    predicted_improvement_vs_best_observed = (
+        best_observed_normalized_time - predicted_candidate_normalized_time
+    )
+
     diagnostics = {
         "acquisitionStrategy": strategy_name,
         "acquisitionPhase": acquisition_phase,
         "acquisitionValue": float(acq_value.detach().cpu().item()),
         "trainingRowCount": int(train_x.shape[0]),
         "objectiveType": "total_normalized_time",
-        "bestObservedNormalizedTime": float(np.min(train_y_np[:, 0])),
+        "bestObservedNormalizedTime": best_observed_normalized_time,
+        "predictedCandidateNormalizedTime": predicted_candidate_normalized_time,
+        "candidateUncertaintyStd": candidate_obj_std,
+        "predictedImprovementVsBestObserved": predicted_improvement_vs_best_observed,
     }
     return parameters, diagnostics
 

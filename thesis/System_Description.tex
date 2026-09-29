@@ -18,13 +18,13 @@ The frontend is a React single-page application written in plain JavaScript. Its
 
 \subsection{Backend and Data Flow}
 
-The application backend is built around AWS AppSync, a managed GraphQL API service, which exposes queries and mutations for participant management, for storing completed trial blocks, and for requesting a new transfer-function parameter set. Amazon DynamoDB serves as the persistent, schemaless data store behind this API: each participant is represented as a single item holding demographic fields (name, e-mail, birth date, smartphone ownership, daily screen time), the currently active transfer-function parameter set, the next parameter set once available, and the complete history of completed trial blocks stored as a nested JSON attribute. Because a participant's entire state lives in one item, reading and appending trial data require no joins and remain a single-item operation.
+The application backend is built around AWS AppSync, a managed GraphQL API service, which exposes queries and mutations for participant management, for storing completed trial blocks, and for requesting a new transfer-function parameter set. Amazon DynamoDB serves as the persistent, schemaless data store behind this API: each participant is represented as a single item holding the Prolific identifier, the demographic fields collected at registration (gender, smartphone model, handedness), the assigned study group, the currently active transfer-function parameter set, the next parameter set once available, the saved final (recommended) parameter set, and the complete history of completed trial blocks stored as a nested JSON attribute. Because a participant's entire state lives in one item, reading and appending trial data require no joins and remain a single-item operation.
 
 \subsection{Optimization Backend}
 
-The optimization backend is invoked synchronously as part of the GraphQL request flow. When a participant completes a block of trials, the frontend calls the mutation that requests the next parameter set. The AppSync resolver forwards this request to an AWS Lambda function, which reads the participant's stored trial history from DynamoDB and combines it with the anonymized histories of the other participants recorded so far. The resulting payload is sent to an Amazon SageMaker inference endpoint that performs the parameter selection for the next block.
+The optimization backend is invoked synchronously as part of the GraphQL request flow. When a participant completes a block of trials, the frontend calls the mutation that requests the next parameter set. The AppSync resolver forwards this request to an AWS Lambda function, which reads that participant's stored block history from DynamoDB and sends it to an Amazon SageMaker inference endpoint that selects the parameters for the next block. Only the requesting participant's own data are used; the optimization is performed per participant rather than pooled across participants.
 
-The inference service is implemented as a stateless optimization routine. On each request, the endpoint reconstructs a participant-aware training table from the incoming block-level observations, validates the data, and fits a fresh multi-objective Bayesian optimization model over the available parameter space. The model is conditioned on the participant identity as an additional input dimension, so that information from previous participants can inform the prediction for the currently active participant while still preserving participant-specific differences. Each of the ten target positions in a block contributes one objective, and the acquisition function selects the parameter set that best trades off average completion time and target-dependent variability.
+The inference service is a stateless single-objective Bayesian optimizer. On each request, it reconstructs a per-participant training table from the incoming block-level observations, aggregates the ten trials of each block into a single scalar objective, the total length-normalized completion time, and fits a fresh Gaussian-process surrogate over the three-dimensional parameter space. While the model is still being learned, the next parameters are chosen by a noisy expected-improvement acquisition function; for the concluding recommendation, the model's posterior-mean optimum is returned instead.
 
 The resulting candidate parameter set is returned to the Lambda function, which writes it back to DynamoDB as the participant's next parameter set. The frontend then retrieves this value once the participant explicitly confirms readiness for the next block. This design keeps the optimization loop closed over the experimental data while maintaining a clear separation between data collection, inference, and the subsequent trial block.
 
@@ -64,7 +64,7 @@ The scale converts the launch velocity $v_0$ into a total travel distance $D$ an
 \begin{equation}
   C \;=\; g \cdot 39.37 \cdot \mathrm{ppi} \cdot 0.84,
   \qquad
-  \mathrm{ppi} \;=\; 160 \cdot \rho,
+  \mathrm{ppi} \;=\; 460,
   \label{eq:sd-physical-coeff}
 \end{equation}
 and on a fixed dimensionless deceleration rate
@@ -81,7 +81,7 @@ The parameters are:
 \begin{itemize}
   \item $v_0$, the launch velocity (px/s).
   \item $g = 9.80665\,\mathrm{m/s^2}$, Earth's gravitational acceleration.
-  \item $\rho$, the display density, giving $\mathrm{ppi} = 160\rho$ pixels per inch, with $39.37$ the inch-per-metre conversion factor and $0.84$.
+  \item $\mathrm{ppi}$, the display density in pixels per inch. In Android this equals $160\rho$ for a device with density factor $\rho$; because the study admits only iPhone devices, the density is treated as fixed, so the implementation uses the constant $\mathrm{ppi} = 460$ and $C$ becomes device-independent. The factor $39.37$ converts metres to inches and $0.84$ is Android's look-and-feel tuning constant.
   \item $C$, the resulting device-specific physical coefficient of Equation~\eqref{eq:sd-physical-coeff}.
   \item $\mu$, the dimensionless fling friction, which scales both distance and duration; in the original \texttt{OverScroller} it is the fixed constant $\mu = 0.015$ (\texttt{ViewConfiguration.SCROLL\_FRICTION}).
   \item $r \approx 2.3582$, the fixed deceleration rate of Equation~\eqref{eq:sd-decel-rate}.
@@ -124,7 +124,81 @@ The parameters are:
   \item $x_{\text{start}}$, the list position at fling launch. The factor $1000$ converts the per-millisecond velocity back to pixels per second.
 \end{itemize}
 
+\subsubsection{Derivation from the Android Source}
+
+The closed-form expressions above are transcribed directly from the \texttt{SplineOverScroller} inner class of Android's \texttt{OverScroller}. Three private methods define the scale of a fling as a function of the launch velocity:
+
+\begin{verbatim}
+private double getSplineDeceleration(int velocity) {
+    return Math.log(INFLEXION * Math.abs(velocity)
+                    / (mFlingFriction * mPhysicalCoeff));
+}
+private double getSplineFlingDistance(int velocity) {
+    final double l = getSplineDeceleration(velocity);
+    final double decelMinusOne = DECELERATION_RATE - 1.0;
+    return mFlingFriction * mPhysicalCoeff
+           * Math.exp(DECELERATION_RATE / decelMinusOne * l);
+}
+private int getSplineFlingDuration(int velocity) {
+    final double l = getSplineDeceleration(velocity);
+    final double decelMinusOne = DECELERATION_RATE - 1.0;
+    return (int) (1000.0 * Math.exp(l / decelMinusOne));
+}
+\end{verbatim}
+
+Renaming the source identifiers to the symbols used above ($\texttt{mFlingFriction}\!\to\!\mu$, $\texttt{mPhysicalCoeff}\!\to\!C$, $\texttt{INFLEXION}\!\to\!\beta$, $\texttt{DECELERATION\_RATE}\!\to\!r$, $\texttt{velocity}\!\to\!v_0$), the intermediate log term \texttt{l} $=$ \texttt{getSplineDeceleration} is
+\begin{equation}
+  L(v_0) \;=\; \ln\!\frac{\beta\,\lvert v_0\rvert}{\mu\,C}.
+  \label{eq:sd-spline-decel}
+\end{equation}
+Substituting $L$ into \texttt{getSplineFlingDistance} and using the identity $\exp(a\ln z)=z^{a}$ eliminates the exponential and the logarithm:
+\begin{equation}
+  D(v_0)
+  \;=\;
+  \mu C\,\exp\!\Big(\tfrac{r}{r-1}\,L(v_0)\Big)
+  \;=\;
+  \mu C\Big(\tfrac{\beta\lvert v_0\rvert}{\mu C}\Big)^{\!\frac{r}{r-1}},
+\end{equation}
+which is exactly Equation~\eqref{eq:sd-fling-distance}. Applying the same identity to \texttt{getSplineFlingDuration} gives
+\begin{equation}
+  T(v_0)
+  \;=\;
+  1000\,\exp\!\Big(\tfrac{1}{r-1}\,L(v_0)\Big)
+  \;=\;
+  1000\Big(\tfrac{\beta\lvert v_0\rvert}{\mu C}\Big)^{\!\frac{1}{r-1}},
+\end{equation}
+i.e.\ Equation~\eqref{eq:sd-fling-duration}. The two remaining constants are read off from the class fields
+\begin{verbatim}
+DECELERATION_RATE = (float) (Math.log(0.78) / Math.log(0.9));
+mPhysicalCoeff = SensorManager.GRAVITY_EARTH  // g = 9.80665 m/s^2
+        * 39.37f  // inch/meter
+        * ppi     // ppi = density * 160
+        * 0.84f;  // look and feel tuning
+\end{verbatim}
+which yield $r = \ln 0.78 / \ln 0.9$ (Equation~\eqref{eq:sd-decel-rate}) and the physical coefficient $C$ of Equation~\eqref{eq:sd-physical-coeff}. Note that the fling scale uses \texttt{SensorManager.GRAVITY\_EARTH} $=9.80665$, which is distinct from the private constant \texttt{GRAVITY} $=2000$ that the class uses only for the separate edge/ballistic response.
+
+The dimensionless shape curve is a direct transcription of the class's static initializer, which fills the lookup tables \texttt{SPLINE\_POSITION} and \texttt{SPLINE\_TIME} from two cubic B\'ezier curves with control ordinates
+\begin{verbatim}
+P1 = START_TENSION * INFLEXION;
+P2 = 1.0f - END_TENSION * (1.0f - INFLEXION);
+\end{verbatim}
+With $S=\texttt{START\_TENSION}=0.5$, $E=\texttt{END\_TENSION}=1.0$ and the shared parameter $x\in[0,1]$, these are precisely Equations~\eqref{eq:sd-control-points}--\eqref{eq:sd-spline-pos}. At run time the class's \texttt{update()} method reproduces Equations~\eqref{eq:sd-spline-position}--\eqref{eq:sd-spline-velocity}: it normalizes elapsed time to $t=\texttt{currentTime}/\texttt{mSplineDuration}$, retrieves the two bracketing table entries, forms the local slope $\texttt{velocityCoef}=(d_{\sup}-d_{\inf})/(t_{\sup}-t_{\inf})$ and the interpolated position \texttt{distanceCoef}, and rescales both by \texttt{mSplineDistance} and \texttt{mSplineDuration}.
+
+The only substantive change made in this work is that the three quantities hard-coded in the source, the fling friction $\mu$ (\texttt{ViewConfiguration.getScrollFriction()} $=0.015$), the deceleration rate $r$ (\texttt{DECELERATION\_RATE}), and the inflexion $\beta$ (\texttt{INFLEXION} $=0.35$), are promoted from fixed constants to free parameters. Because $\beta$ also enters the control ordinates $P_1,P_2$, the shape lookup table is rebuilt whenever it changes. Exposing these three constants turns the otherwise fixed transfer function into the numerical search space explored by the optimizer.
+
 \subsection{Parameterization and Search Space}
+
+Of the constants that appear in the transfer function, three are exposed as free parameters and jointly form the search space that the optimizer adapts per participant: the fling friction $\mu$ (\texttt{scrollFriction}), the deceleration rate $r$ (\texttt{decelerationRate}), and the inflexion $\beta$ (\texttt{inflexion}). All remaining quantities, the physical coefficient $C$ (and hence the fixed $\mathrm{ppi}=460$), the tension constants $S$ and $E$, the sample count $N$, and the millisecond conversion, are held fixed, so that every admissible parameter vector corresponds to a well-defined fling behaviour.
+
+Each parameter is confined to a bounded interval,
+\begin{equation}
+  \mu \in [0.0025,\,0.2],
+  \qquad
+  r \in [0.6,\,10.0],
+  \qquad
+  \beta \in [0.05,\,2.0],
+\end{equation}
+yielding a three-dimensional box-constrained search space $\mathcal{X}\subset\mathbb{R}^3$. These bounds are defined once in a single shared configuration file that is consumed both by the frontend, which evaluates the transfer function, and by the optimization backend, which samples and proposes parameters, so that the admissible space cannot drift between the two layers. During generation, candidate values are quantized to the parameter-specific precision used throughout the system ($\mu$ to three, $\beta$ to two, and $r$ to four decimal places).
 
 \section{Adaptive Parameter Optimization}
 
@@ -134,34 +208,47 @@ Trials are organized into blocks of 10, and a single transfer-function parameter
 
 For the first three blocks of each participant, the machine-learning backend is not yet used to propose parameters. Instead, each parameter is independently sampled uniformly at random from its predefined bounds. This warm-up/bootstrap phase serves two purposes: it generates an initial, sufficiently diverse set of observations for the optimization model to learn from, and it avoids relying on an uninitialized or poorly informed model at the very beginning of a session, where no data are yet available.
 
-\subsection{Participant-Aware Multi-Objective Bayesian Optimization}
+\subsection{Model-Based Optimization per Participant}
 
-Only after these first three blocks have been completed does the system switch to model-based parameter generation. At that point, the optimization backend treats the problem as pooled and multi-objective rather than as a single-participant regression problem. Whenever a new parameter set is requested, the Lambda function retrieves the most recent block histories for the current participant together with the anonymized block histories of the previously recorded participants, and forwards the combined payload to the SageMaker endpoint.
+Only after these first three blocks have been completed does the system switch to model-based parameter generation. In contrast to a pooled, cross-participant scheme, the optimization is carried out \emph{per participant}: whenever a new parameter set is requested, the Lambda function retrieves only the requesting participant's completed block histories and forwards them to the SageMaker endpoint. No data from other participants and no participant-identity feature enter the model.
 
-The request payload is prepared in a structured form that reflects the actual optimization pipeline. Each recorded trial contains the completion time \texttt{timeMs}, the target index \texttt{targetNumber}, the block index \texttt{blockIndex}, and the transfer-function parameters active for that block in \texttt{paperParams}. On the inference side, the records are normalized into a canonical block-level schema, invalid parameter values are replaced with the default transfer-function constants, and the admissible parameter bounds are enforced. The records are then grouped by block, the parameter vector is taken from the first valid entry in the block, and the ten target positions are collapsed to their mean completion time per target. This yields a per-block observation of the form
+Each recorded trial contains the completion time \texttt{timeMs}, the target index \texttt{targetNumber}, the block index \texttt{blockIndex}, and the transfer-function parameters active for that block in \texttt{paperParams}. On the inference side, the trials are grouped by block; the parameter vector is taken from the block's parameter set, and the ten trials of a block are aggregated into a single scalar objective, the total length-normalized completion time. Each trial time is divided by its target index, which is proportional to the required scroll distance, and summed over the block, so that near and far targets contribute comparably. This yields one observation per block,
 \begin{equation}
-    [\text{scrollFriction},\ \text{decelerationRate},\ \text{inflexion}] \rightarrow [t_{30}, t_{60}, \ldots, t_{300}],
+    x = [\mu,\ r,\ \beta] \;\longrightarrow\; y = \sum_{k=1}^{10} \frac{t_k}{n_k},
+    \label{eq:sd-scalar-objective}
 \end{equation}
-with the participant-specific context represented by an ordinal task feature that is assigned from the pooled participant ordering in the request payload rather than by the raw participant identifier itself. The pooled training set is thus built from block observations across participants, while preserving a participant-specific task dimension in the input space.
+where $t_k$ is the completion time and $n_k$ the target index of the $k$-th trial in the block. Minimizing $y$ rewards parameter sets that let the participant reach the targets quickly across the whole list.
 
-Duplicate or near-identical rows are collapsed by rounding the parameter values to six decimal places and averaging their objective vectors, which prevents repeated evaluations from making the Gaussian-process covariance numerically unstable. The optimizer then fits a multi-objective Bayesian model using BoTorch's \texttt{qLogNoisyExpectedHypervolumeImprovement} acquisition function. A separate Gaussian process is trained for each of the ten target-position objectives, while the task feature is included as part of the joint input space and the negative completion times are used as the objectives to be maximized. This keeps the model participant-aware without requiring a separate model per participant: the optimizer can borrow statistical strength across users while still distinguishing the participant slot through the task feature.
+A single-output Gaussian process (\texttt{SingleTaskGP}) is fitted to these block observations. Inputs are mapped to the unit cube by a \texttt{Normalize} input transform over the fixed parameter bounds, and the objective is standardized by a \texttt{Standardize} outcome transform; the kernel and observation-noise hyperparameters are then learned by maximizing the marginal log-likelihood. Because the noise level is inferred during fitting, no manual noise floor, covariance jitter, or duplicate collapsing is applied; the implementation relies on the numerically stable BoTorch fitting routine instead. As BoTorch maximizes by convention, the negative normalized time is used as the internal objective.
 
-The optimization model is persisted across requests in the active SageMaker worker. When a new block is submitted, the endpoint updates the stored training table from the current pooled block histories, refits the model, and searches the bounded parameter space with a quantized acquisition-based candidate grid. The search samples a fixed set of candidate points from the admissible parameter ranges, normalizes them to the unit cube, evaluates their acquisition values under the current model, and selects the parameter vector with the highest value. A smaller probe set is used to approximate the rank of the selected candidate relative to random alternatives, and the resulting response includes both the selected parameter set and lightweight diagnostics such as the acquisition value, the estimated rank, and the number of training observations used for fitting. If the pooled observation count is below the minimum threshold required for Bayesian optimization, the endpoint refuses to update the model and falls back to the surrounding Lambda logic rather than proposing an unstable candidate.
+\subsection{Optimization Schedule and Counterbalancing}
 
-\subsection{Candidate Scoring and Selection}
+Parameter generation follows a fixed schedule of fifteen blocks per participant. The first three blocks are the random warm-up described above. Blocks four to thirteen constitute the optimization phase: for each of them the Gaussian process is refitted on all preceding blocks, and the next parameter set is proposed with the numerically stable noisy expected-improvement acquisition function (qLogNEI), which balances exploration and exploitation while the model is still being learned.
 
-At each invocation, the inference endpoint samples a candidate grid of 256 quantized parameter points from the bounded search space, normalizes the inputs to a unit cube, and evaluates them under the current multi-objective acquisition function. The search is not performed with a hand-written scalar objective, but with a hypervolume-based acquisition criterion that jointly trades off all ten target-position completion times. A small probe set is used to approximate the rank of the selected candidate relative to random alternatives, and the candidate with the highest acquisition value is chosen as the next parameter set. The endpoint also includes lightweight metadata in the response, such as the acquisition value, candidate rank estimate, and the number of pooled observations used for fitting.
+Training is deliberately frozen after block thirteen. The two final blocks, fourteen and fifteen, no longer contribute to the model; they form a within-participant comparison between the learned transfer function and the original Android defaults. Once block thirteen is complete, the model's final recommendation is computed once, from the thirteen training blocks only, as the minimizer of the posterior mean (the \texttt{PosteriorMean} criterion, i.e.\ the parameter set that the fitted model predicts to be fastest), and is stored with the participant. Whichever of the two final blocks is the learned-parameter block then loads this saved recommendation instead of triggering a further optimization run, which guarantees that the Android block's measurements can never enter the training data.
 
-If fewer than two completed blocks of pooled data are available for the requesting participant, or if the model fails to fit or evaluate, the backend falls back to returning the participant's current parameter set unchanged. This prevents the optimization loop from proposing unstable values before the training data set is informative enough to support a meaningful model update.
+Which of the two final blocks uses the learned parameters and which uses the Android defaults is counterbalanced across participants by a study-group assignment passed as a URL parameter. In one group the learned recommendation is presented as block fourteen and the Android defaults as block fifteen; in the other group the order is reversed. This ordering variable is stored with the participant so that potential order effects can be accounted for in the analysis.
 
 \subsection{SageMaker Inference Implementation and Deployment}
 
-The optimization model is not persisted as a learned artifact. Instead, a fresh Bayesian optimization run is carried out on every invocation from the current request payload, which keeps the deployment stateless and guarantees that optimization always reflects the most recent experimental data. Concretely, the inference logic is implemented as a single Python module exposing the required SageMaker entry points \texttt{model\_fn}, \texttt{input\_fn}, \texttt{predict\_fn}, and \texttt{output\_fn}. In the current implementation, \texttt{model\_fn} returns an empty model dictionary, while the data preparation, multi-objective GP fitting, candidate search, and response packaging are all performed inside \texttt{predict\_fn}. This module is packaged together with the lightweight required runtime files into a gzip-compressed \texttt{model.tar.gz} using SageMaker's \texttt{code/} layout, uploaded to S3 by Terraform, and loaded into a prebuilt PyTorch inference container via the \texttt{SAGEMAKER\_PROGRAM} and \texttt{SAGEMAKER\_SUBMIT\_DIRECTORY} environment variables.
+The inference logic is implemented as a single stateless Python module exposing the required SageMaker entry points \texttt{model\_fn}, \texttt{input\_fn}, \texttt{predict\_fn}, and \texttt{output\_fn}. \texttt{model\_fn} returns an essentially empty handle, while data preparation, Gaussian-process fitting, acquisition optimization, and response packaging are all performed inside \texttt{predict\_fn}. A fresh model is fitted on every invocation from the current payload, which keeps the deployment stateless and guarantees that each proposal reflects the participant's most recent data.
 
-This is a materially different deployment from the earlier Scikit-learn GP implementation: the endpoint uses PyTorch and BoTorch, since the acquisition function and multi-objective optimization logic depend on the PyTorch backend. The request payload is exchanged as \texttt{application/json} and carries the current parameter set together with the pooled per-participant block histories; the response contains the newly chosen parameter vector and a concise diagnostic bundle describing the acquisition strategy and the amount of training data that informed the decision.
+Given the fitted model, the next parameter vector is obtained by maximizing the selected acquisition function over the box-constrained space with BoTorch's \texttt{optimize\_acqf}, starting from several quasi-random restarts. During the optimization phase this acquisition is qLogNEI; for the final recommendation it is the posterior mean. Unlike the earlier implementation, no discrete candidate grid or probe ranking is used: the continuous optimizer returns a point in parameter space directly, which is then clipped to the bounds and quantized to the parameter-specific precision. If fewer than two block observations are available, the endpoint declines to fit a model, and the surrounding Lambda logic falls back to the participant's current parameters. The response is exchanged as \texttt{application/json} and contains the chosen parameter vector together with a concise diagnostic bundle (the acquisition strategy and value, the number of training blocks, and the best observed normalized time).
+
+The module is packaged with its runtime files into a gzip-compressed \texttt{model.tar.gz} in SageMaker's \texttt{code/} layout, uploaded to S3 by Terraform, and loaded into a prebuilt PyTorch inference container via the \texttt{SAGEMAKER\_PROGRAM} and \texttt{SAGEMAKER\_SUBMIT\_DIRECTORY} environment variables, since the Gaussian-process model and the acquisition functions depend on the PyTorch and BoTorch backend. The shared parameter-bounds file is packaged alongside the inference code, so that the endpoint enforces exactly the same search space as the frontend.
 
 \section{Experimental Procedure}
 \label{sec:procedure}
+
+\subsection{Recruitment and Onboarding}
+
+Participants were recruited through the Prolific crowdsourcing platform and opened the study via a personalized link that carries their Prolific identifier and a study-group assignment as URL parameters. On entry, they are shown an information and informed-consent screen that states the purpose of the study, the expected duration, the eligibility requirements, the data that are recorded, and a contact address; participation continues only after the participant actively confirms consent. Only iPhone devices are admitted, so that the display density, and hence the physical scrolling coefficient $C$ of Equation~\eqref{eq:sd-physical-coeff}, is held constant across participants. A short registration form then records three demographic items, gender, smartphone model, and handedness, before the task begins. After the final block, participants are redirected back to Prolific through a completion URL that registers the submission.
+
+\subsection{Pilot Study and Participants}
+
+Prior to the main data collection, a small pilot study was carried out to calibrate the parameter search space. Three participants completed the full procedure with the initial, deliberately wide parameter bounds. Their recorded behaviour was used to decide how to constrain the bounds of the fling-friction, deceleration-rate, and inflexion parameters for the main study, so that the admissible transfer functions remain usable while still spanning a meaningful range of scrolling dynamics.
+
+The main study was then conducted with 32 participants recruited through Prolific, balanced by gender with 16 women and 16 men.
 
 \subsection{Task Design}
 \label{sec:task}
@@ -178,6 +265,6 @@ A horizontal progress indicator above the list shows, as a row of 10 pill-shaped
 \subsection{Data Collection and Recorded Metrics}
 \label{sec:data-collection}
 
-In addition to the timing data used by the optimizer, several gesture-level quantities are computed in real time during each trial for on-screen feedback and threshold-logic purposes, including swipe direction, per-gesture distance and duration, average and maximum swipe speed, the number of direction reversals (``switchbacks''/clutches) within a trial, and whether and by how far the target was overshot. Of these, the total elapsed time until the correct entry is tapped (\texttt{timeMs}), the net scrolled distance during the trial (\texttt{scrollDistance}), and a completion timestamp are recorded and persisted to the backend per trial; these are the quantities used as the optimization objective described above.
+In addition to the timing data used by the optimizer, several gesture-level quantities are computed in real time during each trial for on-screen feedback and threshold-logic purposes, including swipe direction, per-gesture distance and duration, average and maximum swipe speed, the number of direction reversals (``switchbacks''/clutches) within a trial, and whether and by how far the target was overshot. Of these, the total elapsed time until the correct entry is tapped (\texttt{timeMs}), the net scrolled distance during the trial (\texttt{scrollDistance}), and a completion timestamp are recorded and persisted to the backend per trial; the completion time forms the basis of the block-level optimization objective of Equation~\eqref{eq:sd-scalar-objective}.
 
-Trial data belonging to one block are collected locally in the browser and only submitted to the backend once all 10 trials of a block are complete, at which point they are appended atomically to the participant's stored trial history together with the transfer-function parameter set that was active during that block. After a block has been submitted, the participant is shown a waiting screen until a new parameter set has been generated (either through random sampling during the warm-up phase, or through the Gaussian-Process optimizer thereafter); the next block of trials is then only started once the participant explicitly confirms via a button click, creating a clear separation between successive optimization blocks and ensuring that a new transfer function is only introduced once the backend has produced an updated, validated parameter set.
+Trial data belonging to one block are collected locally in the browser and only submitted to the backend once all 10 trials of a block are complete, at which point they are appended atomically to the participant's stored trial history together with the transfer-function parameter set that was active during that block. After a block has been submitted, the list is covered by a waiting overlay showing a circular progress indicator until a new parameter set has been generated, either by random sampling during the warm-up phase, by the Gaussian-process optimizer during the optimization phase, or by loading the stored recommendation or the Android defaults for the two final blocks. The overlay is lifted automatically once the new transfer function is active, at which point the next block begins. This creates a clear separation between successive blocks and ensures that a new transfer function is only introduced once the backend has produced a validated parameter set.

@@ -796,7 +796,6 @@ function ParticipantsList({ onBack }) {
                                 <span>
                                   {formatGenerationStrategy(linkedMetric.generation.strategy)}
                                   {linkedMetric.generation.phase ? ` · ${formatGenerationPhase(linkedMetric.generation.phase)}` : ''}
-                                  {Number.isFinite(Number(linkedMetric.generation.beta)) ? ` · beta ${formatMetric(linkedMetric.generation.beta)}` : ''}
                                   {' · '}
                                 </span>
                               )}
@@ -853,7 +852,6 @@ function ParticipantsList({ onBack }) {
                                   <div>
                                     Erzeugt mit: {formatGenerationStrategy(linkedMetric.generation.strategy)}
                                     {linkedMetric.generation.phase ? ` · ${formatGenerationPhase(linkedMetric.generation.phase)}` : ''}
-                                    {Number.isFinite(Number(linkedMetric.generation.beta)) ? ` · beta ${formatMetric(linkedMetric.generation.beta)}` : ''}
                                   </div>
                                 )}
                                 {Number.isFinite(Number(linkedMetric.trainingObservationCount)) && (
@@ -864,47 +862,23 @@ function ParticipantsList({ onBack }) {
                                     {Number.isFinite(Number(linkedMetric.model.predictedCandidateNormalizedTime)) && (
                                       <div>Prognostizierte Zielgroesse der neuen Funktion: {formatMetric(linkedMetric.model.predictedCandidateNormalizedTime, 3)}</div>
                                     )}
-                                    {Number.isFinite(Number(linkedMetric.model.predictedCurrentNormalizedTime)) && (
-                                      <div>Prognostizierte Zielgroesse der aktuellen Funktion: {formatMetric(linkedMetric.model.predictedCurrentNormalizedTime, 3)}</div>
-                                    )}
-                                    {Number.isFinite(Number(linkedMetric.model.predictedImprovementVsCurrent)) && (
-                                      <div>Erwartete Verbesserung gegen aktuelle Funktion: {formatMetric(linkedMetric.model.predictedImprovementVsCurrent, 3)}</div>
-                                    )}
                                     {Number.isFinite(Number(linkedMetric.model.predictedImprovementVsBestObserved)) && (
                                       <div>Erwartete Verbesserung gegen beste beobachtete Funktion: {formatMetric(linkedMetric.model.predictedImprovementVsBestObserved, 3)}</div>
                                     )}
                                     {Number.isFinite(Number(linkedMetric.model.candidateUncertaintyStd)) && (
                                       <div>Unsicherheit der neuen Funktion: {formatMetric(linkedMetric.model.candidateUncertaintyStd, 3)}</div>
                                     )}
-                                    {Number.isFinite(Number(linkedMetric.model.currentUncertaintyStd)) && (
-                                      <div>Unsicherheit der aktuellen Funktion: {formatMetric(linkedMetric.model.currentUncertaintyStd, 3)}</div>
-                                    )}
                                     {Number.isFinite(Number(linkedMetric.model.bestObservedNormalizedTime)) && (
                                       <div>Beste bisher beobachtete Zielgroesse: {formatMetric(linkedMetric.model.bestObservedNormalizedTime, 3)}</div>
                                     )}
-                                    {Number.isFinite(Number(linkedMetric.model.lastObservedNormalizedTime)) && (
-                                      <div>Letzte beobachtete Zielgroesse: {formatMetric(linkedMetric.model.lastObservedNormalizedTime, 3)}</div>
-                                    )}
-                                    {Number.isFinite(Number(linkedMetric.model.optimisticCandidateNormalizedTime)) && (
-                                      <div>Optimistische qUCB-Zielgroesse: {formatMetric(linkedMetric.model.optimisticCandidateNormalizedTime, 3)}</div>
-                                    )}
-                                    {Number.isFinite(Number(linkedMetric.model.explorationBonus)) && (
-                                      <div>Explorationsbonus: {formatMetric(linkedMetric.model.explorationBonus, 3)}</div>
-                                    )}
                                     {Number.isFinite(Number(linkedMetric.model.acquisitionValue)) && (
                                       <div>Acquisition-Wert: {formatMetric(linkedMetric.model.acquisitionValue, 5)}</div>
-                                    )}
-                                    {Number.isFinite(Number(linkedMetric.model.candidateRankApprox)) && Number.isFinite(Number(linkedMetric.model.candidateRankProbeCount)) && (
-                                      <div>Candidate-Rank: {formatIntegerMetric(linkedMetric.model.candidateRankApprox)}/{formatIntegerMetric(linkedMetric.model.candidateRankProbeCount)}</div>
                                     )}
                                     {linkedMetric.model.objectiveType && (
                                       <div>Zielgroesse: {linkedMetric.model.objectiveType.replace(/_/g, ' ')}</div>
                                     )}
                                     {Number.isFinite(Number(linkedMetric.model.trainingRowCount)) && (
-                                      <div>Trainingszeilen nach Deduplikation: {formatIntegerMetric(linkedMetric.model.trainingRowCount)}</div>
-                                    )}
-                                    {Number.isFinite(Number(linkedMetric.model.collapsedDuplicateRowCount)) && (
-                                      <div>Kollabierte Duplikate: {formatIntegerMetric(linkedMetric.model.collapsedDuplicateRowCount)}</div>
+                                      <div>Trainingsbloecke: {formatIntegerMetric(linkedMetric.model.trainingRowCount)}</div>
                                     )}
                                   </div>
                                 )}

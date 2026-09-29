@@ -163,37 +163,19 @@ def _build_block_metrics(
         if isinstance(inference_diagnostics, dict):
             strategy = inference_diagnostics.get("acquisitionStrategy")
             phase = inference_diagnostics.get("acquisitionPhase")
-            beta = inference_diagnostics.get("acquisitionBeta")
-            selection_mode = inference_diagnostics.get("selectionMode")
 
             if isinstance(strategy, str) and strategy:
                 generation["strategy"] = strategy
             if isinstance(phase, str) and phase:
                 generation["phase"] = phase
-            if isinstance(beta, (int, float)) and not isinstance(beta, bool):
-                generation["beta"] = float(beta)
-            if isinstance(selection_mode, str) and selection_mode:
-                generation["selectionMode"] = selection_mode
 
             for key in (
                 "acquisitionValue",
-                "hybridScore",
-                "posteriorMeanWeight",
-                "trustRegionHalfSpanRatio",
-                "candidateRankApprox",
-                "candidateRankProbeCount",
                 "trainingRowCount",
-                "collapsedDuplicateRowCount",
                 "bestObservedNormalizedTime",
-                "lastObservedNormalizedTime",
                 "predictedCandidateNormalizedTime",
-                "predictedCurrentNormalizedTime",
-                "predictedImprovementVsCurrent",
-                "predictedImprovementVsBestObserved",
                 "candidateUncertaintyStd",
-                "currentUncertaintyStd",
-                "optimisticCandidateNormalizedTime",
-                "explorationBonus",
+                "predictedImprovementVsBestObserved",
             ):
                 value = inference_diagnostics.get(key)
                 if isinstance(value, (int, float)) and not isinstance(value, bool):
@@ -202,15 +184,6 @@ def _build_block_metrics(
             objective_type = inference_diagnostics.get("objectiveType")
             if isinstance(objective_type, str) and objective_type:
                 model_diagnostics["objectiveType"] = objective_type
-
-            ref_point = inference_diagnostics.get("refPoint")
-            if isinstance(ref_point, list):
-                numeric_ref_point = []
-                for value in ref_point:
-                    if isinstance(value, (int, float)) and not isinstance(value, bool):
-                        numeric_ref_point.append(float(value))
-                if numeric_ref_point:
-                    model_diagnostics["refPoint"] = numeric_ref_point
 
         model_metadata = raw_prediction.get("modelMetadata")
         if isinstance(model_metadata, dict):
