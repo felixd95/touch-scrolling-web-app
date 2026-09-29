@@ -3,7 +3,7 @@
 #set($expValues = {})
 #set($expSet = [])
 #set($expRemove = [])
-#set($jsonFields = ["attempts", "currentParameterSet", "nextParameterSet"])
+#set($jsonFields = ["attempts", "currentParameterSet", "nextParameterSet", "finalParameterSet"])
 
 #foreach($entry in $input.entrySet())
   #if($entry.key != "id")

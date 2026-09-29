@@ -461,7 +461,7 @@ function ParticipantsList({ onBack }) {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id prolificPid gender smartphone handedness group createdAt attempts currentParameterSet nextParameterSet parameterBlockMetrics } } }`,
+        query: `query ListParticipants { listParticipants { items { id prolificPid gender smartphone handedness group createdAt attempts currentParameterSet nextParameterSet finalParameterSet parameterBlockMetrics } } }`,
       }),
     });
 
@@ -556,6 +556,7 @@ function ParticipantsList({ onBack }) {
       group: p.group,
       currentParameterSet: normalizeParameterSet(p.currentParameterSet),
       nextParameterSet: normalizeParameterSet(p.nextParameterSet),
+      finalParameterSet: normalizeParameterSet(p.finalParameterSet),
       parameterBlockMetrics: parseParameterBlockMetrics(p.parameterBlockMetrics),
       attemptBlocks: parsedAttempts.blocks,
       attempts: parsedAttempts.flat,

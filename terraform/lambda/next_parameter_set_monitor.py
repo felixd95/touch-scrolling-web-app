@@ -648,6 +648,17 @@ def handler(event, context):
 
         stage = "prepare-ml-payload"
         all_attempt_data = block_records
+        # Training is frozen after the last active-learning block. The final model
+        # proposal (blocks 14/15) is always trained on the training blocks only
+        # (1..ADAPTIVE_QNEI_END_BLOCK); the final Android comparison block is never
+        # used for training.
+        if completed_block_count >= ADAPTIVE_QNEI_END_BLOCK:
+            all_attempt_data = [
+                block
+                for block in block_records
+                if isinstance(block.get("blockIndex"), int)
+                and block["blockIndex"] <= ADAPTIVE_QNEI_END_BLOCK
+            ]
         acquisition_config = _build_acquisition_config(completed_block_count)
         current_params = (
             _normalize_parameter_set(participant_state.get("currentParameterSet"))

@@ -423,7 +423,7 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': outputs.data.api_key },
       body: JSON.stringify({
-        query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts currentParameterSet nextParameterSet } } }`,
+        query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id attempts currentParameterSet nextParameterSet finalParameterSet } } }`,
         variables: { filter: { id: { eq: participantId } } },
       }),
     });
@@ -604,14 +604,40 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
         : null;
 
       if (!nextParameterSet && allowGenerationWhenMissing) {
+        // Blocks 1-3 bootstrap (random), blocks 4-13 train the model (qNEI),
+        // blocks 14-15 only load the saved optimal params or use Android defaults.
+        const inFinalPhase = completedBlockCount >= RANDOM_BOOTSTRAP_BLOCKS + ADAPTIVE_QNEI_BLOCKS;
+
         if (isRandomBootstrapPhase(completedBlockCount)) {
           nextParameterSet = createRandomParameterSet(attemptsCount);
           await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
-        } else if (isFinalAndroidBlock(completedBlockCount, studyGroup)) {
-          nextParameterSet = createAndroidParameterSet(attemptsCount);
-          await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
-        } else {
+        } else if (!inFinalPhase) {
           nextParameterSet = await synchronizeNextParameterSet(attemptsCount);
+        } else {
+          // Training is finished after block 13. Compute the optimal learned
+          // parameters once (trained on the first 13 blocks only) and persist them,
+          // then only load the saved optimal or use the Android defaults.
+          let finalOptimal = normalizeParameterSet(participant?.finalParameterSet);
+          if (!finalOptimal) {
+            finalOptimal = await synchronizeNextParameterSet(attemptsCount);
+            if (finalOptimal) {
+              await updateParticipantParameterSets({ finalParameterSet: JSON.stringify(finalOptimal) });
+            }
+          }
+
+          if (isFinalAndroidBlock(completedBlockCount, studyGroup)) {
+            nextParameterSet = createAndroidParameterSet(attemptsCount);
+            await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
+          } else if (finalOptimal) {
+            nextParameterSet = {
+              ...finalOptimal,
+              status: 'ready',
+              source: 'final-optimal-parameter-set',
+              generatedFromAttemptCount: attemptsCount,
+              completedBlockCount: getCompletedBlockCount(attemptsCount),
+            };
+            await updateParticipantParameterSets({ nextParameterSet: JSON.stringify(nextParameterSet) });
+          }
         }
       }
 
