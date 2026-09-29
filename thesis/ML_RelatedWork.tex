@@ -1,110 +1,265 @@
 \section{Related Work: Machine Learning}
 
 \subsection{Problem Setting: Learning with a Goal}
-A recurring theme across active learning, Bayesian optimization (BO), and related goal-driven methods is \emph{sample efficiency}: obtaining the largest possible gain in knowledge or objective value from as few expensive evaluations as possible. Di Fiore et al.~\cite{di2024active} survey these fields from a unified perspective and describe the common pattern in which a probabilistic surrogate model and a selection criterion are combined iteratively to decide where the next informative measurement should be taken. This viewpoint is relevant whenever each evaluation carries a substantial cost, so that the efficiency of the search process matters as much as the quality of the final solution \cite{di2024active}.
+A recurring theme across active learning, Bayesian optimization, and related goal-driven methods is sample efficiency. The goal is to obtain the largest possible gain in knowledge or objective value from as few expensive evaluations as possible. Di Fiore et al.~\cite{di2024active} survey these fields from a unified perspective and describe the common pattern in which a probabilistic surrogate model and a selection criterion are combined iteratively to decide where the next informative measurement should be taken. This viewpoint is relevant whenever each evaluation carries a substantial cost, so that the efficiency of the search process matters as much as the quality of the final solution \cite{di2024active}.
 
-The unifying abstraction underlying these methods is \emph{adaptive sampling}: instead of drawing evaluation points from a fixed, predetermined design, the location of the next observation is chosen adaptively based on everything that has been learned so far \cite{di2024active}. Formally, one maintains a dataset $\mathcal{D}_t = \{(x_i, y_i)\}_{i=1}^{t}$ of already evaluated inputs $x_i$ and their (possibly noisy) responses $y_i$, fits a probabilistic model to $\mathcal{D}_t$, and derives from that model a scalar utility---called an \emph{infill criterion} in the design-of-experiments literature and an \emph{acquisition function} in BO---that ranks every candidate point by its expected usefulness \cite{di2024active}. Maximizing this utility yields the next query $x_{t+1}$, its response is observed, the model is updated, and the loop repeats until an evaluation budget is exhausted. Di Fiore et al.~\cite{di2024active} show that active learning and BO are two instances of this same symbiotic template that differ mainly in what ``usefulness'' means: active learning seeks points that most improve the surrogate model itself, whereas BO seeks points that most improve the optimization objective.
+The unifying abstraction underlying these methods is adaptive sampling. Instead of drawing evaluation points from a fixed, predetermined design, the location of the next observation is chosen adaptively based on everything that has been learned so far \cite{di2024active}. Formally, one maintains a dataset $\mathcal{D}_t = \{(x_i, y_i)\}_{i=1}^{t}$ of already evaluated inputs $x_i$ and their (possibly noisy) responses $y_i$, fits a probabilistic model to $\mathcal{D}_t$, and derives from that model a scalar utility which is called an infill criterion in the design-of-experiments literature and an acquisition function in bayesian optimisation that ranks every candidate point by its expected usefulness \cite{di2024active}. Maximizing this utility yields the next query $x_{t+1}$, its response is observed, the model is updated, and the loop repeats until an evaluation budget is exhausted. Di Fiore et al.~\cite{di2024active} show that active learning and bayesian optimisation are two instances of this same symbiotic template that differ mainly in what usefulness means. Active learning seeks points that most improve the surrogate model itself, whereas bayesian optimisation seeks points that most improve the optimization objective.
 
-This distinction matters because it clarifies why the same probabilistic machinery---most prominently Gaussian processes---appears in both fields and why techniques developed in one can often be transferred to the other \cite{di2024active}. The survey further distinguishes between searches informed by a single information source and searches that exploit multiple levels of fidelity, where cheaper but less accurate approximations of the objective are combined with rare, expensive high-fidelity evaluations \cite{di2024active}. In all of these variants, the central design decision is the selection criterion, because it alone determines how a limited budget of costly evaluations is allocated across the search space. The remainder of this section therefore builds up the required background in the order in which it is needed: supervised learning as the modelling foundation, active learning and BO as the two goal-driven sampling paradigms, Gaussian processes as the surrogate model that couples them, and acquisition functions as the decision rule that governs the exploration--exploitation trade-off.
+This distinction matters because it clarifies why Gaussian processes appear in both fields and why techniques developed in one can often be transferred to the other \cite{di2024active}. The survey further distinguishes between searches informed by a single information source and searches that exploit multiple levels of fidelity, where cheaper but less accurate approximations of the objective are combined with rare, expensive high-fidelity evaluations \cite{di2024active}. In all of these variants, the central design decision is the selection criterion, because it alone determines how a limited budget of costly evaluations is allocated across the search space. The remainder of this section therefore builds up the required background in the order in which it is needed. Supervised learning as the modelling foundation, active learning and BO as the two goal-driven sampling paradigms, Gaussian processes as the surrogate model that couples them, and acquisition functions as the decision rule that governs the tradeoff betwenn exploitation and exploration.
 
 \subsection{Supervised Learning}
-Supervised learning is the setting in which a model is trained on labeled input--output pairs and must infer a mapping from inputs to outputs; the quality of the learned model depends strongly on the amount and representativeness of the available labeled data \cite{nasteski2017supervised}. The learner is given a training set $\{(x_i, y_i)\}_{i=1}^{n}$ drawn from an unknown joint distribution and searches within a hypothesis space for a function that generalizes from these examples to previously unseen inputs, rather than merely memorizing the training data \cite{nasteski2017supervised}. Depending on the nature of the target variable, the task is usually formulated either as classification, where the label is discrete, or as regression, where the label is continuous \cite{nasteski2017supervised}.
+Supervised learning is the setting in which a model is trained on labeled input and output pairs and learns a mapping. The learner is given a training set $\{(x_i,y_i)\}_{i=1}^{n}$ and should learn a function that performs well not only on the training examples but also on previously unseen inputs. This ability is referred to as generalization \cite{Goodfellow-et-al-2016}. Depending on the nature of the target variable, the task is usually formulated either as classification, where the label is discrete, or as regression, where the label is continuous \cite{nasteski2017overview}.
 
-Nasteski~\cite{nasteski2017supervised} reviews the principal algorithm families used in this setting---among them decision trees, naive Bayes classifiers, $k$-nearest-neighbour methods, support vector machines, and neural networks---and stresses that no single method dominates across all problems; the appropriate inductive bias depends on the structure of the data and the amount of supervision available \cite{nasteski2017supervised}. Two concerns are central to any supervised method and recur throughout the goal-driven methods discussed later. The first is \emph{generalization}: a model that fits the training data too closely may capture noise rather than signal and then perform poorly on new inputs, so model capacity must be balanced against the quantity and quality of the labels \cite{nasteski2017supervised}. The second is the strong dependence on the representativeness of the training sample---if the labeled data do not cover the relevant regions of the input space, the learned mapping is unreliable exactly where it is later queried \cite{nasteski2017supervised}.
+Nasteski~\cite{nasteski2017overview} reviews several supervised-learning methods, including decision trees, naive Bayes, linear and logistic regression, support vector machines, nearest-neighbour methods, and neural networks. The overview discusses their basic principles and illustrates their use for different prediction problems and application contexts \cite{nasteski2017overview}. The choice of model class and training procedure influences which solutions are preferred among models that fit the observed data. For example, regularization can impose constraints or express a preference for simpler model classes in order to promote generalization \cite{Goodfellow-et-al-2016}.
 
-These two concerns directly motivate the paradigms that follow. Because labels are assumed to be given in ordinary supervised learning, the learner has no control over \emph{which} inputs are labeled; when labels are instead scarce or expensive, it becomes attractive to let the model choose its own training points, which is precisely the extension made by active learning. Moreover, supervised learning provides the conceptual foundation for the surrogate models used in both active learning and Bayesian optimization: these surrogates are themselves regression models fitted to observed data, and the Gaussian process introduced later can be read as a probabilistic, nonparametric regressor whose predictive uncertainty is exploited to decide where to sample next \cite{nasteski2017supervised, williams1996gaussian}.
+A model with excessive capacity may fit the training data too closely and memorize the training set, resulting in poor generalization to new inputs. This phenomenon is known as overfitting \cite{Goodfellow-et-al-2016}. More generally, training minimizes the empirical risk on a finite training set, whereas the desired objective is a low expected error over the underlying data-generating distribution. If the available training data do not adequately reflect the regions relevant for later predictions, a model may therefore achieve a low training error while still generalizing poorly \cite{Goodfellow-et-al-2016}.
 
 \subsection{Active Learning}
-Active learning extends the supervised setting by allowing the learning algorithm to choose which unlabeled instances should be labeled next, rather than relying on a fixed training set. Instead of passively accepting the available training data, an active learner iteratively identifies the most informative candidates and requests their labels from an oracle, which is particularly useful when labeled data are scarce, expensive, or time-consuming to obtain \cite{settles.tr09}. The core premise is long established: for the same labeling budget, a learner can produce better models if it selectively queries the most informative data points \cite{settles.tr09}.
+Active learning extends the supervised setting by allowing the learning algorithm to choose which unlabeled instances should be labeled next, rather than relying on a fixed training set. Instead of passively accepting the available training data, an active learner iteratively identifies the most informative candidates and requests their labels from an oracle, which is particularly useful when labeled data are scarce, expensive, or time-consuming to obtain \cite{settles2009active}. For the same labeling budget, a learner can produce better models if it selectively queries the most informative data points \cite{settles2009active}.
 
-Settles~\cite{settles.tr09} organizes the field along two axes---the scenario in which queries are posed and the strategy by which their informativeness is quantified. Three canonical scenarios are distinguished. In \emph{membership query synthesis} the learner may request a label for any point in the input space, including artificially constructed inputs that may not correspond to any natural instance. In \emph{stream-based selective sampling} unlabeled instances arrive one at a time and the learner decides on the fly whether to query or discard each one. In \emph{pool-based} active learning, the most common scenario in practice, a large pool of unlabeled instances is available at once and the learner ranks the entire pool to select the most informative query \cite{settles.tr09}. Across these scenarios, the survey catalogues several query-strategy frameworks: \emph{uncertainty sampling}, which selects the instance about whose label the current model is least certain; \emph{query-by-committee}, which trains an ensemble and selects instances on which committee members disagree most; \emph{expected model change}, which prefers instances that would most alter the current model; \emph{variance and error reduction}, which selects instances that minimize the model's expected future generalization error; and \emph{density-weighted} methods, which additionally discount outliers by favouring instances that are also representative of the underlying input distribution \cite{settles.tr09}. A common thread is that most strategies reduce to a balance between the \emph{uncertainty} of a candidate and its \emph{representativeness}, foreshadowing the exploration--exploitation trade-off that governs acquisition functions in BO.
+Settles \cite{settles2009active} organizes the field along the two the scenario in which queries are posed and the strategy by which their informativeness is quantified. Three canonical scenarios are distinguished. In membership query synthesis the learner may request a label for any point in the input space, including artificially constructed inputs that may not correspond to any natural instance. In stream-based selective sampling unlabeled instances arrive one at a time and the learner decides on the fly whether to query or discard each one. In pool-based active learning, the most common scenario in practice, a large pool of unlabeled instances is available at once and the learner ranks the entire pool to select the most informative query \cite{settles2009active}. The survey discusses several query-strategy frameworks \cite{settles2009active}:
 
-When Gaussian processes are used as the underlying model, the informativeness of a query is tied directly to the model's predictive uncertainty, because a GP supplies a calibrated variance at every candidate point rather than a single point prediction \cite{riis2022bayesian}. Riis et al.~\cite{riis2022bayesian} emphasize that the bias--variance trade-off becomes more pronounced the less data are available, and argue that for GPs this trade-off is controlled by two hyperparameters---the kernel length scale and the observation noise term. They show that relying on a single point estimate of these hyperparameters can misrepresent the true predictive uncertainty and thereby mislead the query selection, whereas a fully Bayesian treatment that approximates the joint posterior over the hyperparameters yields more reliable uncertainty estimates and more efficient querying \cite{riis2022bayesian}. On this basis they derive two acquisition functions tailored to GP-based active learning: a Bayesian variant of query-by-committee (B-QBC) and a query-by-mixture-of-Gaussian-processes (QB-MGP) criterion that explicitly minimizes the predictive variance \cite{riis2022bayesian}. This link between predictive uncertainty and query selection is what methodologically connects active learning to BO: both use a model of current uncertainty to choose the next point purposefully rather than randomly. The main difference lies in the optimization target---active learning typically maximizes information gain for a predictive model, whereas BO directly optimizes an unknown objective function \cite{di2024active}.
+\begin{itemize}
+    \item \emph{Uncertainty sampling} selects instances for which the
+    current model is least certain about the label.
+
+    \item \emph{Query-by-committee} selects instances on which the
+    committee members disagree most.
+
+    \item \emph{Expected model change} favors instances that are expected
+    to alter the current model most strongly.
+
+    \item \emph{Expected error or variance reduction} selects instances
+    expected to reduce future prediction error or predictive variance.
+
+    \item \emph{Density-weighted methods} combine informativeness with
+    representativeness by down-weighting isolated outliers.
+\end{itemize}
+These frameworks differ in how they define informativeness. In particular, density-weighted methods explicitly combine uncertainty with representativeness, whereas other approaches focus primarily on model disagreement, model change, or expected future error \cite{settles2009active}.
+
+When Gaussian processes are used as the underlying model, the informativeness of a query is tied directly to the model's predictive uncertainty, because a GP provides both a predictive mean and a predictive variance at every candidate point rather than a single point prediction \cite{riis2022bayesian}. Riis et al.~\cite{riis2022bayesian} emphasize that the bias variance trade-off becomes more pronounced the less data are available. For GPs, the inferred predictive uncertainty depends substantially on hyperparameters such as the kernel length scale and the observation-noise term. They show that relying on a single point estimate of these hyperparameters can misrepresent the true predictive uncertainty and thereby mislead the query selection, whereas a fully Bayesian treatment that approximates the joint posterior over the hyperparameters yields more reliable uncertainty estimates and more efficient querying \cite{riis2022bayesian}.
 
 \subsection{Bayesian Optimization}
-Bayesian optimization models an unknown objective as a random function and selects the next evaluation point by maximizing an acquisition function \cite{snoek2012practical}. For expensive black-box problems it is especially attractive because it combines global search with explicit uncertainty management. Formally, BO addresses problems of the form $x^{\star} = \arg\max_{x \in \mathcal{X}} f(x)$ (or the corresponding minimization) where $f$ is expensive to evaluate, possibly noisy, and provides no gradient information, so that classical gradient-based optimizers are inapplicable \cite{snoek2012practical}. Its two central components are a probabilistic surrogate model---most commonly a Gaussian process (GP)---and an acquisition criterion that balances exploration and exploitation \cite{snoek2012practical}.
+Bayesian optimization models an unknown objective as a random function and selects the next evaluation point by maximizing an acquisition function \cite{snoek2012practical}. For expensive black-box problems it is especially attractive because it combines global search with explicit uncertainty management. Formally, Bayesian optimization addresses problems of the form $x^{\star} = \arg\max_{x \in \mathcal{X}} f(x)$ where $f$ is expensive to evaluate, possibly noisy, and provides no gradient information, so that classical gradient-based optimizers are inapplicable \cite{snoek2012practical}. Its two central components are a probabilistic surrogate model and an acquisition criterion that balances exploration and exploitation \cite{snoek2012practical}.
 
-The procedure is iterative and follows the adaptive-sampling template introduced above. Given the current data $\mathcal{D}_t$, a GP posterior is fitted; the acquisition function $\alpha(x)$ is constructed from that posterior; its maximizer $x_{t+1} = \arg\max_{x} \alpha(x)$ is evaluated on the true objective; and the resulting pair $(x_{t+1}, y_{t+1})$ is appended to the dataset before the loop repeats \cite{snoek2012practical,di2024active}. Because $\alpha$ is cheap to evaluate and differentiable, its inner optimization is far less costly than a direct evaluation of $f$, which is exactly what makes the scheme sample efficient \cite{balandat2020botorch}.
+The Bayesian optimization procedure follows the adaptive-sampling template
+introduced above and can be summarized as follows:
 
-Snoek et al.~\cite{snoek2012practical} additionally show that practical factors strongly influence real-world performance. They advocate the Mat\'ern $5/2$ kernel over the smoother squared-exponential kernel for many machine-learning objectives, and they argue that GP hyperparameters should not be fixed to a single point estimate but marginalized out: integrating the acquisition function over the posterior of the hyperparameters---in practice via Markov chain Monte Carlo---yields more robust decisions than a plug-in estimate \cite{snoek2012practical}. They further address cost-awareness and parallelism, introducing an ``expected improvement per second'' criterion that accounts for heterogeneous evaluation cost, and a strategy for proposing multiple points at once so that evaluations can proceed concurrently \cite{snoek2012practical}. These considerations reappear, in generalized form, in the Monte Carlo criteria discussed later.
+\begin{enumerate}
+    \item Given the current dataset $\mathcal{D}_t$, fit or update the
+    Gaussian-process posterior.
+
+    \item Construct the acquisition function $\alpha_t(x)$ from the current
+    posterior.
+
+    \item Optimize the acquisition function and select the next candidate
+    \[
+        x_{t+1} = \arg\max_{x \in \mathcal{X}} \alpha_t(x).
+    \]
+
+    \item Evaluate $x_{t+1}$ on the true objective function and observe
+    \[
+        y_{t+1} = f(x_{t+1}) + \varepsilon_{t+1}.
+    \]
+
+    \item Append the new observation to the dataset:
+    \[
+        \mathcal{D}_{t+1}
+        =
+        \mathcal{D}_t \cup \{(x_{t+1},y_{t+1})\}.
+    \]
+
+    \item Repeat the procedure until the evaluation budget is exhausted or
+    another stopping criterion is reached.
+\end{enumerate}
+
+Because the acquisition function is substantially cheaper to evaluate than the true objective, its inner optimization can be performed before incurring the cost of the next objective evaluation. This separation between inexpensive candidate selection and expensive objective evaluation is central to the sample efficiency of Bayesian optimization~\cite{snoek2012practical,di2024active,balandat2019botorch}.
 
 \subsection{Gaussian Processes as Surrogate Models}
-A Gaussian process defines a distribution over functions and provides, for every candidate point, both a predictive mean $\mu(x)$ and a predictive uncertainty $\sigma(x)$; its structure is fully specified by a mean function $m(x)$ and a covariance (kernel) function $k(x, x')$ \cite{williams1996gaussian}. Writing $f \sim \mathcal{GP}(m, k)$ means that for any finite collection of inputs the corresponding function values are jointly Gaussian with mean vector and covariance matrix given by $m$ and $k$ \cite{williams1996gaussian,rasmussen2010gpml}. Williams and Rasmussen~\cite{williams1996gaussian} show that placing such a prior directly over functions permits an exact Bayesian predictive analysis for regression: conditioning the prior on observed data yields a posterior that is again a Gaussian process, so that predictions come with calibrated uncertainty rather than a single point estimate.
+A Gaussian process (GP) is a probability distribution over functions. It is
+defined by a mean function $m(x)$ and a positive-definite covariance function
+(or kernel) $k(x,x')$~\cite{williams1995gaussian,rasmussen2010gaussian}. We write
+\[
+    f \sim \mathcal{GP}\bigl(m(x), k(x,x')\bigr).
+\]
+
+The defining property of a GP is that any finite collection of function
+values is jointly Gaussian. For inputs
+$X = \{x_1,\ldots,x_n\}$, the corresponding function values satisfy
+\[
+    \mathbf{f}
+    =
+    \bigl(f(x_1),\ldots,f(x_n)\bigr)^\top
+    \sim
+    \mathcal{N}\bigl(\mathbf{m},K\bigr),
+\]
+where
+\[
+    \mathbf{m}_i = m(x_i),
+    \qquad
+    K_{ij} = k(x_i,x_j).
+\]
+
+After observations have been incorporated, the GP defines a posterior
+distribution over functions. In particular, at a candidate point $x$ it
+provides a predictive mean $\mu(x)$ and a predictive variance
+$\sigma^2(x)$:
+\[
+    f(x)\mid\mathcal{D}
+    \sim
+    \mathcal{N}\bigl(\mu(x),\sigma^2(x)\bigr).
+\]
+This predictive distribution supplies both a point prediction and a
+quantified measure of uncertainty, which is why GPs are useful as surrogate
+models in active learning and Bayesian optimization
+~\cite{williams1995gaussian,rasmussen2010gaussian}.
 
 Concretely, given training inputs $X$ with observed targets $\mathbf{y}$ corrupted by independent Gaussian noise of variance $\sigma_n^2$, the predictive distribution at a test point $x_\ast$ is Gaussian with mean and variance
 \[
 \mu(x_\ast) = \mathbf{k}_\ast^{\top}\left(K + \sigma_n^2 I\right)^{-1}\mathbf{y}, \qquad
 \sigma^2(x_\ast) = k(x_\ast, x_\ast) - \mathbf{k}_\ast^{\top}\left(K + \sigma_n^2 I\right)^{-1}\mathbf{k}_\ast,
 \]
-where $K$ is the kernel matrix over the training inputs and $\mathbf{k}_\ast$ collects the covariances between $x_\ast$ and the training inputs \cite{williams1996gaussian,rasmussen2010gpml}. These two quantities are precisely the $\mu(x)$ and $\sigma(x)$ consumed by the acquisition functions of the following section, which is why GPs are such a natural surrogate for BO.
+where $K$ is the kernel matrix over the training inputs and $\mathbf{k}_\ast$ collects the covariances between $x_\ast$ and the training inputs \cite{williams1995gaussian,rasmussen2010gaussian}. These two quantities are precisely the $\mu(x)$ and $\sigma(x)$ consumed by the acquisition functions of the following section, which is why GPs are such a natural surrogate for Bayesian optimization.
 
-The covariance structure is not merely a technical detail: it encodes assumptions about smoothness, length scales, and local variability across the search space \cite{williams1996gaussian,rasmussen2010gpml}. Widely used stationary kernels include the squared-exponential (radial basis function) kernel, which assumes very smooth functions, and the Mat\'ern family, whose smoothness parameter yields the less restrictive behaviour often preferred in practice \cite{snoek2012practical,rasmussen2010gpml}. Assigning a separate length scale to each input dimension---automatic relevance determination---additionally lets the model infer how strongly each variable influences the response \cite{rasmussen2010gpml}. The kernel hyperparameters, together with the noise variance $\sigma_n^2$, are typically learned by maximizing the log marginal likelihood of the data, which automatically embodies a trade-off between data fit and model complexity \cite{rasmussen2010gpml}. Williams and Rasmussen~\cite{williams1996gaussian} alternatively integrate over the hyperparameters using Hybrid (Hamiltonian) Monte Carlo, which corresponds to the fully Bayesian treatment later emphasized for uncertainty-critical settings \cite{riis2022bayesian}.
+The covariance encodes assumptions about smoothness, length scales, and local variability across the search space \cite{williams1995gaussian,rasmussen2010gaussian}. Assigning a separate length scale to each input dimension additionally lets the model infer how strongly each variable influences the response \cite{rasmussen2010gaussian}. The kernel hyperparameters, together with the noise variance $\sigma_n^2$, are typically learned by maximizing the log marginal likelihood of the data, which automatically embodies a trade-off between data fit and model complexity \cite{rasmussen2010gaussian}. Williams and Rasmussen~\cite{williams1995gaussian} alternatively integrate over the hyperparameters using Hybrid Monte Carlo, which corresponds to the fully Bayesian treatment later emphasized for uncertainty-critical settings \cite{riis2022bayesian}.
 
-Efficient and numerically stable implementations of GP inference and hyperparameter learning are essential, because the required linear-algebra operations are cubic in the number of observations and can be ill-conditioned. Rasmussen and Nickisch~\cite{rasmussen2010gpml} describe a modular GP toolbox that separates the choice of mean, covariance, and likelihood functions and relies on Cholesky factorization for stable evaluation of the marginal likelihood and its gradients. Their framework also covers non-Gaussian likelihoods and the corresponding approximate-inference schemes---Laplace's approximation, expectation propagation, and variational Bayes---as well as sparse approximations such as FITC that reduce the computational cost for larger datasets \cite{rasmussen2010gpml}. These tools make GPs practical as the inner model of an optimization loop that refits the surrogate after every observation.
-
-Gaussian processes also extend beyond single scalar targets. Birlutiu et al.~\cite{birlutiu2010multi} employ multi-task GPs to learn user preferences across related tasks, sharing statistical strength between correlated response surfaces through a hierarchical model with a covariance structure that is common to all tasks but modulated per task. In their preference-learning application to audiological (hearing-aid) data, the shared hyperprior is estimated with an expectation--maximization algorithm, so that data from many users improve the model for each individual user and reduce the number of queries required per task \cite{birlutiu2010multi}. Such multi-task and preference-based formulations are relevant whenever several related objectives or users are modeled jointly rather than independently, and they connect the surrogate-modelling view of GPs back to the active-learning goal of minimizing costly queries.
+Efficient and numerically stable implementations of GP inference and hyperparameter learning are essential, because the required linear-algebra operations are cubic in the number of observations and can be ill-conditioned. Rasmussen and Nickisch~\cite{rasmussen2010gaussian} describe a modular GP toolbox that separates the choice of mean, covariance, and likelihood functions and relies on Cholesky factorization for stable evaluation of the marginal likelihood and its gradients.
 
 \subsection{Acquisition Functions for Exploration and Exploitation}
-Acquisition functions operationalize the sequential decision rule in Bayesian optimization. Rather than optimizing the expensive black-box objective $f(x)$ directly, BO maximizes a computationally inexpensive utility function $\alpha(x)$ derived from the current surrogate posterior \cite{snoek2012practical,balandat2020botorch}. The acquisition function therefore determines how the method trades off exploration of uncertain regions against exploitation of regions predicted to yield favorable objective values.
+Acquisition functions operationalize the sequential decision rule in Bayesian optimization. Rather than optimizing the expensive black-box objective $f(x)$ directly, Bayesian optimization maximizes a computationally inexpensive utility function $\alpha(x)$ derived from the current surrogate posterior \cite{snoek2012practical,balandat2019botorch}. The acquisition function therefore determines how Bayesian optimization trades off exploration of regions where the surrogate model is uncertain against exploitation of regions where the model predicts favorable objective values~\cite{shahriari2015taking}.
 
-The \emph{exploration--exploitation trade-off} is the central tension of any goal-driven sampling method. Pure exploitation---always sampling where the posterior mean is most favorable---risks becoming trapped near a local optimum, because it never tests regions the model currently underestimates. Pure exploration---always sampling where the posterior variance is largest---wastes the budget improving the model in regions that are irrelevant to the optimum. A good acquisition function resolves this tension automatically: for a minimization problem it generally favors candidates with low posterior mean $\mu(x)$, high posterior uncertainty $\sigma(x)$, or both, and the relative weight of these two quantities defines where a given criterion sits on the exploration--exploitation spectrum \cite{di2024active,snoek2012practical}. The criteria surveyed below differ precisely in how they combine $\mu(x)$ and $\sigma(x)$, ranging from purely uncertainty-driven rules to improvement-based rules that adapt their exploratory behaviour to the current incumbent.
+The exploration exploitation trade-off is the central tension of any goal-driven sampling method. Pure exploitation risks becoming trapped near a local optimum, because it never tests regions the model currently underestimates. Pure exploration wastes the budget improving the model in regions that are irrelevant to the optimum. A good acquisition function resolves this tension by assigning utility to regions with high posterior uncertainty, favorable model predictions, or both \cite{shahriari2016taking}. For a minimization problem it generally favors candidates with low posterior mean $\mu(x)$, high posterior uncertainty $\sigma(x)$, or both, and the relative weight of these two quantities defines where a given criterion sits on the exploration exploitation spectrum \cite{di2024active,snoek2012practical}. The criteria surveyed below differ precisely in how they combine $\mu(x)$ and $\sigma(x)$, ranging from purely uncertainty-driven rules to improvement-based rules that adapt their exploratory behaviour to the current incumbent.
 
 \subsubsection{Probability of Improvement and Expected Improvement}
-The earliest criteria measure improvement over the best value observed so far. \emph{Probability of improvement} (PI) maximizes only the probability that a candidate surpasses the incumbent $f^{+}$. For a maximization problem it can be written as
+Improvement-based acquisition functions select candidates according to their potential to improve upon a reference value. The probability of improvement (PI) considers only the probability that the latent objective value exceeds a specified target $\tau$. For a maximization problem, Shahriari et al.~\cite{shahriari2015taking} define
 \[
-\alpha_{\mathrm{PI}}(x) = \Phi\!\left(\frac{\mu(x) - f^{+} - \xi}{\sigma(x)}\right),
+\alpha_{\mathrm{PI}}(x;\mathcal{D}_n)
+:=
+\mathbb{P}\!\left[v(x)>\tau\mid\mathcal{D}_n\right]
+=
+\Phi\!\left(
+\frac{\mu_n(x)-\tau}{\sigma_n(x)}
+\right),
 \]
-where $\Phi$ is the standard normal cumulative distribution function and $\xi \geq 0$ is a small margin \cite{jones1998efficient}. Because PI treats a tiny improvement and a large improvement alike, it tends to be overly exploitative and to cluster samples near the current incumbent unless $\xi$ is tuned carefully.
+where $\mu_n(x)$ and $\sigma_n(x)$ are the posterior mean and standard deviation, respectively, and $\Phi$ is the standard normal cumulative distribution function. In practice, the target $\tau$ may be chosen relative to the best value observed so far. Because PI treats all improvements beyond the target equally, it can behave greedily and concentrate evaluations near the current incumbent~\cite{shahriari2015taking}.
 
-\emph{Expected improvement} (EI) remedies this by quantifying the \emph{expected magnitude} of improvement over the best observed value \cite{jones1998efficient}. For noise-free maximization it is defined as
-\[
-\alpha_{\mathrm{EI}}(x) = \mathbb{E}\left[\max\left(f(x)-f^{+},0\right) \mid \mathcal{D}\right],
-\]
-where $f^{+}$ is the best observed objective value. Under the GP posterior this expectation has the closed form
-\[
-\alpha_{\mathrm{EI}}(x) = \left(\mu(x) - f^{+}\right)\Phi(z) + \sigma(x)\,\phi(z), \qquad z = \frac{\mu(x) - f^{+}}{\sigma(x)},
-\]
-with $\phi$ the standard normal density and $\Phi$ its cumulative distribution function \cite{jones1998efficient}. The two terms make the trade-off explicit: the first rewards a favorable posterior mean (exploitation) and the second rewards posterior uncertainty (exploration). EI thus favors candidates that either have a high predicted value or retain enough uncertainty to plausibly improve upon the incumbent, and it balances exploration and exploitation without requiring an explicit trade-off parameter \cite{jones1998efficient}.
+Expected improvement (EI) remedies this by quantifying the expected magnitude of improvement over the best observed value \cite{jones1998efficient}. For noise-free maximization under the GP posterior it is defined as
 
-\subsubsection{Upper Confidence Bound}
-The Gaussian-process upper confidence bound (GP-UCB) combines posterior mean and uncertainty in a single decision criterion. For a maximization problem it is commonly defined as
 \[
-\alpha_{\mathrm{UCB},t}(x) = \mu_{t-1}(x) + \sqrt{\beta_t}\,\sigma_{t-1}(x),
+\alpha_{\mathrm{EI}}(x)
+=
+\underbrace{
+\left(\mu(x)-f^{+}\right)\Phi(z)
+}_{\text{exploitation}}
++
+\underbrace{
+\sigma(x)\,\phi(z)
+}_{\text{exploration}},
+\qquad
+z=
+\frac{\mu(x)-f^{+}}{\sigma(x)}.
 \]
-where $\mu_{t-1}(x)$ and $\sigma_{t-1}(x)$ denote the GP posterior mean and standard deviation after $t-1$ observations. The parameter $\beta_t$ controls the exploration--exploitation trade-off: increasing $\beta_t$ assigns greater weight to posterior uncertainty and thereby promotes exploration of insufficiently observed regions \cite{srinivas2009gaussian}. Srinivas et al.~\cite{srinivas2009gaussian} analyze GP-UCB in the GP-bandit setting and prove that, with a suitable schedule for $\beta_t$, the \emph{cumulative regret} grows only sublinearly in the number of iterations, so that the average regret vanishes and the procedure is guaranteed to converge toward the optimum. Their bounds link the achievable regret to the \emph{maximum information gain} of the kernel, which quantifies how much can be learned about $f$ from a finite number of observations and connects the optimization guarantee back to the information-theoretic view of active learning \cite{srinivas2009gaussian}. For minimization, the criterion is equivalently negated or formulated as a lower confidence bound. Unlike EI, GP-UCB exposes its exploration strength explicitly through $\beta_t$, which makes it a convenient building block for schedules that deliberately emphasize exploration in early phases.
+where $\phi$ denotes the standard normal density and $\Phi$ its cumulative distribution function~\cite{jones1998efficient}. The first term is primarily associated with exploitation, as it rewards candidates whose posterior mean exceeds the incumbent value $f^{+}$. The second term captures the exploration effect of posterior uncertainty, since it increases with $\sigma(x)$ whenever an improvement remains plausible. The two terms are coupled through the standardized improvement $z$. Consequently, EI favors candidates that either have a high predicted value or retain sufficient uncertainty to plausibly improve upon the incumbent. It therefore provides an implicit exploration--exploitation trade-off without requiring a separate tunable trade-off parameter~\cite{jones1998efficient}.
 
 \subsubsection{Expected Improvement under Noise}
-When observations are noisy, the best latent function value among previously evaluated configurations is not known exactly. Using the best observed outcome or a plug-in estimate $f^{+}$ can then lead to overly exploitative and potentially unstable decisions, particularly when the observation noise is large, because a single lucky measurement may be mistaken for a genuine optimum \cite{letham2019constrained}. \emph{Noisy expected improvement} (NEI) addresses this by treating the latent function values at the previously evaluated points as uncertain and integrating the improvement utility over their joint posterior:
+When observations are noisy, the latent function value at the currently best observed configuration is not known exactly. Replacing this unknown incumbent with the best noisy observation or with a plug-in estimate based on the GP posterior mean can lead to unreliable decisions, particularly when the observation noise is large. In such settings, the incumbent estimate may be strongly affected by observation noise, and plug-in EI can exhibit overly exploitative behavior or insufficient exploration \cite{letham2019constrained}. Noisy expected improvement (NEI) addresses this issue by treating the latent function values at the previously evaluated configurations as uncertain and integrating the improvement utility over their joint posterior. For a maximization problem, let $\mathbf{f}=(f_1,\ldots,f_n)$ denote the latent function values at the observed configurations and define
 \[
-\alpha_{\mathrm{NEI}}(x) = \int \alpha_{\mathrm{EI}}\!\left(x \mid f^{+} = \max_i f_i\right) \, p\!\left(\mathbf{f} \mid \mathcal{D}\right)\, d\mathbf{f},
+f^{+}(\mathbf{f}) := \max_{i=1,\ldots,n} f_i.
 \]
-where $\mathbf{f}$ collects the latent values at the observed configurations and the incumbent is itself a random quantity drawn from the posterior \cite{letham2019constrained}. Marginalizing over this uncertainty avoids committing to a single, possibly noisy incumbent and yields more robust decisions. NEI is therefore well suited to noisy settings such as behavioral measurements, where individual observations may exhibit non-negligible variability; the integral is generally intractable and is estimated by Monte Carlo sampling, which connects directly to the estimators discussed next \cite{letham2019constrained,balandat2020botorch}.
+The NEI acquisition function is then
+\[
+\alpha_{\mathrm{NEI}}(x\mid\mathcal{D})
+=
+\int
+\alpha_{\mathrm{EI}}\!\left(
+x\mid f^{+}(\mathbf{f})
+\right)
+p(\mathbf{f}\mid\mathcal{D})\,d\mathbf{f}.
+\]
+Thus, the incumbent is not fixed to a single noisy estimate; instead, it is
+sampled jointly with the latent function values from the posterior
+distribution \cite{letham2019constrained}. Marginalizing over this uncertainty
+avoids committing to a potentially misleading incumbent and yields a more
+robust estimate of the expected improvement. The resulting integral generally
+has no analytic closed form and is therefore approximated using Monte Carlo or
+quasi-Monte Carlo sampling \cite{letham2019constrained,balandat2019botorch}.
 
 \subsubsection{Monte Carlo Acquisition Functions}
-For many modern criteria the acquisition integral has no closed form and is instead estimated by Monte Carlo (MC) sampling from the surrogate posterior. Wilson et al.~\cite{wilson2018maximizing} formalize this view, showing that a broad class of acquisition functions can be written as an expectation of a utility over posterior function values and estimated by drawing samples from the joint GP posterior at the candidate points. Concretely, an MC acquisition function takes the form
+For many modern acquisition criteria, the relevant posterior expectation has no closed-form expression and is therefore approximated using Monte Carlo (MC) samples from the surrogate posterior. Wilson et al. \cite{wilson2018maximizing} show that a broad class of acquisition functions can be represented as the expectation of a utility function evaluated at posterior function values. For a candidate set $X$, a MC acquisition function can be written as
 \[
-\alpha_{\mathrm{MC}}(x) \approx \frac{1}{N}\sum_{i=1}^{N} u\!\left(\boldsymbol{\xi}^{(i)}(x)\right), \qquad \boldsymbol{\xi}^{(i)}(x) \sim p\!\left(f(x) \mid \mathcal{D}\right),
+\alpha_{\mathrm{MC}}(X)
+\approx
+\frac{1}{N}\sum_{i=1}^{N}
+u\!\left(\mathbf f^{(i)}(X)\right),
+\qquad
+\mathbf f^{(i)}(X)
+\sim
+p\!\left(\mathbf f(X)\mid\mathcal{D}\right),
 \]
-where $u$ is the utility (for example the improvement over the incumbent) and the samples $\boldsymbol{\xi}^{(i)}$ are generated through the reparameterization trick so that $\alpha_{\mathrm{MC}}$ is differentiable with respect to $x$ and can be optimized by gradient ascent \cite{wilson2018maximizing}. Wilson et al.~\cite{wilson2018maximizing} further show that these estimators extend naturally to selecting a batch of $q$ candidates jointly, and that the resulting batch objective is submodular, so that a simple greedy maximization enjoys strong approximation guarantees. Building on this, BoTorch provides a Monte Carlo formulation of parallel noisy expected improvement, denoted qNEI, that evaluates improvement jointly over posterior samples at candidate and baseline points and thereby avoids specifying a single deterministic best observed value \cite{balandat2020botorch}. The general qNEI formulation supports batches of size $q$; setting $q=1$ recovers the purely sequential case while retaining the same estimator.
+where $u$ denotes the utility function, such as an improvement over an
+incumbent. For a Gaussian-process posterior, the samples can be generated
+using the reparameterization
+\[
+\mathbf f^{(i)}(X)
+=
+\boldsymbol{\mu}(X)
++
+L(X)\boldsymbol{\varepsilon}^{(i)},
+\qquad
+\boldsymbol{\varepsilon}^{(i)}\sim\mathcal{N}(\mathbf{0},I),
+\]
+with $L(X)L(X)^\top=\boldsymbol{\Sigma}(X)$. This representation makes the sample paths differentiable with respect to $X$ under suitable regularity conditions, allowing the MC acquisition function to be optimized using gradient-based methods \cite{wilson2018maximizing,balandat2019botorch}.
+
+For the class of myopic maximal acquisition functions considered by Wilson et al., the resulting batch objective is submodular. Consequently, greedy maximization admits near-optimality guarantees under the usual assumptions for normalized monotone submodular functions~\cite{wilson2018maximizing}.
+
+Building on this Monte Carlo framework, BoTorch implements parallel noisy expected improvement (qNEI). For a batch $X=(x_1,\ldots,x_q)$ and a set of baseline points $X_{\mathrm{base}}$, qNEI evaluates the expected improvement jointly under posterior samples at the new and baseline points:
+\[
+\alpha_{\mathrm{qNEI}}(X)
+=
+\mathbb{E}\left[
+\left(
+\max_{x\in X} f(x)
+-
+\max_{x'\in X_{\mathrm{base}}}f(x')
+\right)_+
+\middle|\mathcal{D}
+\right].
+\]
+Thus, qNEI avoids committing to a single deterministic incumbent and
+incorporates uncertainty in the latent objective values through the joint
+posterior \cite{balandat2019botorch}.
 
 \subsubsection{Numerically Stable Improvement: LogEI and qLogNEI}
-A practical difficulty of these improvement-based estimators is that their acquisition values vanish numerically across large regions of the search space: whenever no posterior sample exceeds the incumbent, the sampled improvement utility is exactly zero and its gradient carries no information, an effect that worsens as the number of observations and the dimensionality of the search space grow \cite{ament2023unexpected}. Ament et al.~\cite{ament2023unexpected} attribute the inconsistent and frequently sub-optimal performance reported for EI and its variants---including the parallel and noisy forms---to this optimization pathology rather than to the criteria themselves, and propose \emph{LogEI}, a family of reformulations whose members share the same (or approximately the same) optima as their canonical counterparts but are substantially easier to optimize. By operating in log-space and replacing the hard $\max$ and indicator operations with numerically stable smooth surrogates, these reformulations retain informative gradients precisely where the canonical expressions underflow to zero \cite{ament2023unexpected}. The family includes a reformulation of parallel noisy expected improvement, \emph{qLogNEI}, which targets the same decisions as qNEI while yielding markedly more reliable inner optimization; for this reason qLogNEI is preferred over the canonical qNEI in this work \cite{ament2023unexpected}.
+A practical difficulty of improvement-based acquisition functions is that their values and gradients can become numerically negligible over large regions of the search space. For Monte Carlo criteria, the sample-level improvement is zero whenever the sampled candidate batch does not improve upon the sampled incumbent. If this occurs for most or all posterior samples, the resulting Monte Carlo average and its gradient become numerically uninformative. This problem becomes more pronounced as the number of observations, the dimension of the search space, or the number of constraints increases \cite{ament2023unexpected}.
+
+Ament et al.~\cite{ament2023unexpected} attribute the inconsistent and often suboptimal empirical performance of EI and its variants, including constrained, parallel, and noisy forms, in part to these numerical optimization pathologies. They propose LogEI, a family of reformulations whose members have identical or approximately equal optima to their canonical counterparts while being substantially easier to optimize numerically. The reformulations evaluate positive improvement quantities in log-space and use stable smooth approximations for operations such as the sample-level maximum and constraint indicators. This preserves informative gradients in regions where the canonical implementations become numerically zero \cite{ament2023unexpected}.
+
+The family also includes qLogNEI, a numerically stable reformulation of parallel noisy expected improvement. qLogNEI smooths the sample-level improvement and feasibility operations and evaluates the resulting positive quantities in log-space. It therefore approximates the same underlying decision criterion as qNEI while generally providing more informative gradients and more reliable inner optimization \cite{ament2023unexpected}. For this reason, qLogNEI is used instead of canonical qNEI in this work.
+
+\subsubsection{Final Recommendation via the Posterior Mean}
+The acquisition functions above govern where to \emph{sample} next and therefore deliberately reward posterior uncertainty in order to explore regions the surrogate model has not yet resolved. Once the evaluation budget is exhausted, however, the procedure must return a single \emph{final recommendation}: the configuration reported as the estimated optimum. For this concluding decision exploration is no longer beneficial, because the reported point should reflect predicted performance rather than informativeness \cite{shahriari2015taking}. Continuing to use an exploration-driven acquisition function at this stage would risk recommending a candidate that is attractive only because it lies in an under-explored region, for example near the boundary of the search space, rather than because the model predicts it to perform well.
+
+A standard choice for the final recommendation is therefore the minimizer of the posterior mean (equivalently, the maximizer for a maximization objective),
+\[
+x^{\star}
+=
+\arg\min_{x\in\mathcal{X}}
+\mu(x),
+\]
+which corresponds to pure exploitation of the surrogate model: it selects the configuration that the fitted Gaussian process predicts to be best in expectation, ignoring the predictive uncertainty $\sigma(x)$ that the acquisition functions above deliberately reward \cite{shahriari2015taking,di2024active}. Because $\mu(x)$ is the smoothed posterior mean rather than an individual noisy observation, this criterion integrates information across all observed data and is robust to the noise in single evaluations, in contrast to simply returning the best observed point. In terms of the exploration--exploitation trade-off, the acquisition functions used during the optimization phase combine $\mu(x)$ and $\sigma(x)$, whereas the final recommendation relies on $\mu(x)$ alone. In this work, this posterior-mean recommendation is used to determine the final transfer-function parameters once the optimization phase is complete.
 
 \subsection{BoTorch and PyTorch-based Bayesian Optimization}
-\label{subsec:botorch-pytorch}
-BoTorch is a modular BO framework built on PyTorch and designed specifically around Monte Carlo acquisition functions, automatic differentiation, and hardware acceleration \cite{balandat2020botorch}. Its design reflects the observation that most modern acquisition functions are expectations estimated by sampling, and that such estimators can be optimized efficiently if the whole computational graph is differentiable. BoTorch realizes this through a \emph{sample average approximation}: a fixed set of base samples is drawn once and reused, turning the otherwise stochastic acquisition objective into a deterministic, differentiable function that can be maximized with quasi-Newton methods and for which Balandat et al.~\cite{balandat2020botorch} provide convergence guarantees. Its practical value rests on three key properties:
+BoTorch is a modular Bayesian optimization framework built on PyTorch that provides particularly strong support for Monte Carlo acquisition functions, automatic differentiation, and hardware acceleration \cite{balandat2020botorch}. Its design reflects the fact that many modern acquisition functions can be expressed as expectations over posterior samples. Such estimators can be optimized efficiently when the complete computational graph is differentiable. BoTorch realizes this through sample average approximation (SAA). A fixed set of base samples is drawn once and reused during acquisition-function optimization, turning the Monte Carlo estimator into a deterministic objective conditional on those samples. This objective can then be optimized with deterministic gradient-based methods, including quasi-Newton methods such as L-BFGS-B \cite{balandat2019botorch}.
+
+Under stated regularity conditions, Balandat et al. \cite{balandat2019botorch} derive convergence results for the SAA estimators and their optimizers. The underlying differentiability of reparameterized Monte Carlo acquisition functions is also analyzed by Wilson et al.~\cite{wilson2018maximizing}. In practice, BoTorch provides three particularly relevant capabilities:
 \begin{itemize}
-\item unified model and acquisition abstractions that make surrogate models and acquisition functions interchangeable components,
-\item gradient-based optimization even for complex $q$-acquisition functions, enabled by auto-differentiation through the posterior and the MC samples, and
-\item strong support for parallel and noisy optimization workflows, together with variance-reduction techniques and fast, differentiable sampling from GP posteriors \cite{balandat2020botorch,wilson2018maximizing}.
+\item modular abstractions for surrogate models, posterior samplers, objectives,
+and acquisition functions;
+\item gradient-based optimization of complex batch acquisition functions,
+enabled by automatic differentiation through reparameterized posterior
+samples; and
+\item support for parallel, asynchronous, noisy, and constrained optimization,
+together with randomized quasi-Monte Carlo sampling and efficient batched
+posterior evaluation
+~\cite{balandat2019botorch,wilson2018maximizing}.
 \end{itemize}
-These properties make it possible to compose surrogate models and acquisition strategies flexibly and to switch between criteria---for example between exploration-oriented UCB and improvement-based EI or NEI---within the same framework, which is exactly what phase-dependent schedules require \cite{balandat2020botorch,wilson2018maximizing}.
-
-\subsection{Sequential and Phase-Dependent Optimization Strategies}
-\label{subsec:sequential-bo}
-In a sequential BO loop, each newly obtained observation is incorporated into the GP posterior before the next single configuration is selected; this differs from parallel BO, in which several candidates are evaluated at once, but follows the same surrogate-model and acquisition-optimization principle \cite{balandat2020botorch}. Sequential schemes are appropriate whenever evaluations are costly and later queries can exploit information gathered earlier, so that the model is maximally informed before every decision. The trade-off is throughput: parallel and batch schemes proposed through the Monte Carlo $q$-acquisition functions above evaluate several candidates concurrently at the cost of deciding with a slightly less current model \cite{wilson2018maximizing,balandat2020botorch}.
-
-A common design pattern is to make the acquisition strategy phase-dependent \cite{di2024active,snoek2012practical}. An initial \emph{design of experiments}---typically a space-filling set of quasi-random samples such as a Sobol or Latin-hypercube design---first provides a stable basis for fitting the GP before any acquisition function is trusted, since a poorly initialized surrogate can otherwise mislead early decisions \cite{snoek2012practical}. Subsequent iterations then emphasize exploration---for instance through an uncertainty-weighted UCB criterion with a large $\beta_t$---to cover the response surface broadly, before the procedure shifts toward improvement-based, noise-aware criteria such as NEI to refine the most promising regions under measurement uncertainty \cite{srinivas2009gaussian,letham2019constrained,balandat2020botorch}. This progression mirrors the exploration--exploitation trade-off over time: broad exploration is most valuable when the model is still uncertain everywhere, whereas targeted exploitation becomes preferable once the promising regions have been localized \cite{di2024active}. Such schedules are methodological design choices for allocating a limited evaluation budget rather than claims of universal optimality.
-
-\subsection{Summary}
-The methods reviewed in this section share a single organizing idea: when evaluations are expensive, a probabilistic surrogate model and a selection criterion are combined to decide, adaptively, where to sample next \cite{di2024active}. Supervised learning supplies the regression foundation \cite{nasteski2017supervised}; active learning turns the choice of training points into part of the algorithm and ties it to model uncertainty \cite{settles.tr09,riis2022bayesian}; Gaussian processes provide a surrogate whose calibrated posterior mean and variance are exactly the ingredients needed by the decision rule \cite{williams1996gaussian,rasmussen2010gpml}; and acquisition functions---from EI and GP-UCB to their noise-aware, Monte Carlo, and numerically stable (LogEI) generalizations---encode how the exploration--exploitation trade-off is resolved at each step \cite{jones1998efficient,srinivas2009gaussian,letham2019constrained,wilson2018maximizing,ament2023unexpected}. Frameworks such as BoTorch make these components composable and differentiable, so that sequential, parallel, and phase-dependent strategies can be assembled from the same building blocks \cite{balandat2020botorch}. This shared foundation is what makes Bayesian optimization a principled tool for sample-efficient search whenever each observation is costly to obtain.
