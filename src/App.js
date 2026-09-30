@@ -1239,8 +1239,7 @@ function App() {
           </p>
 
           <p>
-            If the browser leaves full-screen mode or the window loses focus, please continue
-            quickly from the shown screen since the study needs to be done in one sitting.
+            The study needs to be done in one sitting.
           </p>
 
           <p style={{ marginBottom: 4 }}><strong>Data recorded:</strong></p>

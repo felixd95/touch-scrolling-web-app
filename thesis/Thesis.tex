@@ -13,6 +13,12 @@
     \usepackage{setspace} % For line spacing
     %\usepackage{natbib} % For author-year citations
     \usepackage[square,numbers]{natbib}
+    \usepackage{titlesec} % Custom chapter heading format
+
+    % Keep chapter numbering (shown in the table of contents) but drop the
+    % "Chapter N" label line above the heading; the number stays inline as "N Title".
+    \titleformat{\chapter}[hang]{\normalfont\huge\bfseries}{\thechapter}{1em}{}
+    \titlespacing*{\chapter}{0pt}{0pt}{20pt}
 
     % Page setup
     \geometry{a4paper, margin=1in}
@@ -44,7 +50,7 @@
     {\huge Master Thesis Computer Science\\\\[2cm]}
     {\Large\bf Active learning for finding transfer functions for touch devices\\\\[1.5cm]}
     {Felix Dietrich}\\\\[0.5cm]
-    \today m\\\\[3cm]
+    \today\\\\[3cm]
     {\small\bf Reviewers}\\\\[0.5cm]
     \parbox{7cm}{\begin{center}{\large Name First Reviewer}\\\\
     (Bioinformatics)\\\\
@@ -66,7 +72,7 @@
     \textbf{Dietrich, Felix:}\\\\
     \emph{Title of thesis}\\\\ Master Thesis Computer Science\\\\
     University of T\"ubingen\\\\
-    Thesis period: 15.04.2026 -- 15.10.2026
+    Thesis period: 01.05.2026 -- 31.10.2026
     \end{minipage}
     \newpage
 
@@ -95,12 +101,6 @@
 
     %%%%%%%%%%%%%%%%%%
     \chapter{Introduction}
-
-    \section{Context and Problem Description}
-
-    \section{Thesis Problem and Results}
-
-    \section*{Thesis Structure}
 
     %%%%%%%%%%%%%%%%%%
     \chapter{Related Work}
@@ -688,7 +688,7 @@
     \section{Data Collection and Recorded Metrics}
     \label{sec:data-collection}
 
-    In addition to the timing data used by the optimizer, several gesture-level quantities are computed in real time during each trial and persisted to the backend together with the trial. For every trial the system stores the total elapsed time until the correct entry is tapped (\texttt{timeMs}), the net scrolled distance (\texttt{scrollDistance}), a completion timestamp, the number of fling gestures (\texttt{flickCount}) and of direction reversals or ``switchbacks'' (\texttt{switchbackCount}), and the overshoot behaviour relative to the target (whether it was overshot, how often, and the maximum overshoot distance in pixels). For each individual fling gesture within a trial, a nested record additionally captures its direction, path distance (in pixels and in list items), duration, and average and maximum speed. Of these measures, only the completion time enters the block-level optimization objective of Equation~\eqref{eq:sd-scalar-objective}; the remaining quantities are retained for the behavioural analysis.
+    In addition to the timing data used by the optimizer, several gesture-level quantities are computed in real time during each trial for on-screen feedback and threshold-logic purposes, including swipe direction, per-gesture distance and duration, average and maximum swipe speed, the number of direction reversals (``switchbacks''/clutches) within a trial, and whether and by how far the target was overshot. Of these, the total elapsed time until the correct entry is tapped (\texttt{timeMs}), the net scrolled distance during the trial (\texttt{scrollDistance}), and a completion timestamp are recorded and persisted to the backend per trial; the completion time forms the basis of the block-level optimization objective of Equation~\eqref{eq:sd-scalar-objective}.
 
     Trial data belonging to one block are collected locally in the browser and only submitted to the backend once all 10 trials of a block are complete, at which point they are appended atomically to the participant's stored trial history together with the transfer-function parameter set that was active during that block. After a block has been submitted, the list is covered by a waiting overlay showing a circular progress indicator until a new parameter set has been generated, either by random sampling during the warm-up phase, by the Gaussian-process optimizer during the optimization phase, or by loading the stored recommendation or the Android defaults for the two final blocks. The overlay is lifted automatically once the new transfer function is active, at which point the next block begins. This creates a clear separation between successive blocks and ensures that a new transfer function is only introduced once the backend has produced a validated parameter set.
 
