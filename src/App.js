@@ -1196,7 +1196,12 @@ function App() {
           <ul style={{ marginTop: 4, color: '#333' }}>
             <li>Prolific ID: used to identify the submission and link records of the task</li>
             <li>Gender, smartphone model, handedness</li>
-            <li>timestamps, touch/pointer movements, tap coordinates, and task-condition information</li> 
+            <li>
+              Interaction data for each trial: timestamps, completion times, touch movements and
+              tap coordinates, and derived scrolling measures such as gesture speed, distance and
+              direction, direction reversals, and target overshoots
+            </li>
+            <li>Task-condition information (the scrolling settings active during each trial)</li>
           </ul>
 
           <p>

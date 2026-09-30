@@ -864,6 +864,21 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
           scrollDistance: Number(attempt?.scrollDistance ?? 0),
           flickCount: Number(attempt?.flickCount ?? 0),
           switchbackCount: Number(attempt?.switchbackCount ?? 0),
+          overshootCount: Number(attempt?.overshootCount ?? 0),
+          maxOvershootDistancePx: Number(attempt?.maxOvershootDistancePx ?? 0),
+          didOvershoot: Boolean(attempt?.didOvershoot),
+          flicks: Array.isArray(attempt?.flicks)
+            ? attempt.flicks.map((flick) => ({
+                direction: flick?.direction ?? 'none',
+                distancePx: Number(flick?.distancePx ?? 0),
+                durationMs: Number(flick?.durationMs ?? 0),
+                avgSpeedPxMs: Number(flick?.avgSpeedPxMs ?? 0),
+                maxSpeedPxMs: Number(flick?.maxSpeedPxMs ?? 0),
+                distanceItems: Number.isFinite(Number(flick?.distanceItems))
+                  ? Number(flick.distanceItems)
+                  : null,
+              }))
+            : [],
           timestamp: attempt?.timestamp,
         })),
       };
@@ -1394,6 +1409,7 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
         overshootCount: trialMetrics ? trialMetrics.overshootCount : 0,
         maxOvershootDistancePx: trialMetrics ? trialMetrics.maxOvershootDistancePx : 0,
         didOvershoot: trialMetrics ? trialMetrics.didOvershoot : false,
+        flicks: trialMetrics && Array.isArray(trialMetrics.flicks) ? trialMetrics.flicks : [],
       };
 
       const nextPendingBlockAttempts = [...pendingBlockAttempts, currentAttempt];
