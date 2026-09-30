@@ -338,7 +338,11 @@ function ParticipantsList({ onBack }) {
         block.parameterSet = attempt.blockParameterSet;
       }
 
+      // Preserve all recorded per-attempt fields (overshoot, flicks, ...); only
+      // the derived flat-only keys are stripped and the core fields normalized.
+      const { blockIndex: _blockIndex, blockParameterSet: _blockParameterSet, ...attemptRest } = attempt || {};
       block.attempts.push({
+        ...attemptRest,
         attemptInBlock,
         targetNumber: Number.isFinite(Number(attempt?.targetNumber)) ? Math.trunc(Number(attempt.targetNumber)) : null,
         timeMs: Number.isFinite(Number(attempt?.timeMs)) ? Number(attempt.timeMs) : attempt?.timeMs,
@@ -608,6 +612,39 @@ function ParticipantsList({ onBack }) {
     }
   };
 
+  const handleDownloadAllSeparateFiles = async () => {
+    setDownloading(true);
+    setError('');
+    try {
+      let sourceItems = items;
+      try {
+        const freshItems = await fetchParticipantsFromBackend();
+        setItems(freshItems);
+        sourceItems = freshItems;
+      } catch (refreshErr) {
+        console.warn('Teilnehmerdaten konnten nicht aktualisiert werden; verwende bereits geladene Daten.', refreshErr);
+      }
+
+      const numberMap = buildParticipantNumberMap(sourceItems);
+      const timestamp = new Date().toISOString().split('T')[0];
+
+      for (const participant of sourceItems) {
+        const participantNumber = numberMap.get(participant.id);
+        const namePart = sanitizeForFilename(participant.prolificPid);
+        const numberPart = participantNumber ? `p${participantNumber}` : sanitizeForFilename(participant.id);
+        const filenameParts = ['touch-scrolling-data', numberPart, namePart, timestamp].filter(Boolean);
+        triggerJsonDownload(buildParticipantExport(participant), `${filenameParts.join('-')}.json`);
+        // Small gap so the browser processes each download instead of blocking the batch.
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Fehler beim Download der Einzeldateien');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const handleDownloadParticipant = async (participant) => {
     if (!participant?.id) return;
     setDownloadingParticipantId(participant.id);
@@ -681,6 +718,14 @@ function ParticipantsList({ onBack }) {
           style={{ background: '#0066cc' }}
         >
           {downloading ? 'Download laeuft...' : 'Download Daten (JSON)'}
+        </button>
+        <button
+          className="nav-button"
+          onClick={handleDownloadAllSeparateFiles}
+          disabled={loading || downloading || items.length === 0}
+          style={{ background: '#0066cc' }}
+        >
+          {downloading ? 'Download laeuft...' : 'Download alle (einzelne JSONs)'}
         </button>
       </div>
       {loading && <p>Lade...</p>}
@@ -930,6 +975,9 @@ function ParticipantsList({ onBack }) {
                                       <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Target</th>
                                       <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Zeit (ms)</th>
                                       <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Scroll-Distanz</th>
+                                      <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Flicks</th>
+                                      <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Switchbacks</th>
+                                      <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Overshoot</th>
                                       <th style={{ textAlign: 'left', padding: 8, background: '#eef4f8' }}>Timestamp</th>
                                     </tr>
                                   </thead>
@@ -951,6 +999,9 @@ function ParticipantsList({ onBack }) {
                                           <td style={{ padding: 8 }}>{attempt?.targetNumber ?? '-'}</td>
                                           <td style={{ padding: 8 }}>{attempt?.timeMs ?? '-'}</td>
                                           <td style={{ padding: 8 }}>{attempt?.scrollDistance ?? '-'}</td>
+                                          <td style={{ padding: 8 }}>{attempt?.flickCount ?? '-'}</td>
+                                          <td style={{ padding: 8 }}>{attempt?.switchbackCount ?? '-'}</td>
+                                          <td style={{ padding: 8 }}>{attempt?.didOvershoot ? `${attempt?.overshootCount ?? 0}\u00d7 / ${Math.round(Number(attempt?.maxOvershootDistancePx ?? 0))}px` : '\u2013'}</td>
                                           <td style={{ padding: 8 }}>{attempt?.timestamp ?? '-'}</td>
                                         </tr>
                                       );
