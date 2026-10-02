@@ -1,0 +1,4953 @@
+{
+  "participantId": "f44d6723-0f84-4013-a5d3-b0873e82dc16",
+  "prolificPid": "Henze",
+  "gender": "male",
+  "smartphone": "iPhone 17 Pro",
+  "handedness": "right",
+  "group": 1,
+  "currentParameterSet": {
+    "generatedFromAttemptCount": 0,
+    "completedBlockCount": 0,
+    "decelerationRate": 9.5458,
+    "source": "random-initial-parameter-set",
+    "inflexion": 0.07,
+    "scrollFriction": 0.013,
+    "blockSize": 10,
+    "status": "ready",
+    "flickDistanceThreshold": 6
+  },
+  "nextParameterSet": {
+    "generatedFromAttemptCount": 40,
+    "generation": {
+      "phase": "adaptive-qnei",
+      "generator": "botorch-qlognei-single-objective-total-normalized-time",
+      "source": "terraform-appsync-sagemaker-active-learning",
+      "strategy": "qLogNoisyExpectedImprovement"
+    },
+    "completedBlockCount": 4,
+    "decelerationRate": 3.4625,
+    "inflexion": 1.24,
+    "source": "terraform-appsync-sagemaker-active-learning",
+    "scrollFriction": 0.135,
+    "blockSize": 10,
+    "status": "ready",
+    "flickDistanceThreshold": 6
+  },
+  "finalParameterSet": null,
+  "parameterBlockMetrics": [
+    {
+      "generation": {
+        "phase": "adaptive-qnei",
+        "generator": "botorch-qlognei-single-objective-total-normalized-time",
+        "strategy": "qLogNoisyExpectedImprovement"
+      },
+      "generatedFromAttemptCount": 30,
+      "testedParameterSet": {
+        "decelerationRate": 9.5458,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013
+      },
+      "blockNumber": 3,
+      "runsInBlock": 3,
+      "generatedAt": "2026-09-30T15:34:20.127107+00:00",
+      "sagemakerLatencyMs": 2683,
+      "model": {
+        "predictedImprovementVsBestObserved": -18.28741174476704,
+        "totalBlockObservations": 3,
+        "predictedCandidateNormalizedTime": 281.36637999873534,
+        "bestObservedNormalizedTime": 263.0789682539683,
+        "trainingRowCount": 3,
+        "acquisitionValue": 2.496750725341628,
+        "candidateUncertaintyStd": 50.43496980526141,
+        "objectiveType": "total_normalized_time"
+      },
+      "completionTimeMs": {
+        "std": 38.63506193016833,
+        "min": 263.0789682539683,
+        "median": 278.51719576719574,
+        "max": 351.65753968253966,
+        "mean": 297.75123456790124,
+        "count": 3
+      },
+      "trainingObservationCount": 3,
+      "generatedParameterSet": {
+        "decelerationRate": 4.3577,
+        "inflexion": 1.85,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "testedParameterSet": {
+        "decelerationRate": 9.5458,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013
+      },
+      "generation": {
+        "phase": "adaptive-qnei",
+        "generator": "botorch-qlognei-single-objective-total-normalized-time",
+        "strategy": "qLogNoisyExpectedImprovement"
+      },
+      "generatedFromAttemptCount": 40,
+      "blockNumber": 4,
+      "runsInBlock": 4,
+      "generatedAt": "2026-09-30T15:35:01.303568+00:00",
+      "model": {
+        "predictedImprovementVsBestObserved": -12.574701171633137,
+        "totalBlockObservations": 4,
+        "predictedCandidateNormalizedTime": 275.65366942560144,
+        "trainingRowCount": 4,
+        "bestObservedNormalizedTime": 263.0789682539683,
+        "acquisitionValue": 2.025975552781361,
+        "candidateUncertaintyStd": 36.68851253523703,
+        "objectiveType": "total_normalized_time"
+      },
+      "sagemakerLatencyMs": 1240.8,
+      "completionTimeMs": {
+        "std": 36.14744321546152,
+        "min": 263.0789682539683,
+        "median": 272.3381547619048,
+        "max": 351.65753968253966,
+        "mean": 289.85320436507936,
+        "count": 4
+      },
+      "trainingObservationCount": 4,
+      "generatedParameterSet": {
+        "decelerationRate": 3.4625,
+        "inflexion": 1.24,
+        "scrollFriction": 0.135
+      }
+    }
+  ],
+  "attemptBlocks": [
+    {
+      "runNumber": 1,
+      "parameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      },
+      "attempts": [
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 60,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 5.599541673319527,
+              "distanceItems": 10.642857233683268,
+              "avgSpeedPxMs": 3.2008593203136253,
+              "distancePx": 510.8571472167969,
+              "durationMs": 159.59999990463257,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 14.071428378423056,
+              "maxSpeedPxMs": 5.767197136420645,
+              "distancePx": 675.4285621643066,
+              "avgSpeedPxMs": 4.338012604204145,
+              "durationMs": 155.69999992847443,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.571428775787354,
+              "maxSpeedPxMs": 6.4,
+              "distancePx": 459.42858123779297,
+              "avgSpeedPxMs": 3.2468450970868763,
+              "durationMs": 141.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 8.888895670572916,
+              "distanceItems": 4.555555979410808,
+              "distancePx": 218.66668701171875,
+              "avgSpeedPxMs": 1.2403101932550276,
+              "durationMs": 176.29999995231628,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 2381.434622915529,
+          "attemptInBlock": 1,
+          "timestamp": "2026-09-30T15:31:54.874Z",
+          "timeMs": 2962
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 270,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 12,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 7.394956493519152,
+              "distanceItems": 15.230158726374308,
+              "avgSpeedPxMs": 4.956255043159097,
+              "distancePx": 731.0476188659668,
+              "durationMs": 147.5,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 14.380954186121622,
+              "maxSpeedPxMs": 9.10782644607376,
+              "avgSpeedPxMs": 4.881794911373929,
+              "distancePx": 690.2858009338379,
+              "durationMs": 141.40000009536743,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 16.960317452748615,
+              "maxSpeedPxMs": 9.22547380163281,
+              "avgSpeedPxMs": 4.892399265916932,
+              "distancePx": 814.0952377319336,
+              "durationMs": 166.39999997615814,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 13.809524536132812,
+              "distanceItems": 15.666666587193808,
+              "avgSpeedPxMs": 5.780169070311244,
+              "distancePx": 751.9999961853027,
+              "durationMs": 130.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 16.6984125773112,
+              "maxSpeedPxMs": 8.215720901809377,
+              "distancePx": 801.5238037109375,
+              "avgSpeedPxMs": 5.037861744756917,
+              "durationMs": 159.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 15.952380816141764,
+              "maxSpeedPxMs": 7.956599006038977,
+              "distancePx": 765.7142791748047,
+              "avgSpeedPxMs": 5.081050295542334,
+              "durationMs": 150.69999992847443,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 7.528344023473558,
+              "distanceItems": 15.40476163228353,
+              "avgSpeedPxMs": 5.054193838623459,
+              "distancePx": 739.4285583496094,
+              "durationMs": 146.29999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 15.158731068174044,
+              "maxSpeedPxMs": 9.576721127982132,
+              "avgSpeedPxMs": 5.081138908071128,
+              "distancePx": 727.6190912723541,
+              "durationMs": 143.19999992847443,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 7.340303703980889,
+              "distanceItems": 15.222222407658895,
+              "distancePx": 730.666675567627,
+              "avgSpeedPxMs": 5.245274050197097,
+              "durationMs": 139.30000007152557,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 8.487040871267201,
+              "distanceItems": 15.103175004323324,
+              "distancePx": 724.9524002075195,
+              "avgSpeedPxMs": 5.076697477902002,
+              "durationMs": 142.80000007152557,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 9.15161491113105,
+              "distanceItems": 15.325397253036499,
+              "distancePx": 735.619068145752,
+              "avgSpeedPxMs": 4.59761917591095,
+              "durationMs": 160,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.158729871114096,
+              "maxSpeedPxMs": 3.333332061767578,
+              "distancePx": 487.61903381347656,
+              "avgSpeedPxMs": 1.9025323211244494,
+              "durationMs": 256.2999999523163,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 12390.261748461862,
+          "attemptInBlock": 2,
+          "timestamp": "2026-09-30T15:32:03.404Z",
+          "timeMs": 7830
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 150,
+          "switchbackCount": 0,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 7.375091685971711,
+          "flickCount": 8,
+          "flicks": [
+            {
+              "distanceItems": 13.000000484287739,
+              "maxSpeedPxMs": 7.91589323188633,
+              "distancePx": 624.0000232458115,
+              "avgSpeedPxMs": 5.315162033551261,
+              "durationMs": 117.40000009536743,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 7.251864221424675,
+              "distanceItems": 14.428571254014969,
+              "avgSpeedPxMs": 3.4715359408156314,
+              "distancePx": 692.5714201927185,
+              "durationMs": 199.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.288009128156967,
+              "distanceItems": 15.365080197652182,
+              "distancePx": 737.5238494873047,
+              "avgSpeedPxMs": 3.956673012777034,
+              "durationMs": 186.39999997615814,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.0394900831391745,
+              "distanceItems": 15.555555820465088,
+              "avgSpeedPxMs": 4.091324270588078,
+              "distancePx": 746.6666793823242,
+              "durationMs": 182.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.0394901709395805,
+              "distanceItems": 13.904761970043182,
+              "distancePx": 667.4285745620728,
+              "avgSpeedPxMs": 3.7286512545367194,
+              "durationMs": 179,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.468254407246908,
+              "maxSpeedPxMs": 4.750147676025945,
+              "distancePx": 550.4762115478516,
+              "avgSpeedPxMs": 3.5332234384873478,
+              "durationMs": 155.79999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.769842068354288,
+              "maxSpeedPxMs": 5.1851844444196455,
+              "avgSpeedPxMs": 3.666141591133019,
+              "distancePx": 564.9524192810059,
+              "durationMs": 154.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.507936159769693,
+              "maxSpeedPxMs": 3.1246639721170273,
+              "distancePx": 408.3809356689453,
+              "avgSpeedPxMs": 1.8134144573652347,
+              "durationMs": 225.19999992847443,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 6782.375091685972,
+          "attemptInBlock": 3,
+          "timestamp": "2026-09-30T15:32:09.932Z",
+          "timeMs": 5607
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 210,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 11,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 6.5459409681980345,
+              "distanceItems": 14.841270764668783,
+              "distancePx": 712.3809967041016,
+              "avgSpeedPxMs": 3.6420296350576113,
+              "durationMs": 195.60000002384186,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.98415092690186,
+              "distanceItems": 15.59523860613505,
+              "avgSpeedPxMs": 4.716896363387292,
+              "distancePx": 748.5714530944824,
+              "durationMs": 158.70000004768372,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 9.789028921577081,
+              "distanceItems": 17.5238094329834,
+              "distancePx": 841.1428527832031,
+              "avgSpeedPxMs": 5.5411255097949335,
+              "durationMs": 151.80000007152557,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 9.647494319019327,
+              "distanceItems": 11.13492234547933,
+              "distancePx": 534.4762725830078,
+              "avgSpeedPxMs": 4.623497166719507,
+              "durationMs": 115.60000002384186,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 11.904764945630879,
+              "distanceItems": 8.761903762817383,
+              "avgSpeedPxMs": 3.6069586703192176,
+              "distancePx": 420.5713806152344,
+              "durationMs": 116.59999990463257,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.633049460018382,
+              "distanceItems": 6.023809432983398,
+              "distancePx": 289.1428527832031,
+              "avgSpeedPxMs": 4.611528749016081,
+              "durationMs": 62.700000047683716,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 7.785715738932292,
+              "maxSpeedPxMs": 8.904191033835533,
+              "avgSpeedPxMs": 4.147773089565587,
+              "distancePx": 373.71435546875,
+              "durationMs": 90.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.222222963968912,
+              "maxSpeedPxMs": 12.380981260821503,
+              "avgSpeedPxMs": 6.644220566277198,
+              "distancePx": 394.6667022705078,
+              "durationMs": 59.40000009536743,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.873016357421875,
+              "maxSpeedPxMs": 10.380950927734375,
+              "distancePx": 425.90478515625,
+              "avgSpeedPxMs": 4.9408907763416465,
+              "durationMs": 86.20000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 7.880951881408691,
+              "maxSpeedPxMs": 7.932773365693934,
+              "distancePx": 378.2856903076172,
+              "avgSpeedPxMs": 4.8748155952499035,
+              "durationMs": 77.60000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.626984596252441,
+              "maxSpeedPxMs": 8.79122172183871,
+              "avgSpeedPxMs": 1.2090372572850137,
+              "distancePx": 414.0952606201172,
+              "durationMs": 342.5,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 9412.670433463381,
+          "attemptInBlock": 4,
+          "timeMs": 6644,
+          "timestamp": "2026-09-30T15:32:17.174Z"
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 5,
+          "flicks": [
+            {
+              "distanceItems": 11.722222010294596,
+              "maxSpeedPxMs": 10.29239600531757,
+              "distancePx": 562.6666564941406,
+              "avgSpeedPxMs": 5.2733519797815145,
+              "durationMs": 106.70000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.777777989705404,
+              "maxSpeedPxMs": 11.03896407126819,
+              "distancePx": 469.3333435058594,
+              "avgSpeedPxMs": 4.386292929961303,
+              "durationMs": 107,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.077096138900507,
+              "distanceItems": 8.285714467366537,
+              "avgSpeedPxMs": 4.384942604459795,
+              "distancePx": 397.71429443359375,
+              "durationMs": 90.70000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.547619024912516,
+              "maxSpeedPxMs": 6.733111872969362,
+              "avgSpeedPxMs": 3.7810732881698925,
+              "distancePx": 506.2857131958008,
+              "durationMs": 133.89999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.809523423512777,
+              "maxSpeedPxMs": 2.8456685792720093,
+              "distancePx": 422.8571243286133,
+              "avgSpeedPxMs": 1.7036951017218966,
+              "durationMs": 248.20000004768372,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 3651.433660330947,
+          "attemptInBlock": 5,
+          "timeMs": 3830,
+          "timestamp": "2026-09-30T15:32:21.615Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 180,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 9,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 8.480725993658037,
+              "distanceItems": 12.031746705373129,
+              "distancePx": 577.5238418579102,
+              "avgSpeedPxMs": 5.264574672806524,
+              "durationMs": 109.70000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.55555534362793,
+              "maxSpeedPxMs": 8.829130284926471,
+              "distancePx": 458.6666564941406,
+              "avgSpeedPxMs": 5.941277930192207,
+              "durationMs": 77.20000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.388888994852701,
+              "maxSpeedPxMs": 11.24716625681141,
+              "distancePx": 450.6666717529297,
+              "avgSpeedPxMs": 5.198000824741288,
+              "durationMs": 86.70000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.706350008646647,
+              "maxSpeedPxMs": 8.766496088226136,
+              "avgSpeedPxMs": 4.480425459471628,
+              "distancePx": 513.9048004150391,
+              "durationMs": 114.70000004768372,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 9.359200532468158,
+              "distanceItems": 9.357142766316732,
+              "avgSpeedPxMs": 5.593310739516045,
+              "distancePx": 449.1428527832031,
+              "durationMs": 80.30000007152557,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 9.915199605832033,
+              "distanceItems": 13.341269453366598,
+              "distancePx": 640.3809337615967,
+              "avgSpeedPxMs": 5.459343001039373,
+              "durationMs": 117.29999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 9.297053045593707,
+              "distanceItems": 8.253969192504883,
+              "distancePx": 396.1905212402344,
+              "avgSpeedPxMs": 4.538264850591474,
+              "durationMs": 87.29999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 7.5,
+              "maxSpeedPxMs": 7.922078848518468,
+              "avgSpeedPxMs": 3.977900552486188,
+              "distancePx": 360,
+              "durationMs": 90.5,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.047618865966797,
+              "maxSpeedPxMs": 8.59357976462763,
+              "distancePx": 434.28570556640625,
+              "avgSpeedPxMs": 4.282896505606691,
+              "durationMs": 101.39999997615814,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 7970.736567840333,
+          "attemptInBlock": 6,
+          "timeMs": 5497,
+          "timestamp": "2026-09-30T15:32:27.585Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 30,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 1,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 8.344668457464572,
+              "distanceItems": 15.738095124562582,
+              "distancePx": 755.4285659790039,
+              "avgSpeedPxMs": 4.3068903425409815,
+              "durationMs": 175.39999997615814,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 1017.1404133066674,
+          "attemptInBlock": 7,
+          "timeMs": 1125,
+          "timestamp": "2026-09-30T15:32:29.126Z"
+        },
+        {
+          "overshootCount": 1,
+          "switchbackCount": 0,
+          "targetNumber": 240,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 31.50055661312217,
+          "flickCount": 12,
+          "flicks": [
+            {
+              "distanceItems": 15.39682345589002,
+              "maxSpeedPxMs": 10.190481185913086,
+              "avgSpeedPxMs": 4.852577321826066,
+              "distancePx": 739.047525882721,
+              "durationMs": 152.29999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 10.935573802274817,
+              "distanceItems": 12.952381134033203,
+              "distancePx": 621.7142944335938,
+              "avgSpeedPxMs": 6.476190567016602,
+              "durationMs": 96,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 11.056911285827026,
+              "distanceItems": 10.53968334197998,
+              "avgSpeedPxMs": 4.714863006895259,
+              "distancePx": 505.90480041503906,
+              "durationMs": 107.29999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.007936795552572,
+              "maxSpeedPxMs": 12.039977615144583,
+              "distancePx": 528.3809661865234,
+              "avgSpeedPxMs": 7.431518509273449,
+              "durationMs": 71.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.119049390157064,
+              "maxSpeedPxMs": 43.17464021147727,
+              "distancePx": 485.71437072753906,
+              "avgSpeedPxMs": 9.251702299572173,
+              "durationMs": 52.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 14.911562238420759,
+              "distanceItems": 11.992063999176025,
+              "distancePx": 575.6190719604492,
+              "avgSpeedPxMs": 7.950539670580177,
+              "durationMs": 72.39999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.00793711344401,
+              "maxSpeedPxMs": 11.862567019953206,
+              "avgSpeedPxMs": 7.111453321459125,
+              "distancePx": 528.3809814453125,
+              "durationMs": 74.29999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 10.465245826205269,
+              "distanceItems": 10.047619819641113,
+              "distancePx": 482.28575134277344,
+              "avgSpeedPxMs": 5.903130367947249,
+              "durationMs": 81.70000004768372,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 9.84901236412576,
+              "distanceItems": 9.142857233683268,
+              "avgSpeedPxMs": 5.626373682266626,
+              "distancePx": 438.8571472167969,
+              "durationMs": 78,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.134920756022135,
+              "maxSpeedPxMs": 9.107827447813085,
+              "avgSpeedPxMs": 5.399953161025828,
+              "distancePx": 438.4761962890625,
+              "durationMs": 81.19999992847443,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 4.353741249452719,
+              "distanceItems": 9.68254009882609,
+              "distancePx": 464.76192474365234,
+              "avgSpeedPxMs": 1.8672636583590847,
+              "durationMs": 248.90000009536743,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 2.740995849699473,
+              "distanceItems": 8.365079561869303,
+              "distancePx": 401.52381896972656,
+              "avgSpeedPxMs": 1.2211794978174604,
+              "durationMs": 328.8000000715256,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 11096.786262179528,
+          "attemptInBlock": 8,
+          "timeMs": 6800,
+          "timestamp": "2026-09-30T15:32:36.407Z"
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 120,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 6,
+          "flicks": [
+            {
+              "distanceItems": 9.333333015441895,
+              "maxSpeedPxMs": 7.149380188854786,
+              "avgSpeedPxMs": 5.179190575042901,
+              "distancePx": 447.99998474121094,
+              "durationMs": 86.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 10.514286295572917,
+              "distanceItems": 16.25396951039632,
+              "avgSpeedPxMs": 5.318272230711851,
+              "distancePx": 780.1905364990234,
+              "durationMs": 146.70000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 15.682538906733194,
+              "maxSpeedPxMs": 9.913941405847511,
+              "distancePx": 752.7618675231934,
+              "avgSpeedPxMs": 4.869093579606114,
+              "durationMs": 154.60000002384186,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 9.160997325922754,
+              "distanceItems": 9.571428616841635,
+              "avgSpeedPxMs": 4.404876067290885,
+              "distancePx": 459.42857360839844,
+              "durationMs": 104.29999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 8.53858867079572,
+              "distanceItems": 9.44444497426351,
+              "avgSpeedPxMs": 5.105105394235122,
+              "distancePx": 453.33335876464844,
+              "durationMs": 88.79999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.658730506896973,
+              "maxSpeedPxMs": 3.0564809738922225,
+              "distancePx": 511.6190643310547,
+              "avgSpeedPxMs": 1.306150278960359,
+              "durationMs": 391.7000000476837,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 5276.580611774379,
+          "attemptInBlock": 9,
+          "timeMs": 4855,
+          "timestamp": "2026-09-30T15:32:41.991Z"
+        },
+        {
+          "overshootCount": 1,
+          "switchbackCount": 0,
+          "targetNumber": 300,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 334.2414781370153,
+          "flickCount": 14,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 9.954813901682618,
+              "distanceItems": 12.396825472513834,
+              "distancePx": 595.0476226806641,
+              "avgSpeedPxMs": 6.800544259207589,
+              "durationMs": 87.5,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.269841194152832,
+              "maxSpeedPxMs": 10.113379954004515,
+              "avgSpeedPxMs": 5.2497590782161865,
+              "distancePx": 492.95237731933594,
+              "durationMs": 93.89999997615814,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 10.365448112991778,
+              "distanceItems": 8.753968874613443,
+              "distancePx": 420.1905059814453,
+              "avgSpeedPxMs": 6.424931274751011,
+              "durationMs": 65.40000009536743,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 11.056912985912689,
+              "distanceItems": 9.674603780110678,
+              "avgSpeedPxMs": 6.586964275820035,
+              "distancePx": 464.3809814453125,
+              "durationMs": 70.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 19.926758543409147,
+              "distanceItems": 7.333333969116211,
+              "avgSpeedPxMs": 8.734492082731295,
+              "distancePx": 352.0000305175781,
+              "durationMs": 40.299999952316284,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 10.917537133148855,
+              "distanceItems": 9.825397491455078,
+              "distancePx": 471.61907958984375,
+              "avgSpeedPxMs": 5.641376548508886,
+              "durationMs": 83.60000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.801587104797363,
+              "maxSpeedPxMs": 11.294115851907168,
+              "avgSpeedPxMs": 4.515126495345253,
+              "distancePx": 470.47618103027344,
+              "durationMs": 104.20000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.809523900349935,
+              "maxSpeedPxMs": 11.567946576095519,
+              "distancePx": 518.8571472167969,
+              "avgSpeedPxMs": 6.34299691343832,
+              "durationMs": 81.79999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 11.24716625681141,
+              "distanceItems": 9.85714340209961,
+              "avgSpeedPxMs": 6.37658871963237,
+              "distancePx": 473.14288330078125,
+              "durationMs": 74.20000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.182539621988932,
+              "maxSpeedPxMs": 10.990695235423958,
+              "avgSpeedPxMs": 5.07014421137293,
+              "distancePx": 488.76190185546875,
+              "durationMs": 96.39999997615814,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 12.636469509280044,
+              "distanceItems": 11.79365062713623,
+              "distancePx": 566.0952301025391,
+              "avgSpeedPxMs": 6.7958611095629164,
+              "durationMs": 83.29999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.706350008646647,
+              "maxSpeedPxMs": 17.075631534352024,
+              "distancePx": 561.9048004150391,
+              "avgSpeedPxMs": 6.794495768936545,
+              "durationMs": 82.70000004768372,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 12.447398124155866,
+              "distanceItems": 11.428571542104086,
+              "avgSpeedPxMs": 7.973421997829833,
+              "distancePx": 548.5714340209961,
+              "durationMs": 68.80000007152557,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.8492062886556,
+              "maxSpeedPxMs": 20.63491944282767,
+              "avgSpeedPxMs": 6.715367926357608,
+              "distancePx": 472.76190185546875,
+              "durationMs": 70.39999997615814,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 14269.241478137015,
+          "attemptInBlock": 10,
+          "timeMs": 7466,
+          "timestamp": "2026-09-30T15:32:49.988Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 2,
+      "parameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      },
+      "attempts": [
+        {
+          "overshootCount": 1,
+          "targetNumber": 210,
+          "switchbackCount": 1,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 2186.305279294149,
+          "flickCount": 7,
+          "flicks": [
+            {
+              "distanceItems": 11.222221692403158,
+              "maxSpeedPxMs": 9.594355425439188,
+              "distancePx": 538.6666412353516,
+              "avgSpeedPxMs": 4.818127383408746,
+              "durationMs": 111.79999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.468254407246908,
+              "maxSpeedPxMs": 6.746987893664798,
+              "avgSpeedPxMs": 3.774719365762856,
+              "distancePx": 454.47621154785156,
+              "durationMs": 120.39999997615814,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 2.4157938353822916,
+              "distanceItems": 8.61904780069987,
+              "distancePx": 413.71429443359375,
+              "avgSpeedPxMs": 0.7688427697737653,
+              "durationMs": 538.1000000238419,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 8.190475463867188,
+              "distanceItems": 9.269842147827148,
+              "avgSpeedPxMs": 1.3278198241242776,
+              "distancePx": 444.9524230957031,
+              "durationMs": 335.10000002384186,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 6.19048109366773,
+              "distanceItems": 9.087302525838217,
+              "distancePx": 436.1905212402344,
+              "avgSpeedPxMs": 2.7943018653018132,
+              "durationMs": 156.10000002384186,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 6.153846097415721,
+              "distanceItems": 10.103174845377604,
+              "distancePx": 484.952392578125,
+              "avgSpeedPxMs": 2.274635987193536,
+              "durationMs": 213.20000004768372,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 1.1204474954044117,
+              "distanceItems": 1.7222223281860352,
+              "distancePx": 82.66667175292969,
+              "avgSpeedPxMs": 0.237071040268498,
+              "durationMs": 348.7000000476837,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 9617.621929069657,
+          "attemptInBlock": 1,
+          "timeMs": 5016,
+          "timestamp": "2026-09-30T15:32:58.926Z"
+        },
+        {
+          "overshootCount": 1,
+          "switchbackCount": 1,
+          "targetNumber": 270,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 535.1345021315992,
+          "flickCount": 5,
+          "flicks": [
+            {
+              "distanceItems": 9.015873591105143,
+              "maxSpeedPxMs": 12.24908447265625,
+              "avgSpeedPxMs": 4.531538558880072,
+              "distancePx": 432.7619323730469,
+              "durationMs": 95.5,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.063491821289062,
+              "maxSpeedPxMs": 3.8583648135011916,
+              "distancePx": 531.047607421875,
+              "avgSpeedPxMs": 1.3400141495982132,
+              "durationMs": 396.2999999523163,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 15.520290524512918,
+              "distanceItems": 7.436508496602376,
+              "avgSpeedPxMs": 6.610229774757668,
+              "distancePx": 356.95240783691406,
+              "durationMs": 54,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.28571351369222,
+              "maxSpeedPxMs": 2.23809814453125,
+              "avgSpeedPxMs": 0.6301200984380366,
+              "distancePx": 541.7142486572266,
+              "durationMs": 859.7000000476837,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.73809814453125,
+              "maxSpeedPxMs": 2.427637453834011,
+              "avgSpeedPxMs": 0.9343477633320931,
+              "distancePx": 419.4287109375,
+              "durationMs": 448.89999997615814,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 12643.848766047615,
+          "attemptInBlock": 2,
+          "timestamp": "2026-09-30T15:33:04.291Z",
+          "timeMs": 4855
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 240,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 3,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 13.102453935859948,
+              "distanceItems": 10.769841512044271,
+              "avgSpeedPxMs": 6.494376789237274,
+              "distancePx": 516.952392578125,
+              "durationMs": 79.60000002384186,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 1.4789931353400736,
+              "distanceItems": 9.888889074325562,
+              "avgSpeedPxMs": 0.4445693317846101,
+              "distancePx": 474.66667556762695,
+              "durationMs": 1067.7000000476837,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 2.0223377309542006,
+              "distanceItems": 4.912699063618978,
+              "distancePx": 235.80955505371094,
+              "avgSpeedPxMs": 0.835611463903184,
+              "durationMs": 282.1999999284744,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 11005.22561464448,
+          "attemptInBlock": 3,
+          "timestamp": "2026-09-30T15:33:08.536Z",
+          "timeMs": 3670
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 21.85085339117698,
+              "distanceItems": 9.730159441630045,
+              "distancePx": 467.0476531982422,
+              "avgSpeedPxMs": 6.759010897787189,
+              "durationMs": 69.10000002384186,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.047618865966797,
+              "distanceItems": 9.03174622853597,
+              "distancePx": 433.52381896972656,
+              "avgSpeedPxMs": 1.0110163689783946,
+              "durationMs": 428.7999999523163,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.7065660153651105,
+              "distanceItems": 10.896826108296713,
+              "distancePx": 523.0476531982422,
+              "avgSpeedPxMs": 2.3225917112094443,
+              "durationMs": 225.19999992847443,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 12.230162541071573,
+              "maxSpeedPxMs": 9.735468939755247,
+              "avgSpeedPxMs": 2.098097933600314,
+              "distancePx": 587.0478019714355,
+              "durationMs": 279.8000000715256,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 3871.121880914375,
+          "attemptInBlock": 4,
+          "timeMs": 2828,
+          "timestamp": "2026-09-30T15:33:11.855Z"
+        },
+        {
+          "overshootCount": 1,
+          "switchbackCount": 1,
+          "targetNumber": 180,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 399.58888446357014,
+          "flickCount": 6,
+          "flicks": [
+            {
+              "distanceItems": 8.063492774963379,
+              "maxSpeedPxMs": 8.279366048177083,
+              "distancePx": 387.0476531982422,
+              "avgSpeedPxMs": 3.917486370293952,
+              "durationMs": 98.79999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.325398445129395,
+              "maxSpeedPxMs": 6.114049822860148,
+              "avgSpeedPxMs": 4.187269648887215,
+              "distancePx": 447.61912536621094,
+              "durationMs": 106.89999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.365079085032145,
+              "maxSpeedPxMs": 3.190476417541504,
+              "avgSpeedPxMs": 1.095330887201895,
+              "distancePx": 449.52379608154297,
+              "durationMs": 410.39999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 7.452380816141765,
+              "maxSpeedPxMs": 6.926408097388352,
+              "distancePx": 357.7142791748047,
+              "avgSpeedPxMs": 3.0034784139647033,
+              "durationMs": 119.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 5.428572336832683,
+              "maxSpeedPxMs": 2.5702805264615467,
+              "distancePx": 260.57147216796875,
+              "avgSpeedPxMs": 1.2147854180324884,
+              "durationMs": 214.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 1.9736085568485982,
+              "distanceItems": 5.587304433186849,
+              "avgSpeedPxMs": 0.7167039357530562,
+              "distancePx": 268.19061279296875,
+              "durationMs": 374.2000000476837,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 8341.446001162789,
+          "attemptInBlock": 5,
+          "timeMs": 4088,
+          "timestamp": "2026-09-30T15:33:16.409Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 150,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 2,
+          "flicks": [
+            {
+              "distanceItems": 10.817461013793945,
+              "maxSpeedPxMs": 18.722418699483065,
+              "avgSpeedPxMs": 5.7059135017814215,
+              "distancePx": 519.2381286621094,
+              "durationMs": 91,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 12.642857506871223,
+              "maxSpeedPxMs": 2.3920245436956034,
+              "avgSpeedPxMs": 0.47510934029004437,
+              "distancePx": 606.8571603298187,
+              "durationMs": 1277.2999999523163,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 6517.489056171238,
+          "attemptInBlock": 6,
+          "timeMs": 2830,
+          "timestamp": "2026-09-30T15:33:19.732Z"
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 60,
+          "switchbackCount": 1,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 558.923614801773,
+          "flickCount": 2,
+          "flicks": [
+            {
+              "distanceItems": 12.365079879760742,
+              "maxSpeedPxMs": 15.2380859375,
+              "avgSpeedPxMs": 5.06419654087658,
+              "distancePx": 593.5238342285156,
+              "durationMs": 117.19999992847443,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 1.9047619101682218,
+              "distanceItems": 6.865077972412109,
+              "avgSpeedPxMs": 0.38165826110653633,
+              "distancePx": 329.52374267578125,
+              "durationMs": 863.4000000953674,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 2752.590301813492,
+          "attemptInBlock": 7,
+          "timestamp": "2026-09-30T15:33:22.070Z",
+          "timeMs": 1928
+        },
+        {
+          "overshootCount": 1,
+          "switchbackCount": 0,
+          "targetNumber": 30,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 45.190494537353516,
+          "flickCount": 2,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 3.638305673809013,
+              "distanceItems": 14.357143004735311,
+              "avgSpeedPxMs": 0.7507820723882721,
+              "distancePx": 689.1428642272949,
+              "durationMs": 917.8999999761581,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.460317691167196,
+              "maxSpeedPxMs": 3.047618865966797,
+              "avgSpeedPxMs": 1.2937089812260905,
+              "distancePx": 406.0952491760254,
+              "durationMs": 313.89999997615814,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 1089.1428756713867,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-30T15:33:24.675Z",
+          "timeMs": 2123
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 300,
+          "switchbackCount": 2,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 551.2507413027961,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "distanceItems": 9.571427345275879,
+              "maxSpeedPxMs": 38.29573829921595,
+              "distancePx": 459.4285125732422,
+              "avgSpeedPxMs": 5.943447773048485,
+              "durationMs": 77.29999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 8.571433893271776,
+              "distanceItems": 6.111111323038737,
+              "distancePx": 293.3333435058594,
+              "avgSpeedPxMs": 5.534591386903007,
+              "durationMs": 53,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.8565553718914853,
+              "distanceItems": 7.80158805847168,
+              "distancePx": 374.4762268066406,
+              "avgSpeedPxMs": 0.765174145535112,
+              "durationMs": 489.39999997615814,
+              "direction": "down"
+            },
+            {
+              "distanceItems": 6.904762069384257,
+              "maxSpeedPxMs": 2.3985874788094446,
+              "distancePx": 331.42857933044434,
+              "avgSpeedPxMs": 0.7740041552861675,
+              "durationMs": 428.2000000476837,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 13899.829632807061,
+          "attemptInBlock": 9,
+          "timeMs": 3835,
+          "timestamp": "2026-09-30T15:33:29.007Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 120,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 18.47358162951553,
+              "distanceItems": 9.968254089355469,
+              "distancePx": 478.4761962890625,
+              "avgSpeedPxMs": 7.372514583433543,
+              "durationMs": 64.89999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.88888923327128,
+              "maxSpeedPxMs": 3.1007740023502803,
+              "distancePx": 474.6666831970215,
+              "avgSpeedPxMs": 0.6615563528878349,
+              "durationMs": 717.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.763062990217308,
+              "distanceItems": 9.015873591105143,
+              "avgSpeedPxMs": 1.181441256973471,
+              "distancePx": 432.7619323730469,
+              "durationMs": 366.2999999523163,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 3.8015880584716797,
+              "maxSpeedPxMs": 7.460327222549192,
+              "distancePx": 182.47622680664062,
+              "avgSpeedPxMs": 0.7481600115804762,
+              "durationMs": 243.89999997615814,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 5183.323791262561,
+          "attemptInBlock": 10,
+          "timeMs": 3921,
+          "timestamp": "2026-09-30T15:33:33.487Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 3,
+      "parameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      },
+      "attempts": [
+        {
+          "overshootCount": 1,
+          "switchbackCount": 1,
+          "targetNumber": 240,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 1530.8674558960265,
+          "flickCount": 6,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 13.959733614121081,
+              "distanceItems": 11.317461649576822,
+              "distancePx": 543.2381591796875,
+              "avgSpeedPxMs": 7.651241678587148,
+              "durationMs": 71,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.866549247969671,
+              "distanceItems": 8.825396855672201,
+              "distancePx": 423.6190490722656,
+              "avgSpeedPxMs": 4.181826740110148,
+              "durationMs": 101.30000007152557,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.611111481984457,
+              "maxSpeedPxMs": 5.966723287248698,
+              "distancePx": 461.3333511352539,
+              "avgSpeedPxMs": 4.760922097510456,
+              "durationMs": 96.89999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.214285532633463,
+              "maxSpeedPxMs": 2.328041908952647,
+              "avgSpeedPxMs": 0.5368196449996494,
+              "distancePx": 442.28570556640625,
+              "durationMs": 823.9000000953674,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 15.23810276368861,
+              "distanceItems": 8.817460378011068,
+              "distancePx": 423.23809814453125,
+              "avgSpeedPxMs": 1.3103346691781153,
+              "durationMs": 323,
+              "direction": "down"
+            },
+            {
+              "distanceItems": 8.801587422688803,
+              "maxSpeedPxMs": 2.3113979444380504,
+              "distancePx": 422.4761962890625,
+              "avgSpeedPxMs": 1.0465102709039256,
+              "durationMs": 403.6999999284744,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 11353.486474450714,
+          "attemptInBlock": 1,
+          "timeMs": 5088,
+          "timestamp": "2026-09-30T15:33:42.508Z"
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 60,
+          "switchbackCount": 1,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 186.5240277280409,
+          "flickCount": 2,
+          "flicks": [
+            {
+              "distanceItems": 8.698414166768393,
+              "maxSpeedPxMs": 12.952362060546875,
+              "distancePx": 417.5238800048828,
+              "avgSpeedPxMs": 1.4138973244285573,
+              "durationMs": 295.3000000715256,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 0.9142822265625,
+              "distanceItems": 1.9444440205891926,
+              "distancePx": 93.33331298828125,
+              "avgSpeedPxMs": 0.1634845209181626,
+              "durationMs": 570.8999999761581,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 2592.0001934995253,
+          "attemptInBlock": 2,
+          "timeMs": 1997,
+          "timestamp": "2026-09-30T15:33:45.041Z"
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 300,
+          "switchbackCount": 0,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 66.17313201355682,
+          "flickCount": 5,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 7.526131672331167,
+              "distanceItems": 9.238096555074057,
+              "avgSpeedPxMs": 4.276071691799959,
+              "distancePx": 443.4286346435547,
+              "durationMs": 103.70000004768372,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.258501343098429,
+              "distanceItems": 7.40476131439209,
+              "avgSpeedPxMs": 3.884464951812244,
+              "distancePx": 355.4285430908203,
+              "durationMs": 91.5,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.714285691579183,
+              "maxSpeedPxMs": 1.579556362625067,
+              "distancePx": 322.2857131958008,
+              "avgSpeedPxMs": 1.0965828962978745,
+              "durationMs": 293.89999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 7.388889312744141,
+              "maxSpeedPxMs": 4.39561106245691,
+              "distancePx": 354.66668701171875,
+              "avgSpeedPxMs": 2.222222349365519,
+              "durationMs": 159.60000002384186,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.3802816787898315,
+              "distanceItems": 9.174603382746378,
+              "avgSpeedPxMs": 2.118234547485949,
+              "distancePx": 440.3809623718262,
+              "durationMs": 207.89999997615814,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 13996.220739435432,
+          "attemptInBlock": 3,
+          "timeMs": 4346,
+          "timestamp": "2026-09-30T15:33:49.829Z"
+        },
+        {
+          "overshootCount": 1,
+          "switchbackCount": 1,
+          "targetNumber": 120,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 517.0152752322683,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 9.486461143614472,
+              "distanceItems": 7.809523582458496,
+              "avgSpeedPxMs": 3.549783445770591,
+              "distancePx": 374.8571319580078,
+              "durationMs": 105.60000002384186,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.9909289678967683,
+              "distanceItems": 11.317460497220358,
+              "avgSpeedPxMs": 1.086041790913216,
+              "distancePx": 543.2381038665771,
+              "durationMs": 500.2000000476837,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 4.73867646229746,
+              "distanceItems": 7.32539717356364,
+              "avgSpeedPxMs": 3.249714086655233,
+              "distancePx": 351.6190643310547,
+              "durationMs": 108.20000004768372,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 1.1015522112418497,
+              "distanceItems": 4.984129587809245,
+              "distancePx": 239.23822021484375,
+              "avgSpeedPxMs": 0.30032415290946957,
+              "durationMs": 796.6000000238419,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 5630.681901208831,
+          "attemptInBlock": 4,
+          "timestamp": "2026-09-30T15:33:54.885Z",
+          "timeMs": 3901
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 150,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "distanceItems": 8.880953152974447,
+              "maxSpeedPxMs": 8.110601609753024,
+              "avgSpeedPxMs": 3.3148192166698442,
+              "distancePx": 426.28575134277344,
+              "durationMs": 128.60000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 10.380952397982279,
+              "maxSpeedPxMs": 2.923587524825508,
+              "distancePx": 498.2857151031494,
+              "avgSpeedPxMs": 0.7869325885433126,
+              "durationMs": 633.2000000476837,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.047619422276815,
+              "maxSpeedPxMs": 2.833914391390205,
+              "avgSpeedPxMs": 0.710737317882773,
+              "distancePx": 386.2857322692871,
+              "durationMs": 543.5,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 5.888889153798421,
+              "maxSpeedPxMs": 8.190475463867188,
+              "distancePx": 282.6666793823242,
+              "avgSpeedPxMs": 0.9831884500254755,
+              "durationMs": 287.5,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 6664.029762401475,
+          "attemptInBlock": 5,
+          "timestamp": "2026-09-30T15:33:59.026Z",
+          "timeMs": 3657
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 30,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 2,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 5.579833984375,
+              "distanceItems": 9.714286804199219,
+              "distancePx": 466.2857666015625,
+              "avgSpeedPxMs": 1.6803090688344595,
+              "durationMs": 277.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 15.449743716594496,
+              "distanceItems": 9.190476775169373,
+              "avgSpeedPxMs": 1.620062009152604,
+              "distancePx": 441.1428852081299,
+              "durationMs": 272.3000000715256,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 907.4286518096924,
+          "attemptInBlock": 6,
+          "timestamp": "2026-09-30T15:34:01.142Z",
+          "timeMs": 1646
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 270,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 5.714286295794449,
+              "distanceItems": 9.246031761169434,
+              "avgSpeedPxMs": 4.0828843130465815,
+              "distancePx": 443.8095245361328,
+              "durationMs": 108.69999992847443,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.119047164916992,
+              "maxSpeedPxMs": 3.62593319689471,
+              "avgSpeedPxMs": 2.4822564580637936,
+              "distancePx": 389.7142639160156,
+              "durationMs": 157,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.595238367716472,
+              "maxSpeedPxMs": 8.253969488410636,
+              "avgSpeedPxMs": 5.241249036015757,
+              "distancePx": 316.5714416503906,
+              "durationMs": 60.39999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 5,
+              "maxSpeedPxMs": 1.4866415013915868,
+              "distancePx": 240,
+              "avgSpeedPxMs": 0.34393809110833995,
+              "durationMs": 697.8000000715256,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 12376.167319163262,
+          "attemptInBlock": 7,
+          "timeMs": 3975,
+          "timestamp": "2026-09-30T15:34:05.561Z"
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 90,
+          "switchbackCount": 0,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 9.698720882778616,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 31.428565510681786,
+              "distanceItems": 11.444443702697754,
+              "avgSpeedPxMs": 5.837760867059608,
+              "distancePx": 549.3332977294922,
+              "durationMs": 94.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.992063542207083,
+              "maxSpeedPxMs": 2.9897530561451764,
+              "distancePx": 479.61905002593994,
+              "avgSpeedPxMs": 0.8221101301809006,
+              "durationMs": 583.4000000953674,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 2.78745696144885,
+              "distanceItems": 8.865079561869303,
+              "distancePx": 425.52381896972656,
+              "avgSpeedPxMs": 1.5615552989714736,
+              "durationMs": 272.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 2.962961070440548,
+              "distanceItems": 7.9285712242126465,
+              "distancePx": 380.57141876220703,
+              "avgSpeedPxMs": 1.5078106925441999,
+              "durationMs": 252.39999997615814,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 3920.6987208827786,
+          "attemptInBlock": 8,
+          "timeMs": 2833,
+          "timestamp": "2026-09-30T15:34:08.865Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 180,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 7.222222234179944,
+              "distanceItems": 9.666666030883789,
+              "distancePx": 463.9999694824219,
+              "avgSpeedPxMs": 4.734693566147162,
+              "durationMs": 98,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 4.91005113389757,
+              "distanceItems": 7.492064158121745,
+              "distancePx": 359.61907958984375,
+              "avgSpeedPxMs": 2.630717479622541,
+              "durationMs": 136.70000004768372,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 7.368421029516204,
+              "distanceItems": 7.460317929585774,
+              "avgSpeedPxMs": 3.6134738701711933,
+              "distancePx": 358.0952606201172,
+              "durationMs": 99.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 1.4047622680664062,
+              "maxSpeedPxMs": 1.0389610486119851,
+              "distancePx": 67.4285888671875,
+              "avgSpeedPxMs": 0.13373381368665327,
+              "durationMs": 504.2000000476837,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 8100.371053921264,
+          "attemptInBlock": 9,
+          "timeMs": 3326,
+          "timestamp": "2026-09-30T15:34:12.681Z"
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 210,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 82.61903639705424,
+              "distanceItems": 15.49206272761027,
+              "distancePx": 743.619010925293,
+              "avgSpeedPxMs": 9.784460670069643,
+              "durationMs": 76,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 2.358276737185537,
+              "distanceItems": 6.301586786905925,
+              "distancePx": 302.4761657714844,
+              "avgSpeedPxMs": 0.6705301834526661,
+              "durationMs": 451.10000002384186,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 1.4228324512276733,
+              "distanceItems": 5.476190567016602,
+              "distancePx": 262.8571472167969,
+              "avgSpeedPxMs": 0.5429810931705251,
+              "durationMs": 484.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 4.833333333333333,
+              "maxSpeedPxMs": 1.9512195008486102,
+              "distancePx": 232,
+              "avgSpeedPxMs": 1.0431654677377293,
+              "durationMs": 222.39999997615814,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 9559.115784400203,
+          "attemptInBlock": 10,
+          "timeMs": 3712,
+          "timestamp": "2026-09-30T15:34:16.828Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 4,
+      "parameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      },
+      "attempts": [
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 120,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 23.902892954663233,
+              "distanceItems": 10.507936477661133,
+              "avgSpeedPxMs": 4.593633434852239,
+              "distancePx": 504.3809509277344,
+              "durationMs": 109.79999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.650794327259064,
+              "maxSpeedPxMs": 2.478486960069168,
+              "distancePx": 559.2381277084351,
+              "avgSpeedPxMs": 1.0348595998021983,
+              "durationMs": 540.3999999761581,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.063491980234781,
+              "maxSpeedPxMs": 5.490193125010891,
+              "distancePx": 435.04761505126953,
+              "avgSpeedPxMs": 1.1436582941076143,
+              "durationMs": 380.39999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.26190479596456,
+              "maxSpeedPxMs": 4.1904754638671875,
+              "distancePx": 396.5714302062988,
+              "avgSpeedPxMs": 1.6206433597426257,
+              "durationMs": 244.70000004768372,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 5294.232875599059,
+          "attemptInBlock": 1,
+          "timestamp": "2026-09-30T15:34:26.582Z",
+          "timeMs": 4083
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 150,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 5,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 10.962098622624234,
+              "distanceItems": 12.126983483632406,
+              "distancePx": 582.0952072143555,
+              "avgSpeedPxMs": 5.618679605023124,
+              "durationMs": 103.60000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 11.746031800905863,
+              "maxSpeedPxMs": 3.5772369921077347,
+              "distancePx": 563.8095264434814,
+              "avgSpeedPxMs": 2.3163908237416124,
+              "durationMs": 243.39999997615814,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 2.672355974451065,
+              "distanceItems": 8.722222566604614,
+              "distancePx": 418.6666831970215,
+              "avgSpeedPxMs": 1.3913814658169792,
+              "durationMs": 300.90000009536743,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 7.4920637011528015,
+              "maxSpeedPxMs": 2.1634344343390453,
+              "distancePx": 359.6190576553345,
+              "avgSpeedPxMs": 1.4080620896198328,
+              "durationMs": 255.39999997615814,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.2199550901706875,
+              "distanceItems": 8.619047919909159,
+              "distancePx": 413.71430015563965,
+              "avgSpeedPxMs": 1.4014712068288642,
+              "durationMs": 295.1999999284744,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 6573.760031453085,
+          "attemptInBlock": 2,
+          "timeMs": 4361,
+          "timestamp": "2026-09-30T15:34:31.465Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 60,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 2,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 8.338624742296007,
+              "distanceItems": 11.849207401275635,
+              "avgSpeedPxMs": 4.561042141489519,
+              "distancePx": 568.7619552612305,
+              "durationMs": 124.70000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.801587263743082,
+              "maxSpeedPxMs": 3.5273365811732473,
+              "distancePx": 470.47618865966797,
+              "avgSpeedPxMs": 0.731575476177012,
+              "durationMs": 643.0999999046326,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 2441.442390210099,
+          "attemptInBlock": 3,
+          "timeMs": 1620,
+          "timestamp": "2026-09-30T15:34:33.529Z"
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 240,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 7,
+          "flicks": [
+            {
+              "distanceItems": 9.666667779286703,
+              "maxSpeedPxMs": 17.142857434798266,
+              "distancePx": 464.0000534057617,
+              "avgSpeedPxMs": 3.3405331395765563,
+              "durationMs": 138.90000009536743,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.785714308420816,
+              "maxSpeedPxMs": 7.486157063866335,
+              "distancePx": 421.7142868041992,
+              "avgSpeedPxMs": 4.204529282200268,
+              "durationMs": 100.29999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.09523836771647,
+              "maxSpeedPxMs": 4.506389312590684,
+              "avgSpeedPxMs": 3.3098078511865636,
+              "distancePx": 388.5714416503906,
+              "durationMs": 117.39999997615814,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.1669529556765785,
+              "distanceItems": 6.65079387029012,
+              "avgSpeedPxMs": 2.1254201442914638,
+              "distancePx": 319.2381057739258,
+              "durationMs": 150.20000004768372,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 4.2002438533015365,
+              "distanceItems": 6.238095283508301,
+              "distancePx": 299.42857360839844,
+              "avgSpeedPxMs": 2.642794119456458,
+              "durationMs": 113.29999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 5.690476417541504,
+              "maxSpeedPxMs": 4.3997321182582345,
+              "avgSpeedPxMs": 2.555125052412639,
+              "distancePx": 273.1428680419922,
+              "durationMs": 106.89999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.746031641960144,
+              "maxSpeedPxMs": 1.6064250992374254,
+              "avgSpeedPxMs": 0.6083214706802441,
+              "distancePx": 323.8095188140869,
+              "durationMs": 532.2999999523163,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 10982.086110862883,
+          "attemptInBlock": 4,
+          "timeMs": 4109,
+          "timestamp": "2026-09-30T15:34:38.100Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 180,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 4,
+          "flicks": [
+            {
+              "distanceItems": 17.08730387687683,
+              "maxSpeedPxMs": 94.0190673828125,
+              "avgSpeedPxMs": 10.74954897251201,
+              "distancePx": 820.1905860900879,
+              "durationMs": 76.29999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 7.23809814453125,
+              "distanceItems": 6.611111144224803,
+              "avgSpeedPxMs": 0.7818017613733189,
+              "distancePx": 317.3333349227905,
+              "durationMs": 405.89999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.587301969528198,
+              "maxSpeedPxMs": 27.705632389553408,
+              "distancePx": 316.1904945373535,
+              "avgSpeedPxMs": 1.9174681296729503,
+              "durationMs": 164.89999997615814,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 2.174602826436361,
+              "maxSpeedPxMs": 2.2104654129332513,
+              "distancePx": 104.38093566894531,
+              "avgSpeedPxMs": 0.2875507869667915,
+              "durationMs": 363,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 8151.128262254138,
+          "attemptInBlock": 5,
+          "timeMs": 2978,
+          "timestamp": "2026-09-30T15:34:41.550Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 90,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 3,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 8.425771376665901,
+              "distanceItems": 10.365079402923584,
+              "avgSpeedPxMs": 4.779287331665562,
+              "distancePx": 497.52381134033203,
+              "durationMs": 104.10000002384186,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.03174638748169,
+              "maxSpeedPxMs": 2.1512594784007355,
+              "distancePx": 433.5238265991211,
+              "avgSpeedPxMs": 0.702290339595997,
+              "durationMs": 617.2999999523163,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.215531276596613,
+              "distanceItems": 8.92857132355372,
+              "distancePx": 428.5714235305786,
+              "avgSpeedPxMs": 1.7614937254606937,
+              "durationMs": 243.30000007152557,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 3691.4578108201667,
+          "attemptInBlock": 6,
+          "timeMs": 2576,
+          "timestamp": "2026-09-30T15:34:44.530Z"
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "targetNumber": 300,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 6,
+          "flicks": [
+            {
+              "distanceItems": 8.944444338480631,
+              "maxSpeedPxMs": 6.4761912027994795,
+              "distancePx": 429.3333282470703,
+              "avgSpeedPxMs": 3.507625228043767,
+              "durationMs": 122.40000009536743,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 12.31746013959249,
+              "maxSpeedPxMs": 15.23808322110085,
+              "distancePx": 591.2380867004395,
+              "avgSpeedPxMs": 6.688213643242101,
+              "durationMs": 88.40000009536743,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.746032238006592,
+              "maxSpeedPxMs": 8.616779896806479,
+              "avgSpeedPxMs": 6.196152946017436,
+              "distancePx": 467.8095474243164,
+              "durationMs": 75.5,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 6.095245361328125,
+              "distanceItems": 8.49206367135048,
+              "distancePx": 407.619056224823,
+              "avgSpeedPxMs": 1.2262907825146654,
+              "durationMs": 332.40000009536743,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 9.404762476682663,
+              "maxSpeedPxMs": 3.9072007041050774,
+              "distancePx": 451.4285988807678,
+              "avgSpeedPxMs": 2.5722427286653438,
+              "durationMs": 175.5,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 7.126983801523845,
+              "maxSpeedPxMs": 2.6785707074616742,
+              "avgSpeedPxMs": 0.6205246190871276,
+              "distancePx": 342.09522247314453,
+              "durationMs": 551.2999999523163,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 13886.160934704889,
+          "attemptInBlock": 7,
+          "timestamp": "2026-09-30T15:34:48.876Z",
+          "timeMs": 3945
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 210,
+          "switchbackCount": 1,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 3597.93216371756,
+          "flickCount": 6,
+          "flicks": [
+            {
+              "distanceItems": 13.579365571339926,
+              "maxSpeedPxMs": 32.61905621559834,
+              "distancePx": 651.8095474243164,
+              "avgSpeedPxMs": 6.046470758002176,
+              "durationMs": 107.79999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.6090248396239004,
+              "distanceItems": 9.777777353922525,
+              "avgSpeedPxMs": 0.7236097950312829,
+              "distancePx": 469.33331298828125,
+              "durationMs": 648.5999999046326,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 12.38093009070833,
+              "distanceItems": 5.071427663167317,
+              "avgSpeedPxMs": 4.474789106714745,
+              "distancePx": 243.42852783203125,
+              "durationMs": 54.40000009536743,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 3.764705882352941,
+              "distanceItems": 10.59523836771647,
+              "avgSpeedPxMs": 1.0901852982859392,
+              "distancePx": 508.5714416503906,
+              "durationMs": 466.5,
+              "direction": "down"
+            },
+            {
+              "distanceItems": 9.468254407246908,
+              "maxSpeedPxMs": 3.151086868618486,
+              "avgSpeedPxMs": 1.9127786679387515,
+              "distancePx": 454.47621154785156,
+              "durationMs": 237.60000002384186,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 3.8095211546062013,
+              "distanceItems": 4.230158805847168,
+              "distancePx": 203.04762268066406,
+              "avgSpeedPxMs": 0.7462242655746884,
+              "durationMs": 272.10000002384186,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 9812.318929606445,
+          "attemptInBlock": 8,
+          "timestamp": "2026-09-30T15:34:54.066Z",
+          "timeMs": 4768
+        },
+        {
+          "overshootCount": 0,
+          "targetNumber": 270,
+          "switchbackCount": 1,
+          "didOvershoot": false,
+          "maxOvershootDistancePx": 0,
+          "flickCount": 6,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 8.0230885996129,
+              "distanceItems": 11.72222344080607,
+              "avgSpeedPxMs": 5.666331575316044,
+              "distancePx": 562.6667251586914,
+              "durationMs": 99.29999995231628,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 8.690475781758627,
+              "maxSpeedPxMs": 14.050711012191828,
+              "avgSpeedPxMs": 4.4282679176342725,
+              "distancePx": 417.14283752441406,
+              "durationMs": 94.19999992847443,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 8.390023391559076,
+              "distanceItems": 8.087301890055338,
+              "distancePx": 388.19049072265625,
+              "avgSpeedPxMs": 4.577718053548807,
+              "durationMs": 84.79999995231628,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 2.652201600171951,
+              "distanceItems": 6.79365086555481,
+              "distancePx": 326.09524154663086,
+              "avgSpeedPxMs": 1.407402854896507,
+              "durationMs": 231.70000004768372,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.722222010294597,
+              "maxSpeedPxMs": 3.858364754532868,
+              "distancePx": 322.6666564941406,
+              "avgSpeedPxMs": 2.9042903399740356,
+              "durationMs": 111.09999990463257,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 1.0079358418782551,
+              "maxSpeedPxMs": 0.9612808897727856,
+              "distancePx": 48.38092041015625,
+              "avgSpeedPxMs": 0.09187413674129472,
+              "durationMs": 526.6000000238419,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 12465.278878069645,
+          "attemptInBlock": 9,
+          "timeMs": 3389,
+          "timestamp": "2026-09-30T15:34:57.932Z"
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 30,
+          "switchbackCount": 1,
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 1558.148697162524,
+          "flickCount": 3,
+          "flicks": [
+            {
+              "distanceItems": 11.944445610046387,
+              "maxSpeedPxMs": 12.610838105849876,
+              "avgSpeedPxMs": 6.099291375342836,
+              "distancePx": 573.3333892822266,
+              "durationMs": 94,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 7.222221374511719,
+              "maxSpeedPxMs": 3.396444636111277,
+              "distancePx": 346.6666259765625,
+              "avgSpeedPxMs": 1.0604668889625146,
+              "durationMs": 326.89999997615814,
+              "direction": "down"
+            },
+            {
+              "distanceItems": 7.793652216593425,
+              "maxSpeedPxMs": 2.522521155984083,
+              "distancePx": 374.0953063964844,
+              "avgSpeedPxMs": 0.7920713665768648,
+              "durationMs": 472.2999999523163,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 1232.7787846955719,
+          "attemptInBlock": 10,
+          "timeMs": 1961,
+          "timestamp": "2026-09-30T15:35:00.305Z"
+        }
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 60,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 5.599541673319527,
+          "distanceItems": 10.642857233683268,
+          "avgSpeedPxMs": 3.2008593203136253,
+          "distancePx": 510.8571472167969,
+          "durationMs": 159.59999990463257,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 14.071428378423056,
+          "maxSpeedPxMs": 5.767197136420645,
+          "distancePx": 675.4285621643066,
+          "avgSpeedPxMs": 4.338012604204145,
+          "durationMs": 155.69999992847443,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.571428775787354,
+          "maxSpeedPxMs": 6.4,
+          "distancePx": 459.42858123779297,
+          "avgSpeedPxMs": 3.2468450970868763,
+          "durationMs": 141.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 8.888895670572916,
+          "distanceItems": 4.555555979410808,
+          "distancePx": 218.66668701171875,
+          "avgSpeedPxMs": 1.2403101932550276,
+          "durationMs": 176.29999995231628,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 2381.434622915529,
+      "attemptInBlock": 1,
+      "timestamp": "2026-09-30T15:31:54.874Z",
+      "timeMs": 2962,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 270,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 12,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 7.394956493519152,
+          "distanceItems": 15.230158726374308,
+          "avgSpeedPxMs": 4.956255043159097,
+          "distancePx": 731.0476188659668,
+          "durationMs": 147.5,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 14.380954186121622,
+          "maxSpeedPxMs": 9.10782644607376,
+          "avgSpeedPxMs": 4.881794911373929,
+          "distancePx": 690.2858009338379,
+          "durationMs": 141.40000009536743,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 16.960317452748615,
+          "maxSpeedPxMs": 9.22547380163281,
+          "avgSpeedPxMs": 4.892399265916932,
+          "distancePx": 814.0952377319336,
+          "durationMs": 166.39999997615814,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 13.809524536132812,
+          "distanceItems": 15.666666587193808,
+          "avgSpeedPxMs": 5.780169070311244,
+          "distancePx": 751.9999961853027,
+          "durationMs": 130.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 16.6984125773112,
+          "maxSpeedPxMs": 8.215720901809377,
+          "distancePx": 801.5238037109375,
+          "avgSpeedPxMs": 5.037861744756917,
+          "durationMs": 159.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 15.952380816141764,
+          "maxSpeedPxMs": 7.956599006038977,
+          "distancePx": 765.7142791748047,
+          "avgSpeedPxMs": 5.081050295542334,
+          "durationMs": 150.69999992847443,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 7.528344023473558,
+          "distanceItems": 15.40476163228353,
+          "avgSpeedPxMs": 5.054193838623459,
+          "distancePx": 739.4285583496094,
+          "durationMs": 146.29999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 15.158731068174044,
+          "maxSpeedPxMs": 9.576721127982132,
+          "avgSpeedPxMs": 5.081138908071128,
+          "distancePx": 727.6190912723541,
+          "durationMs": 143.19999992847443,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 7.340303703980889,
+          "distanceItems": 15.222222407658895,
+          "distancePx": 730.666675567627,
+          "avgSpeedPxMs": 5.245274050197097,
+          "durationMs": 139.30000007152557,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 8.487040871267201,
+          "distanceItems": 15.103175004323324,
+          "distancePx": 724.9524002075195,
+          "avgSpeedPxMs": 5.076697477902002,
+          "durationMs": 142.80000007152557,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 9.15161491113105,
+          "distanceItems": 15.325397253036499,
+          "distancePx": 735.619068145752,
+          "avgSpeedPxMs": 4.59761917591095,
+          "durationMs": 160,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.158729871114096,
+          "maxSpeedPxMs": 3.333332061767578,
+          "distancePx": 487.61903381347656,
+          "avgSpeedPxMs": 1.9025323211244494,
+          "durationMs": 256.2999999523163,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 12390.261748461862,
+      "attemptInBlock": 2,
+      "timestamp": "2026-09-30T15:32:03.404Z",
+      "timeMs": 7830,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 150,
+      "switchbackCount": 0,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 7.375091685971711,
+      "flickCount": 8,
+      "flicks": [
+        {
+          "distanceItems": 13.000000484287739,
+          "maxSpeedPxMs": 7.91589323188633,
+          "distancePx": 624.0000232458115,
+          "avgSpeedPxMs": 5.315162033551261,
+          "durationMs": 117.40000009536743,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 7.251864221424675,
+          "distanceItems": 14.428571254014969,
+          "avgSpeedPxMs": 3.4715359408156314,
+          "distancePx": 692.5714201927185,
+          "durationMs": 199.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.288009128156967,
+          "distanceItems": 15.365080197652182,
+          "distancePx": 737.5238494873047,
+          "avgSpeedPxMs": 3.956673012777034,
+          "durationMs": 186.39999997615814,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.0394900831391745,
+          "distanceItems": 15.555555820465088,
+          "avgSpeedPxMs": 4.091324270588078,
+          "distancePx": 746.6666793823242,
+          "durationMs": 182.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.0394901709395805,
+          "distanceItems": 13.904761970043182,
+          "distancePx": 667.4285745620728,
+          "avgSpeedPxMs": 3.7286512545367194,
+          "durationMs": 179,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.468254407246908,
+          "maxSpeedPxMs": 4.750147676025945,
+          "distancePx": 550.4762115478516,
+          "avgSpeedPxMs": 3.5332234384873478,
+          "durationMs": 155.79999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.769842068354288,
+          "maxSpeedPxMs": 5.1851844444196455,
+          "avgSpeedPxMs": 3.666141591133019,
+          "distancePx": 564.9524192810059,
+          "durationMs": 154.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.507936159769693,
+          "maxSpeedPxMs": 3.1246639721170273,
+          "distancePx": 408.3809356689453,
+          "avgSpeedPxMs": 1.8134144573652347,
+          "durationMs": 225.19999992847443,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 6782.375091685972,
+      "attemptInBlock": 3,
+      "timestamp": "2026-09-30T15:32:09.932Z",
+      "timeMs": 5607,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 210,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 11,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 6.5459409681980345,
+          "distanceItems": 14.841270764668783,
+          "distancePx": 712.3809967041016,
+          "avgSpeedPxMs": 3.6420296350576113,
+          "durationMs": 195.60000002384186,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.98415092690186,
+          "distanceItems": 15.59523860613505,
+          "avgSpeedPxMs": 4.716896363387292,
+          "distancePx": 748.5714530944824,
+          "durationMs": 158.70000004768372,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 9.789028921577081,
+          "distanceItems": 17.5238094329834,
+          "distancePx": 841.1428527832031,
+          "avgSpeedPxMs": 5.5411255097949335,
+          "durationMs": 151.80000007152557,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 9.647494319019327,
+          "distanceItems": 11.13492234547933,
+          "distancePx": 534.4762725830078,
+          "avgSpeedPxMs": 4.623497166719507,
+          "durationMs": 115.60000002384186,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 11.904764945630879,
+          "distanceItems": 8.761903762817383,
+          "avgSpeedPxMs": 3.6069586703192176,
+          "distancePx": 420.5713806152344,
+          "durationMs": 116.59999990463257,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.633049460018382,
+          "distanceItems": 6.023809432983398,
+          "distancePx": 289.1428527832031,
+          "avgSpeedPxMs": 4.611528749016081,
+          "durationMs": 62.700000047683716,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 7.785715738932292,
+          "maxSpeedPxMs": 8.904191033835533,
+          "avgSpeedPxMs": 4.147773089565587,
+          "distancePx": 373.71435546875,
+          "durationMs": 90.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.222222963968912,
+          "maxSpeedPxMs": 12.380981260821503,
+          "avgSpeedPxMs": 6.644220566277198,
+          "distancePx": 394.6667022705078,
+          "durationMs": 59.40000009536743,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.873016357421875,
+          "maxSpeedPxMs": 10.380950927734375,
+          "distancePx": 425.90478515625,
+          "avgSpeedPxMs": 4.9408907763416465,
+          "durationMs": 86.20000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 7.880951881408691,
+          "maxSpeedPxMs": 7.932773365693934,
+          "distancePx": 378.2856903076172,
+          "avgSpeedPxMs": 4.8748155952499035,
+          "durationMs": 77.60000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.626984596252441,
+          "maxSpeedPxMs": 8.79122172183871,
+          "avgSpeedPxMs": 1.2090372572850137,
+          "distancePx": 414.0952606201172,
+          "durationMs": 342.5,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 9412.670433463381,
+      "attemptInBlock": 4,
+      "timeMs": 6644,
+      "timestamp": "2026-09-30T15:32:17.174Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 5,
+      "flicks": [
+        {
+          "distanceItems": 11.722222010294596,
+          "maxSpeedPxMs": 10.29239600531757,
+          "distancePx": 562.6666564941406,
+          "avgSpeedPxMs": 5.2733519797815145,
+          "durationMs": 106.70000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.777777989705404,
+          "maxSpeedPxMs": 11.03896407126819,
+          "distancePx": 469.3333435058594,
+          "avgSpeedPxMs": 4.386292929961303,
+          "durationMs": 107,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.077096138900507,
+          "distanceItems": 8.285714467366537,
+          "avgSpeedPxMs": 4.384942604459795,
+          "distancePx": 397.71429443359375,
+          "durationMs": 90.70000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.547619024912516,
+          "maxSpeedPxMs": 6.733111872969362,
+          "avgSpeedPxMs": 3.7810732881698925,
+          "distancePx": 506.2857131958008,
+          "durationMs": 133.89999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.809523423512777,
+          "maxSpeedPxMs": 2.8456685792720093,
+          "distancePx": 422.8571243286133,
+          "avgSpeedPxMs": 1.7036951017218966,
+          "durationMs": 248.20000004768372,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 3651.433660330947,
+      "attemptInBlock": 5,
+      "timeMs": 3830,
+      "timestamp": "2026-09-30T15:32:21.615Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 180,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 9,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 8.480725993658037,
+          "distanceItems": 12.031746705373129,
+          "distancePx": 577.5238418579102,
+          "avgSpeedPxMs": 5.264574672806524,
+          "durationMs": 109.70000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.55555534362793,
+          "maxSpeedPxMs": 8.829130284926471,
+          "distancePx": 458.6666564941406,
+          "avgSpeedPxMs": 5.941277930192207,
+          "durationMs": 77.20000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.388888994852701,
+          "maxSpeedPxMs": 11.24716625681141,
+          "distancePx": 450.6666717529297,
+          "avgSpeedPxMs": 5.198000824741288,
+          "durationMs": 86.70000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.706350008646647,
+          "maxSpeedPxMs": 8.766496088226136,
+          "avgSpeedPxMs": 4.480425459471628,
+          "distancePx": 513.9048004150391,
+          "durationMs": 114.70000004768372,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 9.359200532468158,
+          "distanceItems": 9.357142766316732,
+          "avgSpeedPxMs": 5.593310739516045,
+          "distancePx": 449.1428527832031,
+          "durationMs": 80.30000007152557,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 9.915199605832033,
+          "distanceItems": 13.341269453366598,
+          "distancePx": 640.3809337615967,
+          "avgSpeedPxMs": 5.459343001039373,
+          "durationMs": 117.29999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 9.297053045593707,
+          "distanceItems": 8.253969192504883,
+          "distancePx": 396.1905212402344,
+          "avgSpeedPxMs": 4.538264850591474,
+          "durationMs": 87.29999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 7.5,
+          "maxSpeedPxMs": 7.922078848518468,
+          "avgSpeedPxMs": 3.977900552486188,
+          "distancePx": 360,
+          "durationMs": 90.5,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.047618865966797,
+          "maxSpeedPxMs": 8.59357976462763,
+          "distancePx": 434.28570556640625,
+          "avgSpeedPxMs": 4.282896505606691,
+          "durationMs": 101.39999997615814,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 7970.736567840333,
+      "attemptInBlock": 6,
+      "timeMs": 5497,
+      "timestamp": "2026-09-30T15:32:27.585Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 30,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 1,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 8.344668457464572,
+          "distanceItems": 15.738095124562582,
+          "distancePx": 755.4285659790039,
+          "avgSpeedPxMs": 4.3068903425409815,
+          "durationMs": 175.39999997615814,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 1017.1404133066674,
+      "attemptInBlock": 7,
+      "timeMs": 1125,
+      "timestamp": "2026-09-30T15:32:29.126Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 1,
+      "switchbackCount": 0,
+      "targetNumber": 240,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 31.50055661312217,
+      "flickCount": 12,
+      "flicks": [
+        {
+          "distanceItems": 15.39682345589002,
+          "maxSpeedPxMs": 10.190481185913086,
+          "avgSpeedPxMs": 4.852577321826066,
+          "distancePx": 739.047525882721,
+          "durationMs": 152.29999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 10.935573802274817,
+          "distanceItems": 12.952381134033203,
+          "distancePx": 621.7142944335938,
+          "avgSpeedPxMs": 6.476190567016602,
+          "durationMs": 96,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 11.056911285827026,
+          "distanceItems": 10.53968334197998,
+          "avgSpeedPxMs": 4.714863006895259,
+          "distancePx": 505.90480041503906,
+          "durationMs": 107.29999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.007936795552572,
+          "maxSpeedPxMs": 12.039977615144583,
+          "distancePx": 528.3809661865234,
+          "avgSpeedPxMs": 7.431518509273449,
+          "durationMs": 71.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.119049390157064,
+          "maxSpeedPxMs": 43.17464021147727,
+          "distancePx": 485.71437072753906,
+          "avgSpeedPxMs": 9.251702299572173,
+          "durationMs": 52.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 14.911562238420759,
+          "distanceItems": 11.992063999176025,
+          "distancePx": 575.6190719604492,
+          "avgSpeedPxMs": 7.950539670580177,
+          "durationMs": 72.39999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.00793711344401,
+          "maxSpeedPxMs": 11.862567019953206,
+          "avgSpeedPxMs": 7.111453321459125,
+          "distancePx": 528.3809814453125,
+          "durationMs": 74.29999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 10.465245826205269,
+          "distanceItems": 10.047619819641113,
+          "distancePx": 482.28575134277344,
+          "avgSpeedPxMs": 5.903130367947249,
+          "durationMs": 81.70000004768372,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 9.84901236412576,
+          "distanceItems": 9.142857233683268,
+          "avgSpeedPxMs": 5.626373682266626,
+          "distancePx": 438.8571472167969,
+          "durationMs": 78,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.134920756022135,
+          "maxSpeedPxMs": 9.107827447813085,
+          "avgSpeedPxMs": 5.399953161025828,
+          "distancePx": 438.4761962890625,
+          "durationMs": 81.19999992847443,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 4.353741249452719,
+          "distanceItems": 9.68254009882609,
+          "distancePx": 464.76192474365234,
+          "avgSpeedPxMs": 1.8672636583590847,
+          "durationMs": 248.90000009536743,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 2.740995849699473,
+          "distanceItems": 8.365079561869303,
+          "distancePx": 401.52381896972656,
+          "avgSpeedPxMs": 1.2211794978174604,
+          "durationMs": 328.8000000715256,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 11096.786262179528,
+      "attemptInBlock": 8,
+      "timeMs": 6800,
+      "timestamp": "2026-09-30T15:32:36.407Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 120,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 6,
+      "flicks": [
+        {
+          "distanceItems": 9.333333015441895,
+          "maxSpeedPxMs": 7.149380188854786,
+          "avgSpeedPxMs": 5.179190575042901,
+          "distancePx": 447.99998474121094,
+          "durationMs": 86.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 10.514286295572917,
+          "distanceItems": 16.25396951039632,
+          "avgSpeedPxMs": 5.318272230711851,
+          "distancePx": 780.1905364990234,
+          "durationMs": 146.70000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 15.682538906733194,
+          "maxSpeedPxMs": 9.913941405847511,
+          "distancePx": 752.7618675231934,
+          "avgSpeedPxMs": 4.869093579606114,
+          "durationMs": 154.60000002384186,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 9.160997325922754,
+          "distanceItems": 9.571428616841635,
+          "avgSpeedPxMs": 4.404876067290885,
+          "distancePx": 459.42857360839844,
+          "durationMs": 104.29999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 8.53858867079572,
+          "distanceItems": 9.44444497426351,
+          "avgSpeedPxMs": 5.105105394235122,
+          "distancePx": 453.33335876464844,
+          "durationMs": 88.79999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.658730506896973,
+          "maxSpeedPxMs": 3.0564809738922225,
+          "distancePx": 511.6190643310547,
+          "avgSpeedPxMs": 1.306150278960359,
+          "durationMs": 391.7000000476837,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 5276.580611774379,
+      "attemptInBlock": 9,
+      "timeMs": 4855,
+      "timestamp": "2026-09-30T15:32:41.991Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 1,
+      "switchbackCount": 0,
+      "targetNumber": 300,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 334.2414781370153,
+      "flickCount": 14,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 9.954813901682618,
+          "distanceItems": 12.396825472513834,
+          "distancePx": 595.0476226806641,
+          "avgSpeedPxMs": 6.800544259207589,
+          "durationMs": 87.5,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.269841194152832,
+          "maxSpeedPxMs": 10.113379954004515,
+          "avgSpeedPxMs": 5.2497590782161865,
+          "distancePx": 492.95237731933594,
+          "durationMs": 93.89999997615814,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 10.365448112991778,
+          "distanceItems": 8.753968874613443,
+          "distancePx": 420.1905059814453,
+          "avgSpeedPxMs": 6.424931274751011,
+          "durationMs": 65.40000009536743,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 11.056912985912689,
+          "distanceItems": 9.674603780110678,
+          "avgSpeedPxMs": 6.586964275820035,
+          "distancePx": 464.3809814453125,
+          "durationMs": 70.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 19.926758543409147,
+          "distanceItems": 7.333333969116211,
+          "avgSpeedPxMs": 8.734492082731295,
+          "distancePx": 352.0000305175781,
+          "durationMs": 40.299999952316284,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 10.917537133148855,
+          "distanceItems": 9.825397491455078,
+          "distancePx": 471.61907958984375,
+          "avgSpeedPxMs": 5.641376548508886,
+          "durationMs": 83.60000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.801587104797363,
+          "maxSpeedPxMs": 11.294115851907168,
+          "avgSpeedPxMs": 4.515126495345253,
+          "distancePx": 470.47618103027344,
+          "durationMs": 104.20000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.809523900349935,
+          "maxSpeedPxMs": 11.567946576095519,
+          "distancePx": 518.8571472167969,
+          "avgSpeedPxMs": 6.34299691343832,
+          "durationMs": 81.79999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 11.24716625681141,
+          "distanceItems": 9.85714340209961,
+          "avgSpeedPxMs": 6.37658871963237,
+          "distancePx": 473.14288330078125,
+          "durationMs": 74.20000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.182539621988932,
+          "maxSpeedPxMs": 10.990695235423958,
+          "avgSpeedPxMs": 5.07014421137293,
+          "distancePx": 488.76190185546875,
+          "durationMs": 96.39999997615814,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 12.636469509280044,
+          "distanceItems": 11.79365062713623,
+          "distancePx": 566.0952301025391,
+          "avgSpeedPxMs": 6.7958611095629164,
+          "durationMs": 83.29999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.706350008646647,
+          "maxSpeedPxMs": 17.075631534352024,
+          "distancePx": 561.9048004150391,
+          "avgSpeedPxMs": 6.794495768936545,
+          "durationMs": 82.70000004768372,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 12.447398124155866,
+          "distanceItems": 11.428571542104086,
+          "avgSpeedPxMs": 7.973421997829833,
+          "distancePx": 548.5714340209961,
+          "durationMs": 68.80000007152557,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.8492062886556,
+          "maxSpeedPxMs": 20.63491944282767,
+          "avgSpeedPxMs": 6.715367926357608,
+          "distancePx": 472.76190185546875,
+          "durationMs": 70.39999997615814,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 14269.241478137015,
+      "attemptInBlock": 10,
+      "timeMs": 7466,
+      "timestamp": "2026-09-30T15:32:49.988Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decelerationRate": 9.5458,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 0.07,
+        "scrollFriction": 0.013,
+        "decelerationRateInputValue": 9.5458
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 210,
+      "switchbackCount": 1,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 2186.305279294149,
+      "flickCount": 7,
+      "flicks": [
+        {
+          "distanceItems": 11.222221692403158,
+          "maxSpeedPxMs": 9.594355425439188,
+          "distancePx": 538.6666412353516,
+          "avgSpeedPxMs": 4.818127383408746,
+          "durationMs": 111.79999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.468254407246908,
+          "maxSpeedPxMs": 6.746987893664798,
+          "avgSpeedPxMs": 3.774719365762856,
+          "distancePx": 454.47621154785156,
+          "durationMs": 120.39999997615814,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 2.4157938353822916,
+          "distanceItems": 8.61904780069987,
+          "distancePx": 413.71429443359375,
+          "avgSpeedPxMs": 0.7688427697737653,
+          "durationMs": 538.1000000238419,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 8.190475463867188,
+          "distanceItems": 9.269842147827148,
+          "avgSpeedPxMs": 1.3278198241242776,
+          "distancePx": 444.9524230957031,
+          "durationMs": 335.10000002384186,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 6.19048109366773,
+          "distanceItems": 9.087302525838217,
+          "distancePx": 436.1905212402344,
+          "avgSpeedPxMs": 2.7943018653018132,
+          "durationMs": 156.10000002384186,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 6.153846097415721,
+          "distanceItems": 10.103174845377604,
+          "distancePx": 484.952392578125,
+          "avgSpeedPxMs": 2.274635987193536,
+          "durationMs": 213.20000004768372,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 1.1204474954044117,
+          "distanceItems": 1.7222223281860352,
+          "distancePx": 82.66667175292969,
+          "avgSpeedPxMs": 0.237071040268498,
+          "durationMs": 348.7000000476837,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 9617.621929069657,
+      "attemptInBlock": 1,
+      "timeMs": 5016,
+      "timestamp": "2026-09-30T15:32:58.926Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 1,
+      "switchbackCount": 1,
+      "targetNumber": 270,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 535.1345021315992,
+      "flickCount": 5,
+      "flicks": [
+        {
+          "distanceItems": 9.015873591105143,
+          "maxSpeedPxMs": 12.24908447265625,
+          "avgSpeedPxMs": 4.531538558880072,
+          "distancePx": 432.7619323730469,
+          "durationMs": 95.5,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.063491821289062,
+          "maxSpeedPxMs": 3.8583648135011916,
+          "distancePx": 531.047607421875,
+          "avgSpeedPxMs": 1.3400141495982132,
+          "durationMs": 396.2999999523163,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 15.520290524512918,
+          "distanceItems": 7.436508496602376,
+          "avgSpeedPxMs": 6.610229774757668,
+          "distancePx": 356.95240783691406,
+          "durationMs": 54,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.28571351369222,
+          "maxSpeedPxMs": 2.23809814453125,
+          "avgSpeedPxMs": 0.6301200984380366,
+          "distancePx": 541.7142486572266,
+          "durationMs": 859.7000000476837,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.73809814453125,
+          "maxSpeedPxMs": 2.427637453834011,
+          "avgSpeedPxMs": 0.9343477633320931,
+          "distancePx": 419.4287109375,
+          "durationMs": 448.89999997615814,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 12643.848766047615,
+      "attemptInBlock": 2,
+      "timestamp": "2026-09-30T15:33:04.291Z",
+      "timeMs": 4855,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 240,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 3,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 13.102453935859948,
+          "distanceItems": 10.769841512044271,
+          "avgSpeedPxMs": 6.494376789237274,
+          "distancePx": 516.952392578125,
+          "durationMs": 79.60000002384186,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 1.4789931353400736,
+          "distanceItems": 9.888889074325562,
+          "avgSpeedPxMs": 0.4445693317846101,
+          "distancePx": 474.66667556762695,
+          "durationMs": 1067.7000000476837,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 2.0223377309542006,
+          "distanceItems": 4.912699063618978,
+          "distancePx": 235.80955505371094,
+          "avgSpeedPxMs": 0.835611463903184,
+          "durationMs": 282.1999999284744,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 11005.22561464448,
+      "attemptInBlock": 3,
+      "timestamp": "2026-09-30T15:33:08.536Z",
+      "timeMs": 3670,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 21.85085339117698,
+          "distanceItems": 9.730159441630045,
+          "distancePx": 467.0476531982422,
+          "avgSpeedPxMs": 6.759010897787189,
+          "durationMs": 69.10000002384186,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.047618865966797,
+          "distanceItems": 9.03174622853597,
+          "distancePx": 433.52381896972656,
+          "avgSpeedPxMs": 1.0110163689783946,
+          "durationMs": 428.7999999523163,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.7065660153651105,
+          "distanceItems": 10.896826108296713,
+          "distancePx": 523.0476531982422,
+          "avgSpeedPxMs": 2.3225917112094443,
+          "durationMs": 225.19999992847443,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 12.230162541071573,
+          "maxSpeedPxMs": 9.735468939755247,
+          "avgSpeedPxMs": 2.098097933600314,
+          "distancePx": 587.0478019714355,
+          "durationMs": 279.8000000715256,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 3871.121880914375,
+      "attemptInBlock": 4,
+      "timeMs": 2828,
+      "timestamp": "2026-09-30T15:33:11.855Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 1,
+      "switchbackCount": 1,
+      "targetNumber": 180,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 399.58888446357014,
+      "flickCount": 6,
+      "flicks": [
+        {
+          "distanceItems": 8.063492774963379,
+          "maxSpeedPxMs": 8.279366048177083,
+          "distancePx": 387.0476531982422,
+          "avgSpeedPxMs": 3.917486370293952,
+          "durationMs": 98.79999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.325398445129395,
+          "maxSpeedPxMs": 6.114049822860148,
+          "avgSpeedPxMs": 4.187269648887215,
+          "distancePx": 447.61912536621094,
+          "durationMs": 106.89999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.365079085032145,
+          "maxSpeedPxMs": 3.190476417541504,
+          "avgSpeedPxMs": 1.095330887201895,
+          "distancePx": 449.52379608154297,
+          "durationMs": 410.39999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 7.452380816141765,
+          "maxSpeedPxMs": 6.926408097388352,
+          "distancePx": 357.7142791748047,
+          "avgSpeedPxMs": 3.0034784139647033,
+          "durationMs": 119.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 5.428572336832683,
+          "maxSpeedPxMs": 2.5702805264615467,
+          "distancePx": 260.57147216796875,
+          "avgSpeedPxMs": 1.2147854180324884,
+          "durationMs": 214.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 1.9736085568485982,
+          "distanceItems": 5.587304433186849,
+          "avgSpeedPxMs": 0.7167039357530562,
+          "distancePx": 268.19061279296875,
+          "durationMs": 374.2000000476837,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 8341.446001162789,
+      "attemptInBlock": 5,
+      "timeMs": 4088,
+      "timestamp": "2026-09-30T15:33:16.409Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 150,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 2,
+      "flicks": [
+        {
+          "distanceItems": 10.817461013793945,
+          "maxSpeedPxMs": 18.722418699483065,
+          "avgSpeedPxMs": 5.7059135017814215,
+          "distancePx": 519.2381286621094,
+          "durationMs": 91,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 12.642857506871223,
+          "maxSpeedPxMs": 2.3920245436956034,
+          "avgSpeedPxMs": 0.47510934029004437,
+          "distancePx": 606.8571603298187,
+          "durationMs": 1277.2999999523163,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 6517.489056171238,
+      "attemptInBlock": 6,
+      "timeMs": 2830,
+      "timestamp": "2026-09-30T15:33:19.732Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 60,
+      "switchbackCount": 1,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 558.923614801773,
+      "flickCount": 2,
+      "flicks": [
+        {
+          "distanceItems": 12.365079879760742,
+          "maxSpeedPxMs": 15.2380859375,
+          "avgSpeedPxMs": 5.06419654087658,
+          "distancePx": 593.5238342285156,
+          "durationMs": 117.19999992847443,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 1.9047619101682218,
+          "distanceItems": 6.865077972412109,
+          "avgSpeedPxMs": 0.38165826110653633,
+          "distancePx": 329.52374267578125,
+          "durationMs": 863.4000000953674,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 2752.590301813492,
+      "attemptInBlock": 7,
+      "timestamp": "2026-09-30T15:33:22.070Z",
+      "timeMs": 1928,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 1,
+      "switchbackCount": 0,
+      "targetNumber": 30,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 45.190494537353516,
+      "flickCount": 2,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 3.638305673809013,
+          "distanceItems": 14.357143004735311,
+          "avgSpeedPxMs": 0.7507820723882721,
+          "distancePx": 689.1428642272949,
+          "durationMs": 917.8999999761581,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.460317691167196,
+          "maxSpeedPxMs": 3.047618865966797,
+          "avgSpeedPxMs": 1.2937089812260905,
+          "distancePx": 406.0952491760254,
+          "durationMs": 313.89999997615814,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 1089.1428756713867,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-30T15:33:24.675Z",
+      "timeMs": 2123,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 300,
+      "switchbackCount": 2,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 551.2507413027961,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "distanceItems": 9.571427345275879,
+          "maxSpeedPxMs": 38.29573829921595,
+          "distancePx": 459.4285125732422,
+          "avgSpeedPxMs": 5.943447773048485,
+          "durationMs": 77.29999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 8.571433893271776,
+          "distanceItems": 6.111111323038737,
+          "distancePx": 293.3333435058594,
+          "avgSpeedPxMs": 5.534591386903007,
+          "durationMs": 53,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.8565553718914853,
+          "distanceItems": 7.80158805847168,
+          "distancePx": 374.4762268066406,
+          "avgSpeedPxMs": 0.765174145535112,
+          "durationMs": 489.39999997615814,
+          "direction": "down"
+        },
+        {
+          "distanceItems": 6.904762069384257,
+          "maxSpeedPxMs": 2.3985874788094446,
+          "distancePx": 331.42857933044434,
+          "avgSpeedPxMs": 0.7740041552861675,
+          "durationMs": 428.2000000476837,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 13899.829632807061,
+      "attemptInBlock": 9,
+      "timeMs": 3835,
+      "timestamp": "2026-09-30T15:33:29.007Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 120,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 18.47358162951553,
+          "distanceItems": 9.968254089355469,
+          "distancePx": 478.4761962890625,
+          "avgSpeedPxMs": 7.372514583433543,
+          "durationMs": 64.89999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.88888923327128,
+          "maxSpeedPxMs": 3.1007740023502803,
+          "distancePx": 474.6666831970215,
+          "avgSpeedPxMs": 0.6615563528878349,
+          "durationMs": 717.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.763062990217308,
+          "distanceItems": 9.015873591105143,
+          "avgSpeedPxMs": 1.181441256973471,
+          "distancePx": 432.7619323730469,
+          "durationMs": 366.2999999523163,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 3.8015880584716797,
+          "maxSpeedPxMs": 7.460327222549192,
+          "distancePx": 182.47622680664062,
+          "avgSpeedPxMs": 0.7481600115804762,
+          "durationMs": 243.89999997615814,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 5183.323791262561,
+      "attemptInBlock": 10,
+      "timeMs": 3921,
+      "timestamp": "2026-09-30T15:33:33.487Z",
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 4.2158,
+        "fingerVelocityPxMs": 0,
+        "decay": 0.98,
+        "inflexion": 1.43,
+        "scrollFriction": 0.012,
+        "decelerationRateInputValue": 4.2158
+      }
+    },
+    {
+      "overshootCount": 1,
+      "switchbackCount": 1,
+      "targetNumber": 240,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 1530.8674558960265,
+      "flickCount": 6,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 13.959733614121081,
+          "distanceItems": 11.317461649576822,
+          "distancePx": 543.2381591796875,
+          "avgSpeedPxMs": 7.651241678587148,
+          "durationMs": 71,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.866549247969671,
+          "distanceItems": 8.825396855672201,
+          "distancePx": 423.6190490722656,
+          "avgSpeedPxMs": 4.181826740110148,
+          "durationMs": 101.30000007152557,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.611111481984457,
+          "maxSpeedPxMs": 5.966723287248698,
+          "distancePx": 461.3333511352539,
+          "avgSpeedPxMs": 4.760922097510456,
+          "durationMs": 96.89999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.214285532633463,
+          "maxSpeedPxMs": 2.328041908952647,
+          "avgSpeedPxMs": 0.5368196449996494,
+          "distancePx": 442.28570556640625,
+          "durationMs": 823.9000000953674,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 15.23810276368861,
+          "distanceItems": 8.817460378011068,
+          "distancePx": 423.23809814453125,
+          "avgSpeedPxMs": 1.3103346691781153,
+          "durationMs": 323,
+          "direction": "down"
+        },
+        {
+          "distanceItems": 8.801587422688803,
+          "maxSpeedPxMs": 2.3113979444380504,
+          "distancePx": 422.4761962890625,
+          "avgSpeedPxMs": 1.0465102709039256,
+          "durationMs": 403.6999999284744,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 11353.486474450714,
+      "attemptInBlock": 1,
+      "timeMs": 5088,
+      "timestamp": "2026-09-30T15:33:42.508Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 60,
+      "switchbackCount": 1,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 186.5240277280409,
+      "flickCount": 2,
+      "flicks": [
+        {
+          "distanceItems": 8.698414166768393,
+          "maxSpeedPxMs": 12.952362060546875,
+          "distancePx": 417.5238800048828,
+          "avgSpeedPxMs": 1.4138973244285573,
+          "durationMs": 295.3000000715256,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 0.9142822265625,
+          "distanceItems": 1.9444440205891926,
+          "distancePx": 93.33331298828125,
+          "avgSpeedPxMs": 0.1634845209181626,
+          "durationMs": 570.8999999761581,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 2592.0001934995253,
+      "attemptInBlock": 2,
+      "timeMs": 1997,
+      "timestamp": "2026-09-30T15:33:45.041Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 300,
+      "switchbackCount": 0,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 66.17313201355682,
+      "flickCount": 5,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 7.526131672331167,
+          "distanceItems": 9.238096555074057,
+          "avgSpeedPxMs": 4.276071691799959,
+          "distancePx": 443.4286346435547,
+          "durationMs": 103.70000004768372,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.258501343098429,
+          "distanceItems": 7.40476131439209,
+          "avgSpeedPxMs": 3.884464951812244,
+          "distancePx": 355.4285430908203,
+          "durationMs": 91.5,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.714285691579183,
+          "maxSpeedPxMs": 1.579556362625067,
+          "distancePx": 322.2857131958008,
+          "avgSpeedPxMs": 1.0965828962978745,
+          "durationMs": 293.89999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 7.388889312744141,
+          "maxSpeedPxMs": 4.39561106245691,
+          "distancePx": 354.66668701171875,
+          "avgSpeedPxMs": 2.222222349365519,
+          "durationMs": 159.60000002384186,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.3802816787898315,
+          "distanceItems": 9.174603382746378,
+          "avgSpeedPxMs": 2.118234547485949,
+          "distancePx": 440.3809623718262,
+          "durationMs": 207.89999997615814,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 13996.220739435432,
+      "attemptInBlock": 3,
+      "timeMs": 4346,
+      "timestamp": "2026-09-30T15:33:49.829Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 1,
+      "switchbackCount": 1,
+      "targetNumber": 120,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 517.0152752322683,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 9.486461143614472,
+          "distanceItems": 7.809523582458496,
+          "avgSpeedPxMs": 3.549783445770591,
+          "distancePx": 374.8571319580078,
+          "durationMs": 105.60000002384186,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.9909289678967683,
+          "distanceItems": 11.317460497220358,
+          "avgSpeedPxMs": 1.086041790913216,
+          "distancePx": 543.2381038665771,
+          "durationMs": 500.2000000476837,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 4.73867646229746,
+          "distanceItems": 7.32539717356364,
+          "avgSpeedPxMs": 3.249714086655233,
+          "distancePx": 351.6190643310547,
+          "durationMs": 108.20000004768372,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 1.1015522112418497,
+          "distanceItems": 4.984129587809245,
+          "distancePx": 239.23822021484375,
+          "avgSpeedPxMs": 0.30032415290946957,
+          "durationMs": 796.6000000238419,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 5630.681901208831,
+      "attemptInBlock": 4,
+      "timestamp": "2026-09-30T15:33:54.885Z",
+      "timeMs": 3901,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 150,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "distanceItems": 8.880953152974447,
+          "maxSpeedPxMs": 8.110601609753024,
+          "avgSpeedPxMs": 3.3148192166698442,
+          "distancePx": 426.28575134277344,
+          "durationMs": 128.60000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 10.380952397982279,
+          "maxSpeedPxMs": 2.923587524825508,
+          "distancePx": 498.2857151031494,
+          "avgSpeedPxMs": 0.7869325885433126,
+          "durationMs": 633.2000000476837,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.047619422276815,
+          "maxSpeedPxMs": 2.833914391390205,
+          "avgSpeedPxMs": 0.710737317882773,
+          "distancePx": 386.2857322692871,
+          "durationMs": 543.5,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 5.888889153798421,
+          "maxSpeedPxMs": 8.190475463867188,
+          "distancePx": 282.6666793823242,
+          "avgSpeedPxMs": 0.9831884500254755,
+          "durationMs": 287.5,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 6664.029762401475,
+      "attemptInBlock": 5,
+      "timestamp": "2026-09-30T15:33:59.026Z",
+      "timeMs": 3657,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 30,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 2,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 5.579833984375,
+          "distanceItems": 9.714286804199219,
+          "distancePx": 466.2857666015625,
+          "avgSpeedPxMs": 1.6803090688344595,
+          "durationMs": 277.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 15.449743716594496,
+          "distanceItems": 9.190476775169373,
+          "avgSpeedPxMs": 1.620062009152604,
+          "distancePx": 441.1428852081299,
+          "durationMs": 272.3000000715256,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 907.4286518096924,
+      "attemptInBlock": 6,
+      "timestamp": "2026-09-30T15:34:01.142Z",
+      "timeMs": 1646,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 270,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 5.714286295794449,
+          "distanceItems": 9.246031761169434,
+          "avgSpeedPxMs": 4.0828843130465815,
+          "distancePx": 443.8095245361328,
+          "durationMs": 108.69999992847443,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.119047164916992,
+          "maxSpeedPxMs": 3.62593319689471,
+          "avgSpeedPxMs": 2.4822564580637936,
+          "distancePx": 389.7142639160156,
+          "durationMs": 157,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.595238367716472,
+          "maxSpeedPxMs": 8.253969488410636,
+          "avgSpeedPxMs": 5.241249036015757,
+          "distancePx": 316.5714416503906,
+          "durationMs": 60.39999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 5,
+          "maxSpeedPxMs": 1.4866415013915868,
+          "distancePx": 240,
+          "avgSpeedPxMs": 0.34393809110833995,
+          "durationMs": 697.8000000715256,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 12376.167319163262,
+      "attemptInBlock": 7,
+      "timeMs": 3975,
+      "timestamp": "2026-09-30T15:34:05.561Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 90,
+      "switchbackCount": 0,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 9.698720882778616,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 31.428565510681786,
+          "distanceItems": 11.444443702697754,
+          "avgSpeedPxMs": 5.837760867059608,
+          "distancePx": 549.3332977294922,
+          "durationMs": 94.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.992063542207083,
+          "maxSpeedPxMs": 2.9897530561451764,
+          "distancePx": 479.61905002593994,
+          "avgSpeedPxMs": 0.8221101301809006,
+          "durationMs": 583.4000000953674,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 2.78745696144885,
+          "distanceItems": 8.865079561869303,
+          "distancePx": 425.52381896972656,
+          "avgSpeedPxMs": 1.5615552989714736,
+          "durationMs": 272.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 2.962961070440548,
+          "distanceItems": 7.9285712242126465,
+          "distancePx": 380.57141876220703,
+          "avgSpeedPxMs": 1.5078106925441999,
+          "durationMs": 252.39999997615814,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 3920.6987208827786,
+      "attemptInBlock": 8,
+      "timeMs": 2833,
+      "timestamp": "2026-09-30T15:34:08.865Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 180,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 7.222222234179944,
+          "distanceItems": 9.666666030883789,
+          "distancePx": 463.9999694824219,
+          "avgSpeedPxMs": 4.734693566147162,
+          "durationMs": 98,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 4.91005113389757,
+          "distanceItems": 7.492064158121745,
+          "distancePx": 359.61907958984375,
+          "avgSpeedPxMs": 2.630717479622541,
+          "durationMs": 136.70000004768372,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 7.368421029516204,
+          "distanceItems": 7.460317929585774,
+          "avgSpeedPxMs": 3.6134738701711933,
+          "distancePx": 358.0952606201172,
+          "durationMs": 99.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 1.4047622680664062,
+          "maxSpeedPxMs": 1.0389610486119851,
+          "distancePx": 67.4285888671875,
+          "avgSpeedPxMs": 0.13373381368665327,
+          "durationMs": 504.2000000476837,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 8100.371053921264,
+      "attemptInBlock": 9,
+      "timeMs": 3326,
+      "timestamp": "2026-09-30T15:34:12.681Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 210,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 82.61903639705424,
+          "distanceItems": 15.49206272761027,
+          "distancePx": 743.619010925293,
+          "avgSpeedPxMs": 9.784460670069643,
+          "durationMs": 76,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 2.358276737185537,
+          "distanceItems": 6.301586786905925,
+          "distancePx": 302.4761657714844,
+          "avgSpeedPxMs": 0.6705301834526661,
+          "durationMs": 451.10000002384186,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 1.4228324512276733,
+          "distanceItems": 5.476190567016602,
+          "distancePx": 262.8571472167969,
+          "avgSpeedPxMs": 0.5429810931705251,
+          "durationMs": 484.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 4.833333333333333,
+          "maxSpeedPxMs": 1.9512195008486102,
+          "distancePx": 232,
+          "avgSpeedPxMs": 1.0431654677377293,
+          "durationMs": 222.39999997615814,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 9559.115784400203,
+      "attemptInBlock": 10,
+      "timeMs": 3712,
+      "timestamp": "2026-09-30T15:34:16.828Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRate": 6.6815,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.43,
+        "scrollFriction": 0.145,
+        "decelerationRateInputValue": 6.6815
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 120,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 23.902892954663233,
+          "distanceItems": 10.507936477661133,
+          "avgSpeedPxMs": 4.593633434852239,
+          "distancePx": 504.3809509277344,
+          "durationMs": 109.79999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.650794327259064,
+          "maxSpeedPxMs": 2.478486960069168,
+          "distancePx": 559.2381277084351,
+          "avgSpeedPxMs": 1.0348595998021983,
+          "durationMs": 540.3999999761581,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.063491980234781,
+          "maxSpeedPxMs": 5.490193125010891,
+          "distancePx": 435.04761505126953,
+          "avgSpeedPxMs": 1.1436582941076143,
+          "durationMs": 380.39999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.26190479596456,
+          "maxSpeedPxMs": 4.1904754638671875,
+          "distancePx": 396.5714302062988,
+          "avgSpeedPxMs": 1.6206433597426257,
+          "durationMs": 244.70000004768372,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 5294.232875599059,
+      "attemptInBlock": 1,
+      "timestamp": "2026-09-30T15:34:26.582Z",
+      "timeMs": 4083,
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 150,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 5,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 10.962098622624234,
+          "distanceItems": 12.126983483632406,
+          "distancePx": 582.0952072143555,
+          "avgSpeedPxMs": 5.618679605023124,
+          "durationMs": 103.60000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 11.746031800905863,
+          "maxSpeedPxMs": 3.5772369921077347,
+          "distancePx": 563.8095264434814,
+          "avgSpeedPxMs": 2.3163908237416124,
+          "durationMs": 243.39999997615814,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 2.672355974451065,
+          "distanceItems": 8.722222566604614,
+          "distancePx": 418.6666831970215,
+          "avgSpeedPxMs": 1.3913814658169792,
+          "durationMs": 300.90000009536743,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 7.4920637011528015,
+          "maxSpeedPxMs": 2.1634344343390453,
+          "distancePx": 359.6190576553345,
+          "avgSpeedPxMs": 1.4080620896198328,
+          "durationMs": 255.39999997615814,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.2199550901706875,
+          "distanceItems": 8.619047919909159,
+          "distancePx": 413.71430015563965,
+          "avgSpeedPxMs": 1.4014712068288642,
+          "durationMs": 295.1999999284744,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 6573.760031453085,
+      "attemptInBlock": 2,
+      "timeMs": 4361,
+      "timestamp": "2026-09-30T15:34:31.465Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 60,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 2,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 8.338624742296007,
+          "distanceItems": 11.849207401275635,
+          "avgSpeedPxMs": 4.561042141489519,
+          "distancePx": 568.7619552612305,
+          "durationMs": 124.70000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.801587263743082,
+          "maxSpeedPxMs": 3.5273365811732473,
+          "distancePx": 470.47618865966797,
+          "avgSpeedPxMs": 0.731575476177012,
+          "durationMs": 643.0999999046326,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 2441.442390210099,
+      "attemptInBlock": 3,
+      "timeMs": 1620,
+      "timestamp": "2026-09-30T15:34:33.529Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 240,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 7,
+      "flicks": [
+        {
+          "distanceItems": 9.666667779286703,
+          "maxSpeedPxMs": 17.142857434798266,
+          "distancePx": 464.0000534057617,
+          "avgSpeedPxMs": 3.3405331395765563,
+          "durationMs": 138.90000009536743,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.785714308420816,
+          "maxSpeedPxMs": 7.486157063866335,
+          "distancePx": 421.7142868041992,
+          "avgSpeedPxMs": 4.204529282200268,
+          "durationMs": 100.29999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.09523836771647,
+          "maxSpeedPxMs": 4.506389312590684,
+          "avgSpeedPxMs": 3.3098078511865636,
+          "distancePx": 388.5714416503906,
+          "durationMs": 117.39999997615814,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.1669529556765785,
+          "distanceItems": 6.65079387029012,
+          "avgSpeedPxMs": 2.1254201442914638,
+          "distancePx": 319.2381057739258,
+          "durationMs": 150.20000004768372,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 4.2002438533015365,
+          "distanceItems": 6.238095283508301,
+          "distancePx": 299.42857360839844,
+          "avgSpeedPxMs": 2.642794119456458,
+          "durationMs": 113.29999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 5.690476417541504,
+          "maxSpeedPxMs": 4.3997321182582345,
+          "avgSpeedPxMs": 2.555125052412639,
+          "distancePx": 273.1428680419922,
+          "durationMs": 106.89999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.746031641960144,
+          "maxSpeedPxMs": 1.6064250992374254,
+          "avgSpeedPxMs": 0.6083214706802441,
+          "distancePx": 323.8095188140869,
+          "durationMs": 532.2999999523163,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 10982.086110862883,
+      "attemptInBlock": 4,
+      "timeMs": 4109,
+      "timestamp": "2026-09-30T15:34:38.100Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 180,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 4,
+      "flicks": [
+        {
+          "distanceItems": 17.08730387687683,
+          "maxSpeedPxMs": 94.0190673828125,
+          "avgSpeedPxMs": 10.74954897251201,
+          "distancePx": 820.1905860900879,
+          "durationMs": 76.29999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 7.23809814453125,
+          "distanceItems": 6.611111144224803,
+          "avgSpeedPxMs": 0.7818017613733189,
+          "distancePx": 317.3333349227905,
+          "durationMs": 405.89999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.587301969528198,
+          "maxSpeedPxMs": 27.705632389553408,
+          "distancePx": 316.1904945373535,
+          "avgSpeedPxMs": 1.9174681296729503,
+          "durationMs": 164.89999997615814,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 2.174602826436361,
+          "maxSpeedPxMs": 2.2104654129332513,
+          "distancePx": 104.38093566894531,
+          "avgSpeedPxMs": 0.2875507869667915,
+          "durationMs": 363,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 8151.128262254138,
+      "attemptInBlock": 5,
+      "timeMs": 2978,
+      "timestamp": "2026-09-30T15:34:41.550Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 90,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 3,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 8.425771376665901,
+          "distanceItems": 10.365079402923584,
+          "avgSpeedPxMs": 4.779287331665562,
+          "distancePx": 497.52381134033203,
+          "durationMs": 104.10000002384186,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.03174638748169,
+          "maxSpeedPxMs": 2.1512594784007355,
+          "distancePx": 433.5238265991211,
+          "avgSpeedPxMs": 0.702290339595997,
+          "durationMs": 617.2999999523163,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.215531276596613,
+          "distanceItems": 8.92857132355372,
+          "distancePx": 428.5714235305786,
+          "avgSpeedPxMs": 1.7614937254606937,
+          "durationMs": 243.30000007152557,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 3691.4578108201667,
+      "attemptInBlock": 6,
+      "timeMs": 2576,
+      "timestamp": "2026-09-30T15:34:44.530Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "targetNumber": 300,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 6,
+      "flicks": [
+        {
+          "distanceItems": 8.944444338480631,
+          "maxSpeedPxMs": 6.4761912027994795,
+          "distancePx": 429.3333282470703,
+          "avgSpeedPxMs": 3.507625228043767,
+          "durationMs": 122.40000009536743,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 12.31746013959249,
+          "maxSpeedPxMs": 15.23808322110085,
+          "distancePx": 591.2380867004395,
+          "avgSpeedPxMs": 6.688213643242101,
+          "durationMs": 88.40000009536743,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.746032238006592,
+          "maxSpeedPxMs": 8.616779896806479,
+          "avgSpeedPxMs": 6.196152946017436,
+          "distancePx": 467.8095474243164,
+          "durationMs": 75.5,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 6.095245361328125,
+          "distanceItems": 8.49206367135048,
+          "distancePx": 407.619056224823,
+          "avgSpeedPxMs": 1.2262907825146654,
+          "durationMs": 332.40000009536743,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 9.404762476682663,
+          "maxSpeedPxMs": 3.9072007041050774,
+          "distancePx": 451.4285988807678,
+          "avgSpeedPxMs": 2.5722427286653438,
+          "durationMs": 175.5,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 7.126983801523845,
+          "maxSpeedPxMs": 2.6785707074616742,
+          "avgSpeedPxMs": 0.6205246190871276,
+          "distancePx": 342.09522247314453,
+          "durationMs": 551.2999999523163,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 13886.160934704889,
+      "attemptInBlock": 7,
+      "timestamp": "2026-09-30T15:34:48.876Z",
+      "timeMs": 3945,
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 210,
+      "switchbackCount": 1,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 3597.93216371756,
+      "flickCount": 6,
+      "flicks": [
+        {
+          "distanceItems": 13.579365571339926,
+          "maxSpeedPxMs": 32.61905621559834,
+          "distancePx": 651.8095474243164,
+          "avgSpeedPxMs": 6.046470758002176,
+          "durationMs": 107.79999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.6090248396239004,
+          "distanceItems": 9.777777353922525,
+          "avgSpeedPxMs": 0.7236097950312829,
+          "distancePx": 469.33331298828125,
+          "durationMs": 648.5999999046326,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 12.38093009070833,
+          "distanceItems": 5.071427663167317,
+          "avgSpeedPxMs": 4.474789106714745,
+          "distancePx": 243.42852783203125,
+          "durationMs": 54.40000009536743,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 3.764705882352941,
+          "distanceItems": 10.59523836771647,
+          "avgSpeedPxMs": 1.0901852982859392,
+          "distancePx": 508.5714416503906,
+          "durationMs": 466.5,
+          "direction": "down"
+        },
+        {
+          "distanceItems": 9.468254407246908,
+          "maxSpeedPxMs": 3.151086868618486,
+          "avgSpeedPxMs": 1.9127786679387515,
+          "distancePx": 454.47621154785156,
+          "durationMs": 237.60000002384186,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 3.8095211546062013,
+          "distanceItems": 4.230158805847168,
+          "distancePx": 203.04762268066406,
+          "avgSpeedPxMs": 0.7462242655746884,
+          "durationMs": 272.10000002384186,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 9812.318929606445,
+      "attemptInBlock": 8,
+      "timestamp": "2026-09-30T15:34:54.066Z",
+      "timeMs": 4768,
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 0,
+      "targetNumber": 270,
+      "switchbackCount": 1,
+      "didOvershoot": false,
+      "maxOvershootDistancePx": 0,
+      "flickCount": 6,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 8.0230885996129,
+          "distanceItems": 11.72222344080607,
+          "avgSpeedPxMs": 5.666331575316044,
+          "distancePx": 562.6667251586914,
+          "durationMs": 99.29999995231628,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 8.690475781758627,
+          "maxSpeedPxMs": 14.050711012191828,
+          "avgSpeedPxMs": 4.4282679176342725,
+          "distancePx": 417.14283752441406,
+          "durationMs": 94.19999992847443,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 8.390023391559076,
+          "distanceItems": 8.087301890055338,
+          "distancePx": 388.19049072265625,
+          "avgSpeedPxMs": 4.577718053548807,
+          "durationMs": 84.79999995231628,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 2.652201600171951,
+          "distanceItems": 6.79365086555481,
+          "distancePx": 326.09524154663086,
+          "avgSpeedPxMs": 1.407402854896507,
+          "durationMs": 231.70000004768372,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.722222010294597,
+          "maxSpeedPxMs": 3.858364754532868,
+          "distancePx": 322.6666564941406,
+          "avgSpeedPxMs": 2.9042903399740356,
+          "durationMs": 111.09999990463257,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 1.0079358418782551,
+          "maxSpeedPxMs": 0.9612808897727856,
+          "distancePx": 48.38092041015625,
+          "avgSpeedPxMs": 0.09187413674129472,
+          "durationMs": 526.6000000238419,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 12465.278878069645,
+      "attemptInBlock": 9,
+      "timeMs": 3389,
+      "timestamp": "2026-09-30T15:34:57.932Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 30,
+      "switchbackCount": 1,
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 1558.148697162524,
+      "flickCount": 3,
+      "flicks": [
+        {
+          "distanceItems": 11.944445610046387,
+          "maxSpeedPxMs": 12.610838105849876,
+          "avgSpeedPxMs": 6.099291375342836,
+          "distancePx": 573.3333892822266,
+          "durationMs": 94,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 7.222221374511719,
+          "maxSpeedPxMs": 3.396444636111277,
+          "distancePx": 346.6666259765625,
+          "avgSpeedPxMs": 1.0604668889625146,
+          "durationMs": 326.89999997615814,
+          "direction": "down"
+        },
+        {
+          "distanceItems": 7.793652216593425,
+          "maxSpeedPxMs": 2.522521155984083,
+          "distancePx": 374.0953063964844,
+          "avgSpeedPxMs": 0.7920713665768648,
+          "durationMs": 472.2999999523163,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 1232.7787846955719,
+      "attemptInBlock": 10,
+      "timeMs": 1961,
+      "timestamp": "2026-09-30T15:35:00.305Z",
+      "blockIndex": 4,
+      "blockParameterSet": {
+        "decelerationRate": 4.3577,
+        "decay": 0.98,
+        "fingerVelocityPxMs": 0,
+        "inflexion": 1.85,
+        "decelerationRateInputValue": 4.3577,
+        "scrollFriction": 0.108
+      }
+    }
+  ]
+}

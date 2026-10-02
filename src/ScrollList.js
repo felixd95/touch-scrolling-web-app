@@ -1051,11 +1051,6 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
     return numB1 / det; // px/ms, same unit as getRegressionVelocityPxMs
   };
 
-  const getTargetPositionRatio = () => {
-    if (NUM_ITEMS <= 1) return 0;
-    return clamp01(targetId / (NUM_ITEMS - 1));
-  };
-
   const getCurrentPositionRatio = () => {
     const inner = scrollListInnerRef.current;
     if (!inner || inner.children.length < 2 || containerHeight <= 0 || NUM_ITEMS <= 1) return 0;
@@ -1508,7 +1503,6 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
     }
   };
 
-  const targetPositionRatio = getTargetPositionRatio();
   const currentPositionRatio = getCurrentPositionRatio();
   const showStudyCompletionDialog = !isTestMode && studyCompleted;
   const showParameterOverlay = !isTestMode && !studyCompleted && (awaitingNextParameterSet || Boolean(parameterSyncError));
@@ -1527,11 +1521,6 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
   const renderDistanceFeedback = (side) => (
     <div className="distance-feedback" aria-hidden="true">
       <div className="distance-track">
-        <div
-          className="distance-marker distance-marker-target"
-          style={{ top: `${targetPositionRatio * 100}%` }}
-          title={`Target (${side})`}
-        />
         <div
           className="distance-marker distance-marker-current"
           style={{ top: `${currentPositionRatio * 100}%` }}
