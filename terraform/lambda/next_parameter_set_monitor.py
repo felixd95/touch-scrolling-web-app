@@ -10,7 +10,7 @@ import boto3
 
 RUNS_PER_BLOCK = 10
 RANDOM_BOOTSTRAP_BLOCKS = 3
-ADAPTIVE_QNEI_BLOCKS = 10
+ADAPTIVE_QNEI_BLOCKS = 15
 FINAL_RECOMMENDATION_BLOCKS = 1
 FINAL_ANDROID_BLOCKS = 1
 INITIAL_DESIGN_BLOCKS = RANDOM_BOOTSTRAP_BLOCKS
@@ -272,11 +272,11 @@ def _build_acquisition_config(completed_block_count):
     if safe_completed_block_count < FIRST_INFERENCE_BLOCK:
         return {"strategy": "qnei", "phase": "initial-design"}
 
-    # Training/active-learning blocks 4-13: qNEI proposals from the trained model.
+    # Training/active-learning blocks 4-18: qNEI proposals from the trained model.
     if safe_completed_block_count < ADAPTIVE_QNEI_END_BLOCK:
         return {"strategy": "qnei", "phase": "adaptive-qnei"}
 
-    # Final model block (14 or 15, depending on GROUP): same qNEI proposal from the
+    # Final model block (19 or 20, depending on GROUP): same qNEI proposal from the
     # fully trained model. The Android block of the pair is generated on the client.
     return {"strategy": "qnei", "phase": "final-model"}
 
@@ -622,7 +622,7 @@ def handler(event, context):
         stage = "prepare-ml-payload"
         all_attempt_data = block_records
         # Training is frozen after the last active-learning block. The final model
-        # proposal (blocks 14/15) is always trained on the training blocks only
+        # proposal (blocks 19/20) is always trained on the training blocks only
         # (1..ADAPTIVE_QNEI_END_BLOCK); the final Android comparison block is never
         # used for training.
         if completed_block_count >= ADAPTIVE_QNEI_END_BLOCK:

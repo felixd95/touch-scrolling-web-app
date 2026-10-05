@@ -25,7 +25,7 @@ const ITEMS_PER_SCREEN = 15;
 const RUNS_PER_BLOCK = 10;
 const INITIAL_ANDROID_BLOCKS = 0;
 const RANDOM_BOOTSTRAP_BLOCKS = 3;
-const ADAPTIVE_QNEI_BLOCKS = 10;
+const ADAPTIVE_QNEI_BLOCKS = 15;
 const FINAL_RECOMMENDATION_BLOCKS = 1;
 const FINAL_ANDROID_BLOCKS = 1;
 const TOTAL_STUDY_BLOCKS = INITIAL_ANDROID_BLOCKS
@@ -604,8 +604,8 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
         : null;
 
       if (!nextParameterSet && allowGenerationWhenMissing) {
-        // Blocks 1-3 bootstrap (random), blocks 4-13 train the model (qNEI),
-        // blocks 14-15 only load the saved optimal params or use Android defaults.
+        // Blocks 1-3 bootstrap (random), blocks 4-18 train the model (qNEI),
+        // blocks 19-20 only load the saved optimal params or use Android defaults.
         const inFinalPhase = completedBlockCount >= RANDOM_BOOTSTRAP_BLOCKS + ADAPTIVE_QNEI_BLOCKS;
 
         if (isRandomBootstrapPhase(completedBlockCount)) {
@@ -614,8 +614,8 @@ function ScrollList({ participantId, mode = 'study', group = 1, onExitTestEnviro
         } else if (!inFinalPhase) {
           nextParameterSet = await synchronizeNextParameterSet(attemptsCount);
         } else {
-          // Training is finished after block 13. Compute the optimal learned
-          // parameters once (trained on the first 13 blocks only) and persist them,
+          // Training is finished after block 18. Compute the optimal learned
+          // parameters once (trained on the first 18 blocks only) and persist them,
           // then only load the saved optimal or use the Android defaults.
           let finalOptimal = normalizeParameterSet(participant?.finalParameterSet);
           if (!finalOptimal) {
