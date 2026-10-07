@@ -1,0 +1,5295 @@
+{
+  "participantId": "3a17c7b9-8bf4-4c35-9459-55e815318199",
+  "prolificPid": "67f789ca382e36a759a011af",
+  "gender": "female",
+  "smartphone": "iPhone 16",
+  "handedness": "right",
+  "group": 1,
+  "currentParameterSet": {
+    "scrollFriction": 0.149,
+    "decelerationRate": 7.2435,
+    "generatedFromAttemptCount": 0,
+    "completedBlockCount": 0,
+    "status": "ready",
+    "blockSize": 10,
+    "inflexion": 0.83,
+    "source": "random-initial-parameter-set"
+  },
+  "nextParameterSet": {
+    "generation": {
+      "source": "terraform-appsync-sagemaker-active-learning",
+      "generator": "botorch-qlognei-single-objective-total-normalized-time",
+      "phase": "adaptive-qnei",
+      "strategy": "qLogNoisyExpectedImprovement"
+    },
+    "scrollFriction": 0.239,
+    "blockSize": 10,
+    "generatedFromAttemptCount": 30,
+    "source": "terraform-appsync-sagemaker-active-learning",
+    "decelerationRate": 5.22,
+    "inflexion": 1,
+    "status": "ready",
+    "completedBlockCount": 3
+  },
+  "finalParameterSet": null,
+  "parameterBlockMetrics": [
+    {
+      "sagemakerLatencyMs": 759.3,
+      "model": {
+        "predictedImprovementVsBestObserved": -13.13629403550226,
+        "bestObservedNormalizedTime": 401.7758333333333,
+        "objectiveType": "total_normalized_time",
+        "acquisitionValue": 2.88936757449381,
+        "totalBlockObservations": 3,
+        "candidateUncertaintyStd": 68.65255413406636,
+        "trainingRowCount": 3,
+        "predictedCandidateNormalizedTime": 414.91212736883557
+      },
+      "blockNumber": 3,
+      "generatedFromAttemptCount": 30,
+      "trainingObservationCount": 3,
+      "completionTimeMs": {
+        "std": 52.73175084816343,
+        "mean": 439.35579365079366,
+        "min": 401.7758333333333,
+        "count": 3,
+        "max": 513.9289814814815,
+        "median": 402.3625661375662
+      },
+      "generatedAt": "2026-10-06T09:04:44.349179+00:00",
+      "runsInBlock": 3,
+      "generatedParameterSet": {
+        "inflexion": 1,
+        "decelerationRate": 5.22,
+        "scrollFriction": 0.239
+      },
+      "generation": {
+        "phase": "adaptive-qnei",
+        "strategy": "qLogNoisyExpectedImprovement",
+        "generator": "botorch-qlognei-single-objective-total-normalized-time"
+      },
+      "testedParameterSet": {
+        "scrollFriction": 0.149,
+        "decelerationRate": 7.2435,
+        "inflexion": 0.83
+      }
+    }
+  ],
+  "attemptBlocks": [
+    {
+      "runNumber": 1,
+      "parameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      },
+      "attempts": [
+        {
+          "targetNumber": 180,
+          "maxOvershootDistancePx": 0,
+          "switchbackCount": 0,
+          "flickCount": 7,
+          "scrollDistance": 7341.677352560967,
+          "didOvershoot": false,
+          "timestamp": "2026-10-06T09:00:50.570Z",
+          "attemptInBlock": 1,
+          "timeMs": 4452,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 5.777777777777781,
+              "distancePx": 314.33333333333326,
+              "avgSpeedPxMs": 2.9104938271605914,
+              "direction": "up",
+              "distanceItems": 7.310077519379843,
+              "durationMs": 107.99999999999636
+            },
+            {
+              "direction": "up",
+              "distancePx": 287,
+              "maxSpeedPxMs": 4.729166666666668,
+              "distanceItems": 6.674418604651163,
+              "durationMs": 96.99999999999636,
+              "avgSpeedPxMs": 2.9587628865980493
+            },
+            {
+              "direction": "up",
+              "distanceItems": 5.147286821705426,
+              "distancePx": 221.33333333333331,
+              "avgSpeedPxMs": 2.3055555555555554,
+              "durationMs": 96,
+              "maxSpeedPxMs": 7.666666666668657
+            },
+            {
+              "maxSpeedPxMs": 3.960784313725489,
+              "durationMs": 128,
+              "distancePx": 244.99999999999994,
+              "avgSpeedPxMs": 1.9140624999999996,
+              "distanceItems": 5.69767441860465,
+              "direction": "up"
+            },
+            {
+              "avgSpeedPxMs": 0.9742547425474253,
+              "distanceItems": 5.573643410852712,
+              "distancePx": 239.66666666666663,
+              "durationMs": 246,
+              "maxSpeedPxMs": 2.745098039215684,
+              "direction": "up"
+            },
+            {
+              "avgSpeedPxMs": 0.4169184290030212,
+              "durationMs": 662,
+              "direction": "up",
+              "maxSpeedPxMs": 1.3958333333333357,
+              "distanceItems": 6.4186046511627906,
+              "distancePx": 276
+            },
+            {
+              "distancePx": 212.66666666666663,
+              "avgSpeedPxMs": 1.487179487179487,
+              "distanceItems": 4.945736434108526,
+              "durationMs": 143,
+              "direction": "up",
+              "maxSpeedPxMs": 2.803921568628049
+            }
+          ],
+          "overshootCount": 0
+        },
+        {
+          "flickCount": 7,
+          "targetNumber": 120,
+          "timeMs": 5184,
+          "overshootCount": 1,
+          "attemptInBlock": 2,
+          "timestamp": "2026-10-06T09:00:56.444Z",
+          "maxOvershootDistancePx": 220.30672323409544,
+          "scrollDistance": 4903.306723234095,
+          "switchbackCount": 1,
+          "flicks": [
+            {
+              "distanceItems": 6.612403100775195,
+              "distancePx": 284.33333333333337,
+              "avgSpeedPxMs": 1.7995780590717303,
+              "durationMs": 158,
+              "maxSpeedPxMs": 4.458333333333336,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.798449612403099,
+              "distancePx": 292.33333333333326,
+              "avgSpeedPxMs": 2.681957186544342,
+              "direction": "up",
+              "maxSpeedPxMs": 4.041666666666664,
+              "durationMs": 109
+            },
+            {
+              "avgSpeedPxMs": 2.7508771929824554,
+              "distanceItems": 6.07751937984496,
+              "durationMs": 95,
+              "distancePx": 261.33333333333326,
+              "maxSpeedPxMs": 4.43137254901961,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.9375,
+              "durationMs": 112,
+              "direction": "up",
+              "avgSpeedPxMs": 2.2916666666666665,
+              "distanceItems": 5.968992248062015,
+              "distancePx": 256.66666666666663
+            },
+            {
+              "direction": "up",
+              "distanceItems": 5.162790697674419,
+              "distancePx": 222,
+              "maxSpeedPxMs": 2.7708333333333357,
+              "durationMs": 163,
+              "avgSpeedPxMs": 1.361963190184049
+            },
+            {
+              "direction": "down",
+              "durationMs": 595,
+              "distancePx": 74.66666666666674,
+              "distanceItems": 1.7364341085271335,
+              "avgSpeedPxMs": 0.1254901960784315,
+              "maxSpeedPxMs": 0.3541666666666643
+            },
+            {
+              "durationMs": 1026,
+              "distancePx": 146.66666666666674,
+              "avgSpeedPxMs": 0.1429499675113711,
+              "direction": "down",
+              "distanceItems": 3.410852713178296,
+              "maxSpeedPxMs": 0.9166666666670847
+            }
+          ],
+          "didOvershoot": true
+        },
+        {
+          "didOvershoot": true,
+          "timeMs": 5982,
+          "flickCount": 10,
+          "flicks": [
+            {
+              "avgSpeedPxMs": 3.434250764525993,
+              "direction": "up",
+              "durationMs": 109,
+              "distancePx": 374.33333333333326,
+              "maxSpeedPxMs": 5.888888888888886,
+              "distanceItems": 8.705426356589145
+            },
+            {
+              "maxSpeedPxMs": 4.294117647058823,
+              "distanceItems": 5.558139534883721,
+              "avgSpeedPxMs": 2.950617283950617,
+              "durationMs": 81,
+              "direction": "up",
+              "distancePx": 239
+            },
+            {
+              "distancePx": 259.99999999999994,
+              "avgSpeedPxMs": 2.6530612244897953,
+              "durationMs": 98,
+              "direction": "up",
+              "distanceItems": 6.046511627906975,
+              "maxSpeedPxMs": 4.645833333335445
+            },
+            {
+              "durationMs": 96,
+              "distanceItems": 5.992248062015503,
+              "distancePx": 257.66666666666663,
+              "maxSpeedPxMs": 4.520833333333332,
+              "direction": "up",
+              "avgSpeedPxMs": 2.6840277777777772
+            },
+            {
+              "distanceItems": 5.860465116279069,
+              "direction": "up",
+              "distancePx": 251.99999999999994,
+              "durationMs": 113,
+              "avgSpeedPxMs": 2.2300884955752207,
+              "maxSpeedPxMs": 4.3125
+            },
+            {
+              "distancePx": 305.6666666666667,
+              "maxSpeedPxMs": 4.0625,
+              "direction": "up",
+              "distanceItems": 7.108527131782946,
+              "avgSpeedPxMs": 2.369509043927649,
+              "durationMs": 129
+            },
+            {
+              "distanceItems": 6.5193798449612395,
+              "maxSpeedPxMs": 4.274509803921567,
+              "avgSpeedPxMs": 2.45906432748538,
+              "durationMs": 114,
+              "distancePx": 280.3333333333333,
+              "direction": "up"
+            },
+            {
+              "distancePx": 269.6666666666667,
+              "maxSpeedPxMs": 4.229166666666664,
+              "avgSpeedPxMs": 2.386430678466077,
+              "durationMs": 113,
+              "direction": "up",
+              "distanceItems": 6.271317829457365
+            },
+            {
+              "maxSpeedPxMs": 3.823529411764706,
+              "distancePx": 226,
+              "durationMs": 97.00000000000728,
+              "distanceItems": 5.255813953488372,
+              "direction": "up",
+              "avgSpeedPxMs": 2.32989690721632
+            },
+            {
+              "direction": "up",
+              "maxSpeedPxMs": 4.104166666664798,
+              "distancePx": 313.6666666666667,
+              "distanceItems": 7.294573643410853,
+              "durationMs": 111,
+              "avgSpeedPxMs": 2.825825825825826
+            }
+          ],
+          "overshootCount": 1,
+          "targetNumber": 240,
+          "timestamp": "2026-10-06T09:01:03.332Z",
+          "attemptInBlock": 3,
+          "switchbackCount": 0,
+          "scrollDistance": 10027.392841888011,
+          "maxOvershootDistancePx": 54.39284188801139
+        },
+        {
+          "attemptInBlock": 4,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 8.533333333333326,
+              "distancePx": 305.66666666666663,
+              "avgSpeedPxMs": 2.46505376344086,
+              "durationMs": 124,
+              "distanceItems": 7.108527131782945,
+              "direction": "up"
+            },
+            {
+              "direction": "up",
+              "maxSpeedPxMs": 4.450980392154959,
+              "avgSpeedPxMs": 2.9087719298245607,
+              "distancePx": 276.33333333333326,
+              "durationMs": 95,
+              "distanceItems": 6.426356589147285
+            },
+            {
+              "maxSpeedPxMs": 4.45098039215686,
+              "distanceItems": 6.790697674418604,
+              "distancePx": 292,
+              "avgSpeedPxMs": 3.041666666666436,
+              "direction": "up",
+              "durationMs": 96.00000000000728
+            },
+            {
+              "maxSpeedPxMs": 4.921568627450982,
+              "durationMs": 95,
+              "avgSpeedPxMs": 2.5473684210526315,
+              "direction": "up",
+              "distancePx": 242,
+              "distanceItems": 5.627906976744186
+            },
+            {
+              "distanceItems": 5.953488372093022,
+              "distancePx": 255.99999999999994,
+              "avgSpeedPxMs": 3.160493827160777,
+              "maxSpeedPxMs": 7.215686274509805,
+              "direction": "up",
+              "durationMs": 80.99999999999272
+            },
+            {
+              "avgSpeedPxMs": 4.573839662447256,
+              "maxSpeedPxMs": 44.33333333333326,
+              "direction": "up",
+              "distanceItems": 8.403100775193796,
+              "distancePx": 361.3333333333332,
+              "durationMs": 79
+            },
+            {
+              "durationMs": 80,
+              "distanceItems": 6.9147286821705425,
+              "maxSpeedPxMs": 8.416666666666657,
+              "avgSpeedPxMs": 3.7166666666666663,
+              "distancePx": 297.3333333333333,
+              "direction": "up"
+            },
+            {
+              "avgSpeedPxMs": 1.7682539682539684,
+              "durationMs": 210,
+              "distancePx": 371.33333333333337,
+              "direction": "down",
+              "maxSpeedPxMs": 2.627450980392158,
+              "distanceItems": 8.635658914728683
+            },
+            {
+              "distanceItems": 2.5736434108527124,
+              "avgSpeedPxMs": 0.18112384069830872,
+              "durationMs": 611,
+              "maxSpeedPxMs": 1.2156862745098016,
+              "direction": "down",
+              "distancePx": 110.66666666666663
+            }
+          ],
+          "maxOvershootDistancePx": 487.095568886989,
+          "timestamp": "2026-10-06T09:01:10.621Z",
+          "timeMs": 6215,
+          "switchbackCount": 1,
+          "targetNumber": 270,
+          "overshootCount": 1,
+          "flickCount": 9,
+          "scrollDistance": 11268.095568886987,
+          "didOvershoot": true
+        },
+        {
+          "flickCount": 3,
+          "attemptInBlock": 5,
+          "targetNumber": 90,
+          "scrollDistance": 3578.1751874204515,
+          "flicks": [
+            {
+              "avgSpeedPxMs": 2.0123456790123453,
+              "maxSpeedPxMs": 6.7499999999999964,
+              "durationMs": 108,
+              "distanceItems": 5.054263565891472,
+              "distancePx": 217.33333333333331,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.999999999999999,
+              "direction": "up",
+              "maxSpeedPxMs": 6.313725490196077,
+              "distancePx": 300.99999999999994,
+              "avgSpeedPxMs": 3.2021276595744674,
+              "durationMs": 94
+            },
+            {
+              "distancePx": 337.66666666666663,
+              "durationMs": 428.0000000000073,
+              "avgSpeedPxMs": 0.7889408099688339,
+              "maxSpeedPxMs": 2.0833333333333357,
+              "direction": "down",
+              "distanceItems": 7.8527131782945725
+            }
+          ],
+          "timestamp": "2026-10-06T09:01:14.831Z",
+          "didOvershoot": true,
+          "maxOvershootDistancePx": 392.841854087118,
+          "switchbackCount": 1,
+          "timeMs": 3168,
+          "overshootCount": 1
+        },
+        {
+          "attemptInBlock": 6,
+          "scrollDistance": 2516.773554289386,
+          "switchbackCount": 1,
+          "targetNumber": 60,
+          "didOvershoot": true,
+          "timestamp": "2026-10-06T09:01:20.056Z",
+          "flicks": [
+            {
+              "durationMs": 107,
+              "distanceItems": 11.782945736434106,
+              "avgSpeedPxMs": 4.735202492211837,
+              "direction": "up",
+              "maxSpeedPxMs": 14.388888888871428,
+              "distancePx": 506.6666666666666
+            },
+            {
+              "durationMs": 360.9999999999927,
+              "maxSpeedPxMs": 2.3111111111111087,
+              "avgSpeedPxMs": 0.573407202216078,
+              "distanceItems": 4.813953488372093,
+              "distancePx": 207,
+              "direction": "down"
+            },
+            {
+              "distancePx": 302,
+              "durationMs": 428,
+              "distanceItems": 7.023255813953488,
+              "direction": "down",
+              "maxSpeedPxMs": 1.7291666666666679,
+              "avgSpeedPxMs": 0.705607476635514
+            },
+            {
+              "avgSpeedPxMs": 0.9274977895667551,
+              "maxSpeedPxMs": 2.270833333333332,
+              "distancePx": 349.6666666666667,
+              "distanceItems": 8.131782945736434,
+              "durationMs": 377,
+              "direction": "down"
+            },
+            {
+              "maxSpeedPxMs": 2.3541666666666643,
+              "durationMs": 410,
+              "distancePx": 353.33333333333337,
+              "avgSpeedPxMs": 0.861788617886179,
+              "distanceItems": 8.217054263565892,
+              "direction": "down"
+            },
+            {
+              "avgSpeedPxMs": 0.42825968357883254,
+              "distanceItems": 6.0852713178294575,
+              "durationMs": 611,
+              "distancePx": 261.6666666666667,
+              "direction": "down",
+              "maxSpeedPxMs": 1.8333333333341695
+            }
+          ],
+          "overshootCount": 1,
+          "maxOvershootDistancePx": 1757.440220956053,
+          "flickCount": 6,
+          "timeMs": 4617
+        },
+        {
+          "scrollDistance": 8600.002187831873,
+          "didOvershoot": true,
+          "targetNumber": 210,
+          "timeMs": 12520,
+          "flicks": [
+            {
+              "direction": "up",
+              "distanceItems": 6.325581395348837,
+              "avgSpeedPxMs": 1.9568345323741008,
+              "maxSpeedPxMs": 5.607843137254904,
+              "durationMs": 139,
+              "distancePx": 272
+            },
+            {
+              "durationMs": 93,
+              "maxSpeedPxMs": 5.156862745098037,
+              "direction": "up",
+              "distanceItems": 6.868217054263564,
+              "distancePx": 295.33333333333326,
+              "avgSpeedPxMs": 3.1756272401433683
+            },
+            {
+              "avgSpeedPxMs": 3.3831417624521065,
+              "durationMs": 87,
+              "maxSpeedPxMs": 6.509803921565839,
+              "direction": "up",
+              "distancePx": 294.33333333333326,
+              "distanceItems": 6.8449612403100755
+            },
+            {
+              "direction": "up",
+              "distancePx": 272.66666666666663,
+              "avgSpeedPxMs": 2.9007092198581557,
+              "maxSpeedPxMs": 10.095238095238093,
+              "distanceItems": 6.341085271317828,
+              "durationMs": 94
+            },
+            {
+              "durationMs": 377,
+              "distancePx": 377.66666666666663,
+              "distanceItems": 8.782945736434108,
+              "avgSpeedPxMs": 1.0017683465959326,
+              "maxSpeedPxMs": 3.588235294117647,
+              "direction": "down"
+            },
+            {
+              "avgSpeedPxMs": 1.2474526928675398,
+              "durationMs": 229,
+              "direction": "down",
+              "distancePx": 285.66666666666663,
+              "distanceItems": 6.643410852713178,
+              "maxSpeedPxMs": 2.1041666666666643
+            },
+            {
+              "durationMs": 462,
+              "distanceItems": 7.441860465116279,
+              "direction": "down",
+              "maxSpeedPxMs": 1.4375,
+              "distancePx": 320,
+              "avgSpeedPxMs": 0.6926406926406926
+            },
+            {
+              "maxSpeedPxMs": 1.25,
+              "direction": "down",
+              "distanceItems": 7.023255813953488,
+              "avgSpeedPxMs": 0.7968337730870713,
+              "distancePx": 302,
+              "durationMs": 379
+            },
+            {
+              "avgSpeedPxMs": 1.3666666666666665,
+              "durationMs": 280,
+              "distancePx": 382.66666666666663,
+              "direction": "down",
+              "maxSpeedPxMs": 1.9375,
+              "distanceItems": 8.89922480620155
+            },
+            {
+              "durationMs": 294.00000000001455,
+              "distanceItems": 9.410852713178294,
+              "maxSpeedPxMs": 1.8039215686274521,
+              "direction": "down",
+              "distancePx": 404.66666666666663,
+              "avgSpeedPxMs": 1.3764172335600224
+            },
+            {
+              "direction": "down",
+              "distanceItems": 8.395348837209303,
+              "maxSpeedPxMs": 1.8125,
+              "distancePx": 361,
+              "avgSpeedPxMs": 0.916243654822335,
+              "durationMs": 394
+            },
+            {
+              "avgSpeedPxMs": 0.9506472491909385,
+              "maxSpeedPxMs": 1.4117647058811444,
+              "durationMs": 412,
+              "distancePx": 391.66666666666663,
+              "direction": "down",
+              "distanceItems": 9.108527131782944
+            },
+            {
+              "distanceItems": 9.705426356589145,
+              "maxSpeedPxMs": 1.0416666666666679,
+              "direction": "down",
+              "distancePx": 417.3333333333332,
+              "avgSpeedPxMs": 0.29959320411581397,
+              "durationMs": 1393.0000000000146
+            }
+          ],
+          "overshootCount": 1,
+          "flickCount": 13,
+          "attemptInBlock": 7,
+          "maxOvershootDistancePx": 3429.5362783359014,
+          "timestamp": "2026-10-06T09:01:33.318Z",
+          "switchbackCount": 1
+        },
+        {
+          "attemptInBlock": 8,
+          "maxOvershootDistancePx": 433.15877108501445,
+          "targetNumber": 300,
+          "flickCount": 6,
+          "overshootCount": 1,
+          "didOvershoot": true,
+          "timeMs": 5749,
+          "timestamp": "2026-10-06T09:01:40.640Z",
+          "scrollDistance": 12645.158771085009,
+          "flicks": [
+            {
+              "durationMs": 75,
+              "distancePx": 405.33333333333337,
+              "distanceItems": 9.426356589147288,
+              "maxSpeedPxMs": 16.611111111111114,
+              "avgSpeedPxMs": 5.404444444444445,
+              "direction": "up"
+            },
+            {
+              "direction": "up",
+              "durationMs": 96,
+              "maxSpeedPxMs": 6.509803921568628,
+              "distanceItems": 7.782945736434107,
+              "distancePx": 334.66666666666663,
+              "avgSpeedPxMs": 3.4861111111111107
+            },
+            {
+              "distancePx": 427,
+              "durationMs": 112,
+              "direction": "up",
+              "maxSpeedPxMs": 7.274509803921569,
+              "distanceItems": 9.930232558139535,
+              "avgSpeedPxMs": 3.8125
+            },
+            {
+              "distanceItems": 7.3565891472868215,
+              "distancePx": 316.3333333333333,
+              "avgSpeedPxMs": 4.942708333333333,
+              "maxSpeedPxMs": 13.333333333333334,
+              "direction": "up",
+              "durationMs": 64
+            },
+            {
+              "maxSpeedPxMs": 6.607843137254901,
+              "avgSpeedPxMs": 4.039473684210526,
+              "direction": "up",
+              "durationMs": 76,
+              "distanceItems": 7.139534883720929,
+              "distancePx": 306.99999999999994
+            },
+            {
+              "direction": "down",
+              "distanceItems": 7.945736434108528,
+              "maxSpeedPxMs": 1.6458333333333321,
+              "avgSpeedPxMs": 0.4812206572769953,
+              "distancePx": 341.6666666666667,
+              "durationMs": 710
+            }
+          ],
+          "switchbackCount": 1
+        },
+        {
+          "maxOvershootDistancePx": 321.4780661608211,
+          "attemptInBlock": 9,
+          "didOvershoot": true,
+          "timeMs": 4053,
+          "flickCount": 4,
+          "timestamp": "2026-10-06T09:01:45.499Z",
+          "flicks": [
+            {
+              "distanceItems": 9.294573643410853,
+              "direction": "up",
+              "avgSpeedPxMs": 3.1719576719580385,
+              "durationMs": 125.99999999998545,
+              "distancePx": 399.6666666666667,
+              "maxSpeedPxMs": 6.055555555555553
+            },
+            {
+              "durationMs": 63,
+              "distancePx": 282.6666666666667,
+              "avgSpeedPxMs": 4.486772486772487,
+              "direction": "up",
+              "distanceItems": 6.573643410852713,
+              "maxSpeedPxMs": 6.058823529411761
+            },
+            {
+              "avgSpeedPxMs": 5.7627118644067785,
+              "distancePx": 339.99999999999994,
+              "distanceItems": 7.9069767441860455,
+              "durationMs": 59,
+              "maxSpeedPxMs": 44.33333333333337,
+              "direction": "up"
+            },
+            {
+              "durationMs": 394,
+              "direction": "down",
+              "maxSpeedPxMs": 1.4166666666666679,
+              "distanceItems": 5.108527131782946,
+              "distancePx": 219.66666666666669,
+              "avgSpeedPxMs": 0.5575296108291032
+            }
+          ],
+          "targetNumber": 150,
+          "scrollDistance": 6204.811399494152,
+          "overshootCount": 1,
+          "switchbackCount": 1
+        },
+        {
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "flicks": [
+            {
+              "direction": "up",
+              "distanceItems": 10.457364341085272,
+              "maxSpeedPxMs": 1.901960784313721,
+              "distancePx": 449.6666666666667,
+              "avgSpeedPxMs": 0.9818049490538574,
+              "durationMs": 458
+            },
+            {
+              "avgSpeedPxMs": 1.0154095701541317,
+              "durationMs": 410.99999999998545,
+              "distancePx": 417.33333333333337,
+              "distanceItems": 9.705426356589149,
+              "maxSpeedPxMs": 2.7083333333333357,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 867.0000000000002,
+          "timeMs": 2056,
+          "maxOvershootDistancePx": 0,
+          "attemptInBlock": 10,
+          "targetNumber": 30,
+          "didOvershoot": false,
+          "flickCount": 2,
+          "timestamp": "2026-10-06T09:01:48.578Z"
+        }
+      ]
+    },
+    {
+      "runNumber": 2,
+      "parameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      },
+      "attempts": [
+        {
+          "maxOvershootDistancePx": 1420.9327797871365,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 2.5098039215686287,
+              "direction": "up",
+              "avgSpeedPxMs": 1.0922619047619047,
+              "durationMs": 224,
+              "distancePx": 244.66666666666663,
+              "distanceItems": 5.6899224806201545
+            },
+            {
+              "durationMs": 63.00000000001455,
+              "maxSpeedPxMs": 3.4999999999968168,
+              "distanceItems": 3.1627906976744184,
+              "direction": "up",
+              "distancePx": 136,
+              "avgSpeedPxMs": 2.15873015872966
+            },
+            {
+              "avgSpeedPxMs": 1.6333333333331843,
+              "distancePx": 261.33333333333326,
+              "maxSpeedPxMs": 3.07407407407407,
+              "durationMs": 160.00000000001455,
+              "distanceItems": 6.07751937984496,
+              "direction": "up"
+            },
+            {
+              "direction": "up",
+              "distancePx": 327.99999999999994,
+              "distanceItems": 7.6279069767441845,
+              "maxSpeedPxMs": 26.333333333333314,
+              "avgSpeedPxMs": 3.5652173913043472,
+              "durationMs": 92
+            },
+            {
+              "direction": "up",
+              "avgSpeedPxMs": 2.9275362318840585,
+              "durationMs": 92,
+              "distancePx": 269.33333333333337,
+              "distanceItems": 6.263565891472869,
+              "maxSpeedPxMs": 7.921568627457759
+            },
+            {
+              "durationMs": 64,
+              "maxSpeedPxMs": 7.039215686274508,
+              "direction": "up",
+              "distanceItems": 5.837209302325581,
+              "distancePx": 251,
+              "avgSpeedPxMs": 3.921875
+            },
+            {
+              "direction": "up",
+              "distanceItems": 5.844961240310078,
+              "maxSpeedPxMs": 4.137254901964328,
+              "avgSpeedPxMs": 3.181434599156119,
+              "durationMs": 79,
+              "distancePx": 251.33333333333337
+            },
+            {
+              "avgSpeedPxMs": 1.186335403726708,
+              "maxSpeedPxMs": 3.2291666666666643,
+              "distanceItems": 4.441860465116279,
+              "durationMs": 161,
+              "direction": "down",
+              "distancePx": 191
+            },
+            {
+              "durationMs": 174,
+              "direction": "down",
+              "distancePx": 307,
+              "avgSpeedPxMs": 1.764367816091954,
+              "maxSpeedPxMs": 17,
+              "distanceItems": 7.1395348837209305
+            },
+            {
+              "durationMs": 275,
+              "distanceItems": 7.4031007751937965,
+              "maxSpeedPxMs": 1.8958333333333357,
+              "distancePx": 318.33333333333326,
+              "avgSpeedPxMs": 1.1575757575757573,
+              "direction": "down"
+            },
+            {
+              "distanceItems": 7.790697674418604,
+              "avgSpeedPxMs": 1.3842975206610737,
+              "durationMs": 242.00000000001455,
+              "direction": "down",
+              "maxSpeedPxMs": 1.9791666666666679,
+              "distancePx": 335
+            },
+            {
+              "avgSpeedPxMs": 0.6312785388127853,
+              "maxSpeedPxMs": 1.5208333333333321,
+              "distancePx": 184.33333333333331,
+              "distanceItems": 4.286821705426356,
+              "durationMs": 292,
+              "direction": "down"
+            }
+          ],
+          "scrollDistance": 6188.932779787135,
+          "timeMs": 6814,
+          "switchbackCount": 1,
+          "flickCount": 12,
+          "attemptInBlock": 1,
+          "didOvershoot": true,
+          "targetNumber": 150,
+          "timestamp": "2026-10-06T09:02:02.906Z",
+          "overshootCount": 1
+        },
+        {
+          "timeMs": 7812,
+          "timestamp": "2026-10-06T09:02:12.574Z",
+          "targetNumber": 210,
+          "scrollDistance": 8475.79250092301,
+          "maxOvershootDistancePx": 0,
+          "flicks": [
+            {
+              "durationMs": 140,
+              "maxSpeedPxMs": 9.888888888888877,
+              "avgSpeedPxMs": 2.2238095238095235,
+              "direction": "up",
+              "distancePx": 311.3333333333333,
+              "distanceItems": 7.240310077519379
+            },
+            {
+              "direction": "up",
+              "distancePx": 271.99999999999994,
+              "avgSpeedPxMs": 3.3999999999999995,
+              "maxSpeedPxMs": 10.777777777777791,
+              "distanceItems": 6.325581395348836,
+              "durationMs": 80
+            },
+            {
+              "durationMs": 79,
+              "distanceItems": 5.348837209302324,
+              "direction": "up",
+              "distancePx": 229.99999999999994,
+              "avgSpeedPxMs": 2.9113924050632902,
+              "maxSpeedPxMs": 5.274509803917055
+            },
+            {
+              "distanceItems": 6.3023255813953485,
+              "distancePx": 271,
+              "durationMs": 111.99999999998545,
+              "direction": "up",
+              "avgSpeedPxMs": 2.4196428571431716,
+              "maxSpeedPxMs": 5.235294117642577
+            },
+            {
+              "durationMs": 80.00000000001455,
+              "direction": "up",
+              "distancePx": 210.66666666666663,
+              "avgSpeedPxMs": 2.6333333333328537,
+              "maxSpeedPxMs": 4.999999999995449,
+              "distanceItems": 4.899224806201549
+            },
+            {
+              "direction": "up",
+              "distancePx": 214.66666666666663,
+              "maxSpeedPxMs": 4.901960784313721,
+              "avgSpeedPxMs": 2.213058419243986,
+              "distanceItems": 4.992248062015503,
+              "durationMs": 97
+            },
+            {
+              "durationMs": 113,
+              "avgSpeedPxMs": 1.9911504424778756,
+              "distancePx": 224.99999999999994,
+              "maxSpeedPxMs": 4.666666666666668,
+              "distanceItems": 5.232558139534882,
+              "direction": "up"
+            },
+            {
+              "direction": "up",
+              "maxSpeedPxMs": 2.8627450980392135,
+              "avgSpeedPxMs": 1.006858710562414,
+              "durationMs": 243,
+              "distanceItems": 5.6899224806201545,
+              "distancePx": 244.66666666666663
+            },
+            {
+              "direction": "up",
+              "durationMs": 1078,
+              "avgSpeedPxMs": 0.17161410018552875,
+              "maxSpeedPxMs": 0.47058823529411764,
+              "distanceItems": 4.3023255813953485,
+              "distancePx": 185
+            },
+            {
+              "distancePx": 82.99999999999989,
+              "avgSpeedPxMs": 0.1747368421052629,
+              "durationMs": 475,
+              "distanceItems": 1.9302325581395323,
+              "direction": "up",
+              "maxSpeedPxMs": 0.6274509803921546
+            },
+            {
+              "distancePx": 232.33333333333326,
+              "direction": "up",
+              "distanceItems": 5.4031007751937965,
+              "avgSpeedPxMs": 0.5911789652247665,
+              "durationMs": 393,
+              "maxSpeedPxMs": 1.2499999999988631
+            }
+          ],
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "flickCount": 11,
+          "attemptInBlock": 2
+        },
+        {
+          "flickCount": 4,
+          "scrollDistance": 986.8147950021076,
+          "attemptInBlock": 3,
+          "switchbackCount": 1,
+          "overshootCount": 1,
+          "timeMs": 2603,
+          "timestamp": "2026-10-06T09:02:17.599Z",
+          "maxOvershootDistancePx": 656.1481283354408,
+          "didOvershoot": true,
+          "flicks": [
+            {
+              "direction": "up",
+              "avgSpeedPxMs": 2.1464174454828653,
+              "durationMs": 107,
+              "distanceItems": 5.341085271317827,
+              "distancePx": 229.66666666666657,
+              "maxSpeedPxMs": 5.09523809523809
+            },
+            {
+              "direction": "down",
+              "avgSpeedPxMs": 0.8220858895705522,
+              "durationMs": 163,
+              "maxSpeedPxMs": 1.6666666666666643,
+              "distancePx": 134,
+              "distanceItems": 3.116279069767442
+            },
+            {
+              "avgSpeedPxMs": 1.0548696844993137,
+              "distancePx": 256.33333333333326,
+              "maxSpeedPxMs": 2.0208333333333286,
+              "durationMs": 243,
+              "direction": "down",
+              "distanceItems": 5.9612403100775175
+            },
+            {
+              "durationMs": 277,
+              "direction": "down",
+              "maxSpeedPxMs": 1.5416666666666643,
+              "distanceItems": 5.162790697674419,
+              "distancePx": 222,
+              "avgSpeedPxMs": 0.8014440433212996
+            }
+          ],
+          "targetNumber": 30
+        },
+        {
+          "switchbackCount": 1,
+          "overshootCount": 1,
+          "didOvershoot": true,
+          "scrollDistance": 12653.76756748639,
+          "attemptInBlock": 4,
+          "flickCount": 15,
+          "timeMs": 8046,
+          "maxOvershootDistancePx": 1004.4342341530592,
+          "timestamp": "2026-10-06T09:02:26.652Z",
+          "flicks": [
+            {
+              "distanceItems": 6.372093023255813,
+              "distancePx": 273.99999999999994,
+              "maxSpeedPxMs": 5.785714285720296,
+              "avgSpeedPxMs": 3.0109890109890105,
+              "durationMs": 91,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.596899224806202,
+              "distancePx": 283.6666666666667,
+              "durationMs": 98,
+              "maxSpeedPxMs": 4.895833333337785,
+              "direction": "up",
+              "avgSpeedPxMs": 2.8945578231292517
+            },
+            {
+              "direction": "up",
+              "distanceItems": 6.558139534883722,
+              "avgSpeedPxMs": 3.525000000000001,
+              "maxSpeedPxMs": 40.33333333333337,
+              "distancePx": 282.00000000000006,
+              "durationMs": 80
+            },
+            {
+              "distanceItems": 6.434108527131782,
+              "maxSpeedPxMs": 4.874999999995566,
+              "direction": "up",
+              "avgSpeedPxMs": 3.458333333333333,
+              "durationMs": 80,
+              "distancePx": 276.66666666666663
+            },
+            {
+              "distancePx": 284.6666666666667,
+              "maxSpeedPxMs": 4.875,
+              "avgSpeedPxMs": 2.965277777777778,
+              "durationMs": 96,
+              "direction": "up",
+              "distanceItems": 6.62015503875969
+            },
+            {
+              "durationMs": 80,
+              "distancePx": 267.33333333333326,
+              "maxSpeedPxMs": 6.75,
+              "avgSpeedPxMs": 3.341666666666666,
+              "direction": "up",
+              "distanceItems": 6.21705426356589
+            },
+            {
+              "direction": "up",
+              "maxSpeedPxMs": 4.958333333333332,
+              "distanceItems": 6.348837209302325,
+              "avgSpeedPxMs": 2.84375,
+              "distancePx": 273,
+              "durationMs": 96
+            },
+            {
+              "durationMs": 113,
+              "distancePx": 302.66666666666663,
+              "maxSpeedPxMs": 4.520833333333332,
+              "avgSpeedPxMs": 2.6784660766961648,
+              "distanceItems": 7.03875968992248,
+              "direction": "up"
+            },
+            {
+              "durationMs": 112,
+              "distancePx": 281.6666666666667,
+              "maxSpeedPxMs": 4.313725490196077,
+              "distanceItems": 6.550387596899225,
+              "avgSpeedPxMs": 2.5148809523809526,
+              "direction": "up"
+            },
+            {
+              "distancePx": 318.33333333333337,
+              "avgSpeedPxMs": 2.817109144542773,
+              "maxSpeedPxMs": 4.4313725490234,
+              "distanceItems": 7.403100775193799,
+              "direction": "up",
+              "durationMs": 113
+            },
+            {
+              "maxSpeedPxMs": 4.791666666666668,
+              "avgSpeedPxMs": 2.5435435435432105,
+              "distanceItems": 6.565891472868218,
+              "durationMs": 111.00000000001455,
+              "direction": "up",
+              "distancePx": 282.33333333333337
+            },
+            {
+              "maxSpeedPxMs": 3.7499999999965894,
+              "distanceItems": 6.782945736434107,
+              "distancePx": 291.66666666666663,
+              "avgSpeedPxMs": 2.6515151515151514,
+              "durationMs": 110,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.604651162790698,
+              "maxSpeedPxMs": 6.083333333333329,
+              "distancePx": 284,
+              "avgSpeedPxMs": 1.5777777777777777,
+              "direction": "down",
+              "durationMs": 180
+            },
+            {
+              "maxSpeedPxMs": 2.481481481481479,
+              "durationMs": 193,
+              "distanceItems": 6.914728682170541,
+              "avgSpeedPxMs": 1.5405872193436956,
+              "direction": "down",
+              "distancePx": 297.33333333333326
+            },
+            {
+              "distanceItems": 7.49612403100775,
+              "durationMs": 241.99999999998545,
+              "maxSpeedPxMs": 2.3333333333333344,
+              "distancePx": 322.33333333333326,
+              "avgSpeedPxMs": 1.3319559228650935,
+              "direction": "down"
+            }
+          ],
+          "targetNumber": 300
+        },
+        {
+          "switchbackCount": 0,
+          "flickCount": 9,
+          "didOvershoot": false,
+          "scrollDistance": 9700.653379067575,
+          "timeMs": 7213,
+          "targetNumber": 240,
+          "flicks": [
+            {
+              "direction": "up",
+              "distanceItems": 7.5038759689922445,
+              "avgSpeedPxMs": 3.0155763239875375,
+              "maxSpeedPxMs": 17.16666666660422,
+              "distancePx": 322.6666666666665,
+              "durationMs": 107
+            },
+            {
+              "distancePx": 297.66666666666663,
+              "avgSpeedPxMs": 2.588405797102104,
+              "distanceItems": 6.922480620155038,
+              "direction": "up",
+              "durationMs": 114.9999999999709,
+              "maxSpeedPxMs": 4.313725490196081
+            },
+            {
+              "direction": "up",
+              "distancePx": 316.99999999999994,
+              "maxSpeedPxMs": 5.880952380946263,
+              "distanceItems": 7.372093023255813,
+              "durationMs": 94,
+              "avgSpeedPxMs": 3.3723404255319145
+            },
+            {
+              "direction": "up",
+              "distancePx": 324.33333333333337,
+              "distanceItems": 7.54263565891473,
+              "maxSpeedPxMs": 4.645833333337557,
+              "avgSpeedPxMs": 2.8702064896755166,
+              "durationMs": 113
+            },
+            {
+              "distanceItems": 5.82170542635659,
+              "distancePx": 250.33333333333337,
+              "maxSpeedPxMs": 20.333333333037483,
+              "avgSpeedPxMs": 3.1687763713074335,
+              "durationMs": 79.00000000001455,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 4.019607843137254,
+              "distanceItems": 6.728682170542634,
+              "distancePx": 289.33333333333326,
+              "avgSpeedPxMs": 2.5380116959061083,
+              "durationMs": 114.00000000001455,
+              "direction": "up"
+            },
+            {
+              "avgSpeedPxMs": 3.03125,
+              "maxSpeedPxMs": 3.980392156862743,
+              "distancePx": 291,
+              "distanceItems": 6.767441860465116,
+              "durationMs": 96,
+              "direction": "up"
+            },
+            {
+              "distancePx": 320.3333333333333,
+              "maxSpeedPxMs": 35.33333333333337,
+              "direction": "up",
+              "avgSpeedPxMs": 3.407801418438661,
+              "distanceItems": 7.449612403100775,
+              "durationMs": 94.0000000000291
+            },
+            {
+              "distancePx": 383.3333333333333,
+              "avgSpeedPxMs": 0.612353567625133,
+              "maxSpeedPxMs": 0.9411764705898465,
+              "durationMs": 626,
+              "direction": "up",
+              "distanceItems": 8.914728682170542
+            }
+          ],
+          "timestamp": "2026-10-06T09:02:34.523Z",
+          "attemptInBlock": 5,
+          "overshootCount": 0,
+          "maxOvershootDistancePx": 0
+        },
+        {
+          "maxOvershootDistancePx": 385.18145168868796,
+          "overshootCount": 1,
+          "targetNumber": 120,
+          "didOvershoot": true,
+          "attemptInBlock": 6,
+          "flickCount": 6,
+          "timestamp": "2026-10-06T09:02:40.281Z",
+          "switchbackCount": 1,
+          "scrollDistance": 4871.514785022019,
+          "timeMs": 4835,
+          "flicks": [
+            {
+              "avgSpeedPxMs": 2.676056338028169,
+              "durationMs": 142,
+              "distanceItems": 8.837209302325581,
+              "distancePx": 380,
+              "maxSpeedPxMs": 11.416666666666657,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 25,
+              "avgSpeedPxMs": 3.1701388888888893,
+              "distancePx": 304.33333333333337,
+              "durationMs": 96,
+              "distanceItems": 7.077519379844962,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.75,
+              "direction": "up",
+              "durationMs": 110,
+              "distanceItems": 6.984496124031006,
+              "distancePx": 300.33333333333326,
+              "avgSpeedPxMs": 2.7303030303030296
+            },
+            {
+              "distanceItems": 7.069767441860465,
+              "maxSpeedPxMs": 4.555555555555558,
+              "durationMs": 129,
+              "direction": "up",
+              "avgSpeedPxMs": 2.356589147286822,
+              "distancePx": 304
+            },
+            {
+              "durationMs": 348,
+              "distancePx": 107.33333333333326,
+              "distanceItems": 2.49612403100775,
+              "maxSpeedPxMs": 1.2916666666690138,
+              "avgSpeedPxMs": 0.30842911877394613,
+              "direction": "down"
+            },
+            {
+              "distancePx": 248.33333333333326,
+              "direction": "down",
+              "distanceItems": 5.77519379844961,
+              "durationMs": 328,
+              "maxSpeedPxMs": 2.0416666666666643,
+              "avgSpeedPxMs": 0.7571138211382111
+            }
+          ]
+        },
+        {
+          "overshootCount": 1,
+          "scrollDistance": 2333.3653901373455,
+          "attemptInBlock": 7,
+          "switchbackCount": 1,
+          "timeMs": 2623,
+          "flickCount": 3,
+          "flicks": [
+            {
+              "avgSpeedPxMs": 2.134469696969697,
+              "maxSpeedPxMs": 9.583333333333314,
+              "distancePx": 375.66666666666663,
+              "distanceItems": 8.736434108527131,
+              "direction": "up",
+              "durationMs": 176
+            },
+            {
+              "durationMs": 110,
+              "direction": "up",
+              "maxSpeedPxMs": 4.354166666666668,
+              "distanceItems": 8,
+              "distancePx": 344,
+              "avgSpeedPxMs": 3.1272727272727274
+            },
+            {
+              "maxSpeedPxMs": 0.5,
+              "distanceItems": 1.3023255813953463,
+              "distancePx": 55.999999999999886,
+              "avgSpeedPxMs": 0.24669603524229025,
+              "durationMs": 227,
+              "direction": "down"
+            }
+          ],
+          "timestamp": "2026-10-06T09:02:43.925Z",
+          "didOvershoot": true,
+          "targetNumber": 60,
+          "maxOvershootDistancePx": 152.69872347067894
+        },
+        {
+          "maxOvershootDistancePx": 0,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 4.520833333333336,
+              "distanceItems": 8.666666666666668,
+              "distancePx": 372.6666666666667,
+              "durationMs": 141,
+              "avgSpeedPxMs": 2.6430260047281324,
+              "direction": "up"
+            },
+            {
+              "direction": "up",
+              "avgSpeedPxMs": 3.8059071729957803,
+              "distancePx": 300.66666666666663,
+              "distanceItems": 6.992248062015503,
+              "durationMs": 79,
+              "maxSpeedPxMs": 39.66666666666674
+            },
+            {
+              "durationMs": 79,
+              "avgSpeedPxMs": 3.8185654008438807,
+              "distancePx": 301.6666666666666,
+              "maxSpeedPxMs": 46.66666666666663,
+              "direction": "up",
+              "distanceItems": 7.01550387596899
+            },
+            {
+              "maxSpeedPxMs": 37,
+              "avgSpeedPxMs": 3.4409722222222214,
+              "distancePx": 330.33333333333326,
+              "durationMs": 96,
+              "direction": "up",
+              "distanceItems": 7.6821705426356575
+            },
+            {
+              "maxSpeedPxMs": 4.770833333333332,
+              "avgSpeedPxMs": 2.9852507374638955,
+              "direction": "up",
+              "distanceItems": 7.844961240310077,
+              "distancePx": 337.3333333333333,
+              "durationMs": 112.9999999999709
+            },
+            {
+              "avgSpeedPxMs": 3.345833333334551,
+              "maxSpeedPxMs": 4.305555555566004,
+              "durationMs": 79.9999999999709,
+              "direction": "up",
+              "distancePx": 267.6666666666667,
+              "distanceItems": 6.224806201550388
+            },
+            {
+              "durationMs": 111,
+              "avgSpeedPxMs": 2.7027027027027026,
+              "direction": "up",
+              "maxSpeedPxMs": 4.392156862737576,
+              "distancePx": 300,
+              "distanceItems": 6.976744186046512
+            },
+            {
+              "maxSpeedPxMs": 3.0784313725490184,
+              "distancePx": 209.33333333333337,
+              "distanceItems": 4.8682170542635665,
+              "avgSpeedPxMs": 2.2269503546099294,
+              "direction": "up",
+              "durationMs": 94
+            },
+            {
+              "distancePx": 287.99999999999994,
+              "distanceItems": 6.69767441860465,
+              "direction": "up",
+              "maxSpeedPxMs": 2.145833333333332,
+              "avgSpeedPxMs": 1.4922279792746111,
+              "durationMs": 193
+            },
+            {
+              "maxSpeedPxMs": 0.6041666666666643,
+              "distancePx": 70.66666666666663,
+              "distanceItems": 1.6434108527131774,
+              "avgSpeedPxMs": 0.17845117845117836,
+              "durationMs": 396,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 11236.910079800084,
+          "attemptInBlock": 8,
+          "flickCount": 10,
+          "timestamp": "2026-10-06T09:02:52.795Z",
+          "overshootCount": 0,
+          "didOvershoot": false,
+          "timeMs": 8196,
+          "switchbackCount": 0,
+          "targetNumber": 270
+        },
+        {
+          "overshootCount": 1,
+          "targetNumber": 90,
+          "maxOvershootDistancePx": 117.04155241820217,
+          "timestamp": "2026-10-06T09:02:56.838Z",
+          "scrollDistance": 3640.041552418202,
+          "timeMs": 3301,
+          "flicks": [
+            {
+              "durationMs": 122.9999999999709,
+              "maxSpeedPxMs": 7.208333333333329,
+              "direction": "up",
+              "distanceItems": 8.209302325581392,
+              "avgSpeedPxMs": 2.86991869918767,
+              "distancePx": 352.9999999999999
+            },
+            {
+              "direction": "up",
+              "avgSpeedPxMs": 2.6934523809523805,
+              "durationMs": 112,
+              "maxSpeedPxMs": 4.166666666659089,
+              "distancePx": 301.66666666666663,
+              "distanceItems": 7.015503875968991
+            },
+            {
+              "distanceItems": 5.387596899224807,
+              "durationMs": 394,
+              "avgSpeedPxMs": 0.5879864636209814,
+              "maxSpeedPxMs": 3.1176470588235294,
+              "distancePx": 231.66666666666669,
+              "direction": "up"
+            },
+            {
+              "avgSpeedPxMs": 0,
+              "direction": "none",
+              "distanceItems": 0,
+              "distancePx": 0,
+              "maxSpeedPxMs": 0,
+              "durationMs": 378
+            }
+          ],
+          "attemptInBlock": 9,
+          "switchbackCount": 0,
+          "didOvershoot": true,
+          "flickCount": 4
+        },
+        {
+          "scrollDistance": 7291.835776225625,
+          "maxOvershootDistancePx": 0,
+          "flicks": [
+            {
+              "distanceItems": 8.511627906976745,
+              "distancePx": 366.00000000000006,
+              "avgSpeedPxMs": 3.3272727272727276,
+              "durationMs": 110,
+              "maxSpeedPxMs": 18.41666666680067,
+              "direction": "up"
+            },
+            {
+              "direction": "up",
+              "avgSpeedPxMs": 3.045267489711935,
+              "distancePx": 246.66666666666674,
+              "maxSpeedPxMs": 41.333333333333314,
+              "distanceItems": 5.736434108527134,
+              "durationMs": 81
+            },
+            {
+              "distanceItems": 6.31782945736434,
+              "distancePx": 271.66666666666663,
+              "avgSpeedPxMs": 2.8900709219858154,
+              "durationMs": 94,
+              "direction": "up",
+              "maxSpeedPxMs": 9.333333333333334
+            },
+            {
+              "avgSpeedPxMs": 2.4270833333333335,
+              "distancePx": 233,
+              "durationMs": 96,
+              "distanceItems": 5.4186046511627906,
+              "direction": "up",
+              "maxSpeedPxMs": 3.5833333333333357
+            },
+            {
+              "avgSpeedPxMs": 1.1451942740286296,
+              "maxSpeedPxMs": 2.764705882352941,
+              "distanceItems": 4.341085271317828,
+              "durationMs": 163,
+              "direction": "up",
+              "distancePx": 186.66666666666663
+            },
+            {
+              "avgSpeedPxMs": 1.1017214397496087,
+              "distancePx": 234.66666666666663,
+              "distanceItems": 5.45736434108527,
+              "durationMs": 213,
+              "direction": "up",
+              "maxSpeedPxMs": 2.5490196078431326
+            },
+            {
+              "maxSpeedPxMs": 2.75,
+              "avgSpeedPxMs": 1.1267893660531698,
+              "distanceItems": 4.271317829457365,
+              "direction": "up",
+              "durationMs": 163,
+              "distancePx": 183.66666666666669
+            }
+          ],
+          "didOvershoot": false,
+          "attemptInBlock": 10,
+          "overshootCount": 0,
+          "timeMs": 4404,
+          "flickCount": 7,
+          "timestamp": "2026-10-06T09:03:01.880Z",
+          "targetNumber": 180,
+          "switchbackCount": 0
+        }
+      ]
+    },
+    {
+      "runNumber": 3,
+      "parameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      },
+      "attempts": [
+        {
+          "overshootCount": 1,
+          "flickCount": 12,
+          "maxOvershootDistancePx": 322.97362042055374,
+          "timestamp": "2026-10-06T09:03:19.703Z",
+          "targetNumber": 180,
+          "switchbackCount": 1,
+          "didOvershoot": true,
+          "scrollDistance": 7548.640287087221,
+          "timeMs": 9529,
+          "attemptInBlock": 1,
+          "flicks": [
+            {
+              "direction": "up",
+              "avgSpeedPxMs": 1.8226299694189605,
+              "durationMs": 109,
+              "maxSpeedPxMs": 9.333333333333343,
+              "distanceItems": 4.62015503875969,
+              "distancePx": 198.66666666666669
+            },
+            {
+              "distanceItems": 4.023255813953488,
+              "durationMs": 93,
+              "maxSpeedPxMs": 4.208333333333332,
+              "avgSpeedPxMs": 1.8602150537634408,
+              "direction": "up",
+              "distancePx": 173
+            },
+            {
+              "distancePx": 190.33333333333337,
+              "direction": "up",
+              "maxSpeedPxMs": 4.104166666666664,
+              "distanceItems": 4.426356589147288,
+              "avgSpeedPxMs": 1.6695906432748542,
+              "durationMs": 114
+            },
+            {
+              "distancePx": 147,
+              "direction": "up",
+              "distanceItems": 3.4186046511627906,
+              "maxSpeedPxMs": 3.1372549019607834,
+              "avgSpeedPxMs": 1.3008849557522124,
+              "durationMs": 113
+            },
+            {
+              "distanceItems": 3.806201550387596,
+              "durationMs": 115,
+              "distancePx": 163.66666666666663,
+              "maxSpeedPxMs": 2.604166666666668,
+              "avgSpeedPxMs": 1.4231884057971012,
+              "direction": "up"
+            },
+            {
+              "direction": "up",
+              "distanceItems": 3.062015503875968,
+              "avgSpeedPxMs": 1.2660256410256407,
+              "maxSpeedPxMs": 3.3137254902017506,
+              "distancePx": 131.66666666666663,
+              "durationMs": 104
+            },
+            {
+              "distanceItems": 6.519379844961239,
+              "avgSpeedPxMs": 3.5940170940170932,
+              "direction": "up",
+              "durationMs": 78,
+              "maxSpeedPxMs": 5.137254901969581,
+              "distancePx": 280.33333333333326
+            },
+            {
+              "direction": "up",
+              "distanceItems": 3.984496124031006,
+              "distancePx": 171.33333333333326,
+              "maxSpeedPxMs": 3.490196078425393,
+              "avgSpeedPxMs": 1.543543543543543,
+              "durationMs": 111
+            },
+            {
+              "durationMs": 96,
+              "direction": "up",
+              "maxSpeedPxMs": 4.020833333333336,
+              "distanceItems": 4.899224806201549,
+              "distancePx": 210.66666666666663,
+              "avgSpeedPxMs": 2.194444444444444
+            },
+            {
+              "durationMs": 113,
+              "direction": "up",
+              "avgSpeedPxMs": 1.6401179941002952,
+              "distancePx": 185.33333333333337,
+              "maxSpeedPxMs": 2.7450980392156907,
+              "distanceItems": 4.3100775193798455
+            },
+            {
+              "maxSpeedPxMs": 5.642857142857143,
+              "distanceItems": 4.015503875968991,
+              "distancePx": 172.66666666666663,
+              "durationMs": 97,
+              "avgSpeedPxMs": 1.7800687285223364,
+              "direction": "up"
+            },
+            {
+              "durationMs": 247,
+              "direction": "down",
+              "distancePx": 167.33333333333337,
+              "avgSpeedPxMs": 0.677462887989204,
+              "maxSpeedPxMs": 1.2708333333333357,
+              "distanceItems": 3.891472868217055
+            }
+          ]
+        },
+        {
+          "overshootCount": 0,
+          "maxOvershootDistancePx": 0,
+          "flicks": [
+            {
+              "distancePx": 325.99999999999994,
+              "maxSpeedPxMs": 19.583333333475803,
+              "distanceItems": 7.581395348837208,
+              "avgSpeedPxMs": 3.5434782608695645,
+              "durationMs": 92,
+              "direction": "up"
+            },
+            {
+              "avgSpeedPxMs": 2.534391534391534,
+              "durationMs": 63,
+              "distanceItems": 3.7131782945736425,
+              "distancePx": 159.66666666666663,
+              "maxSpeedPxMs": 3.1388888888888857,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 29.999999999126885,
+              "direction": "up",
+              "distanceItems": 6.17829457364341,
+              "durationMs": 95.0000000000291,
+              "avgSpeedPxMs": 2.796491228069318,
+              "distancePx": 265.66666666666663
+            },
+            {
+              "durationMs": 113,
+              "distanceItems": 6.573643410852713,
+              "avgSpeedPxMs": 2.5014749262536875,
+              "distancePx": 282.6666666666667,
+              "direction": "up",
+              "maxSpeedPxMs": 4.770833333333336
+            },
+            {
+              "maxSpeedPxMs": 3.0000000000058207,
+              "avgSpeedPxMs": 1.774358974358974,
+              "distancePx": 230.66666666666663,
+              "direction": "up",
+              "distanceItems": 5.364341085271317,
+              "durationMs": 130
+            },
+            {
+              "distancePx": 222.33333333333331,
+              "distanceItems": 5.170542635658914,
+              "avgSpeedPxMs": 0.5383373688458434,
+              "durationMs": 413,
+              "direction": "up",
+              "maxSpeedPxMs": 1.7647058823529411
+            },
+            {
+              "avgSpeedPxMs": 0.47461773700305815,
+              "maxSpeedPxMs": 1.0625,
+              "distanceItems": 6.015503875968992,
+              "distancePx": 258.6666666666667,
+              "durationMs": 545,
+              "direction": "up"
+            }
+          ],
+          "timeMs": 5135,
+          "timestamp": "2026-10-06T09:03:25.494Z",
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "flickCount": 7,
+          "scrollDistance": 4547.77435697553,
+          "attemptInBlock": 2,
+          "targetNumber": 120
+        },
+        {
+          "timestamp": "2026-10-06T09:03:29.437Z",
+          "scrollDistance": 1974.973358872614,
+          "flickCount": 3,
+          "targetNumber": 60,
+          "flicks": [
+            {
+              "distancePx": 235.33333333333337,
+              "avgSpeedPxMs": 2.5579710144935635,
+              "maxSpeedPxMs": 4.266666666666668,
+              "durationMs": 91.9999999999709,
+              "direction": "up",
+              "distanceItems": 5.472868217054264
+            },
+            {
+              "direction": "up",
+              "maxSpeedPxMs": 3.745098039209276,
+              "durationMs": 128,
+              "distancePx": 301.66666666666663,
+              "distanceItems": 7.015503875968991,
+              "avgSpeedPxMs": 2.356770833333333
+            },
+            {
+              "direction": "up",
+              "maxSpeedPxMs": 0.8431372549019563,
+              "distanceItems": 3.49612403100775,
+              "avgSpeedPxMs": 0.25223713646532425,
+              "distancePx": 150.33333333333326,
+              "durationMs": 596
+            }
+          ],
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "didOvershoot": false,
+          "attemptInBlock": 3,
+          "maxOvershootDistancePx": 0,
+          "timeMs": 3270
+        },
+        {
+          "attemptInBlock": 4,
+          "scrollDistance": 11337.714539692885,
+          "timestamp": "2026-10-06T09:03:42.748Z",
+          "targetNumber": 270,
+          "timeMs": 12655,
+          "flicks": [
+            {
+              "avgSpeedPxMs": 1.467013888888889,
+              "distanceItems": 6.550387596899225,
+              "distancePx": 281.6666666666667,
+              "durationMs": 192,
+              "maxSpeedPxMs": 2.729166666666668,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 5.937984496124032,
+              "durationMs": 146,
+              "maxSpeedPxMs": 2.980392156862746,
+              "distancePx": 255.33333333333337,
+              "avgSpeedPxMs": 1.7488584474885847,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 5.038759689922481,
+              "durationMs": 163,
+              "direction": "up",
+              "maxSpeedPxMs": 2.770833333333332,
+              "avgSpeedPxMs": 1.329243353783231,
+              "distancePx": 216.66666666666669
+            },
+            {
+              "distancePx": 298.99999999999994,
+              "avgSpeedPxMs": 2.6696428571428568,
+              "durationMs": 112,
+              "maxSpeedPxMs": 3.9411764705882355,
+              "direction": "up",
+              "distanceItems": 6.953488372093022
+            },
+            {
+              "distancePx": 306.33333333333337,
+              "distanceItems": 7.124031007751939,
+              "maxSpeedPxMs": 4.019607843137254,
+              "durationMs": 113,
+              "direction": "up",
+              "avgSpeedPxMs": 2.7109144542772863
+            },
+            {
+              "avgSpeedPxMs": 3.034722222223142,
+              "direction": "up",
+              "maxSpeedPxMs": 4.313725490196081,
+              "distanceItems": 6.775193798449612,
+              "distancePx": 291.3333333333333,
+              "durationMs": 95.9999999999709
+            },
+            {
+              "maxSpeedPxMs": 4.098039215693292,
+              "distancePx": 284.66666666666663,
+              "avgSpeedPxMs": 2.519174041297935,
+              "direction": "up",
+              "distanceItems": 6.620155038759689,
+              "durationMs": 113
+            },
+            {
+              "avgSpeedPxMs": 2.4,
+              "direction": "up",
+              "distancePx": 264,
+              "distanceItems": 6.1395348837209305,
+              "durationMs": 110,
+              "maxSpeedPxMs": 3.5416666666666643
+            },
+            {
+              "maxSpeedPxMs": 3.5416666666666643,
+              "avgSpeedPxMs": 2.3687315634218287,
+              "durationMs": 113,
+              "distancePx": 267.66666666666663,
+              "direction": "up",
+              "distanceItems": 6.224806201550387
+            },
+            {
+              "maxSpeedPxMs": 2.6875,
+              "durationMs": 126,
+              "direction": "up",
+              "distancePx": 217.66666666666663,
+              "avgSpeedPxMs": 1.7275132275132272,
+              "distanceItems": 5.062015503875968
+            },
+            {
+              "maxSpeedPxMs": 3.7291666666598844,
+              "direction": "up",
+              "distancePx": 260,
+              "distanceItems": 6.046511627906977,
+              "avgSpeedPxMs": 2.3423423423429566,
+              "durationMs": 110.9999999999709
+            },
+            {
+              "direction": "up",
+              "distancePx": 247.66666666666669,
+              "maxSpeedPxMs": 3.392156862750903,
+              "distanceItems": 5.759689922480621,
+              "durationMs": 114,
+              "avgSpeedPxMs": 2.172514619883041
+            },
+            {
+              "distanceItems": 6.147286821705425,
+              "durationMs": 112,
+              "distancePx": 264.33333333333326,
+              "direction": "up",
+              "maxSpeedPxMs": 3.6078431372548976,
+              "avgSpeedPxMs": 2.360119047619047
+            },
+            {
+              "maxSpeedPxMs": 3.3125,
+              "distanceItems": 5.054263565891472,
+              "avgSpeedPxMs": 2.2405498281786937,
+              "distancePx": 217.33333333333331,
+              "direction": "up",
+              "durationMs": 97
+            },
+            {
+              "maxSpeedPxMs": 3.4583333333270416,
+              "avgSpeedPxMs": 2.2589285714285716,
+              "distanceItems": 5.883720930232558,
+              "direction": "up",
+              "durationMs": 112,
+              "distancePx": 253
+            },
+            {
+              "durationMs": 111.0000000000291,
+              "distanceItems": 6.573643410852712,
+              "direction": "up",
+              "maxSpeedPxMs": 23.66666666666663,
+              "distancePx": 282.66666666666663,
+              "avgSpeedPxMs": 2.5465465465458785
+            },
+            {
+              "distancePx": 133.9999999999999,
+              "durationMs": 312,
+              "avgSpeedPxMs": 0.4294871794871791,
+              "maxSpeedPxMs": 0.9999999999980598,
+              "direction": "down",
+              "distanceItems": 3.1162790697674394
+            }
+          ],
+          "flickCount": 17,
+          "switchbackCount": 1,
+          "maxOvershootDistancePx": 183.3812063595542,
+          "overshootCount": 1,
+          "didOvershoot": true
+        },
+        {
+          "maxOvershootDistancePx": 0,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 7.541666666666657,
+              "avgSpeedPxMs": 2.834862385320344,
+              "durationMs": 109.0000000000291,
+              "distancePx": 309,
+              "direction": "up",
+              "distanceItems": 7.186046511627907
+            },
+            {
+              "distanceItems": 6.62015503875969,
+              "distancePx": 284.6666666666667,
+              "maxSpeedPxMs": 4.208333333333343,
+              "avgSpeedPxMs": 2.904761904761905,
+              "durationMs": 98,
+              "direction": "up"
+            },
+            {
+              "durationMs": 96.9999999999709,
+              "distanceItems": 6.023255813953487,
+              "direction": "up",
+              "distancePx": 258.99999999999994,
+              "maxSpeedPxMs": 8.777777777692634,
+              "avgSpeedPxMs": 2.6701030927843057
+            },
+            {
+              "maxSpeedPxMs": 4.020833333333329,
+              "distanceItems": 5.100775193798451,
+              "durationMs": 79,
+              "distancePx": 219.33333333333337,
+              "direction": "up",
+              "avgSpeedPxMs": 2.776371308016878
+            },
+            {
+              "maxSpeedPxMs": 3.9375,
+              "avgSpeedPxMs": 2.538194444444444,
+              "durationMs": 96,
+              "distanceItems": 5.666666666666666,
+              "distancePx": 243.66666666666663,
+              "direction": "up"
+            },
+            {
+              "distancePx": 242.33333333333326,
+              "durationMs": 113,
+              "avgSpeedPxMs": 2.144542772861356,
+              "distanceItems": 5.635658914728681,
+              "direction": "up",
+              "maxSpeedPxMs": 3.666666666666668
+            },
+            {
+              "distanceItems": 4.519379844961239,
+              "maxSpeedPxMs": 8.5,
+              "durationMs": 80,
+              "direction": "up",
+              "avgSpeedPxMs": 2.429166666666666,
+              "distancePx": 194.33333333333326
+            },
+            {
+              "direction": "up",
+              "distancePx": 249,
+              "maxSpeedPxMs": 3.7291666666666643,
+              "durationMs": 96,
+              "distanceItems": 5.790697674418604,
+              "avgSpeedPxMs": 2.59375
+            },
+            {
+              "durationMs": 96,
+              "direction": "up",
+              "distanceItems": 5.620155038759689,
+              "avgSpeedPxMs": 2.5173611111111107,
+              "maxSpeedPxMs": 3.4705882352941178,
+              "distancePx": 241.66666666666663
+            },
+            {
+              "direction": "up",
+              "avgSpeedPxMs": 2.1002949852507373,
+              "maxSpeedPxMs": 3.375,
+              "distanceItems": 5.5193798449612395,
+              "durationMs": 113,
+              "distancePx": 237.33333333333331
+            },
+            {
+              "avgSpeedPxMs": 2.134751773049645,
+              "durationMs": 94,
+              "distancePx": 200.66666666666663,
+              "direction": "up",
+              "maxSpeedPxMs": 3.1176470588235294,
+              "distanceItems": 4.666666666666666
+            },
+            {
+              "distancePx": 250.33333333333331,
+              "distanceItems": 5.821705426356589,
+              "maxSpeedPxMs": 2.2666666666666666,
+              "avgSpeedPxMs": 1.4063670411985019,
+              "durationMs": 178,
+              "direction": "up"
+            }
+          ],
+          "scrollDistance": 9784.898725677982,
+          "overshootCount": 0,
+          "switchbackCount": 0,
+          "timeMs": 8911,
+          "timestamp": "2026-10-06T09:03:54.296Z",
+          "targetNumber": 240,
+          "flickCount": 12,
+          "didOvershoot": false,
+          "attemptInBlock": 5
+        },
+        {
+          "attemptInBlock": 6,
+          "scrollDistance": 12416.310951592208,
+          "flickCount": 21,
+          "didOvershoot": false,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 12.916666666666657,
+              "distancePx": 300,
+              "distanceItems": 6.976744186046512,
+              "durationMs": 123,
+              "avgSpeedPxMs": 2.4390243902439024,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 6.116279069767442,
+              "direction": "up",
+              "avgSpeedPxMs": 2.7395833333333335,
+              "distancePx": 263,
+              "maxSpeedPxMs": 3.4374999999999964,
+              "durationMs": 96
+            },
+            {
+              "maxSpeedPxMs": 3.4791666666666714,
+              "durationMs": 96,
+              "direction": "up",
+              "distanceItems": 6.007751937984494,
+              "avgSpeedPxMs": 2.6909722222222214,
+              "distancePx": 258.33333333333326
+            },
+            {
+              "direction": "up",
+              "distancePx": 229.33333333333331,
+              "durationMs": 96,
+              "avgSpeedPxMs": 2.388888888888889,
+              "maxSpeedPxMs": 3.3958333333333286,
+              "distanceItems": 5.333333333333333
+            },
+            {
+              "direction": "up",
+              "distanceItems": 4.4651162790697665,
+              "durationMs": 60.999999999970896,
+              "avgSpeedPxMs": 3.1475409836080583,
+              "distancePx": 191.99999999999994,
+              "maxSpeedPxMs": 16.444444444444457
+            },
+            {
+              "durationMs": 109,
+              "maxSpeedPxMs": 3.0416666666666643,
+              "avgSpeedPxMs": 2.2538226299694184,
+              "distancePx": 245.66666666666663,
+              "distanceItems": 5.713178294573643,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 4.984496124031009,
+              "maxSpeedPxMs": 38.33333333333337,
+              "durationMs": 78,
+              "direction": "up",
+              "distancePx": 214.33333333333337,
+              "avgSpeedPxMs": 2.7478632478632483
+            },
+            {
+              "direction": "up",
+              "durationMs": 77,
+              "distanceItems": 4.1860465116279055,
+              "maxSpeedPxMs": 3.2916666666666643,
+              "distancePx": 179.99999999999994,
+              "avgSpeedPxMs": 2.337662337662337
+            },
+            {
+              "avgSpeedPxMs": 2.2515151515145555,
+              "durationMs": 110.0000000000291,
+              "direction": "up",
+              "maxSpeedPxMs": 5.644444444444442,
+              "distanceItems": 5.759689922480619,
+              "distancePx": 247.66666666666663
+            },
+            {
+              "distancePx": 268.3333333333333,
+              "durationMs": 128.9999999999709,
+              "direction": "up",
+              "distanceItems": 6.240310077519379,
+              "maxSpeedPxMs": 2.8125,
+              "avgSpeedPxMs": 2.0801033591735956
+            },
+            {
+              "distancePx": 265,
+              "distanceItems": 6.162790697674419,
+              "direction": "up",
+              "maxSpeedPxMs": 3.375000000006139,
+              "avgSpeedPxMs": 2.3451327433628317,
+              "durationMs": 113
+            },
+            {
+              "direction": "up",
+              "avgSpeedPxMs": 2.570833333333333,
+              "maxSpeedPxMs": 9.55555555555558,
+              "distancePx": 205.66666666666663,
+              "distanceItems": 4.782945736434107,
+              "durationMs": 80
+            },
+            {
+              "durationMs": 111.0000000000291,
+              "distancePx": 261.66666666666663,
+              "distanceItems": 6.085271317829457,
+              "direction": "up",
+              "maxSpeedPxMs": 3.4166666666666643,
+              "avgSpeedPxMs": 2.357357357356739
+            },
+            {
+              "maxSpeedPxMs": 3.1666666666666714,
+              "distanceItems": 5.147286821705425,
+              "distancePx": 221.33333333333326,
+              "direction": "up",
+              "avgSpeedPxMs": 1.9587020648967546,
+              "durationMs": 113
+            },
+            {
+              "maxSpeedPxMs": 2.624999999995225,
+              "distanceItems": 4.310077519379845,
+              "avgSpeedPxMs": 1.9305555555555554,
+              "direction": "up",
+              "durationMs": 96,
+              "distancePx": 185.33333333333331
+            },
+            {
+              "maxSpeedPxMs": 3.125,
+              "distanceItems": 5.015503875968991,
+              "avgSpeedPxMs": 2.2233676975945014,
+              "direction": "up",
+              "distancePx": 215.66666666666663,
+              "durationMs": 97
+            },
+            {
+              "direction": "up",
+              "distanceItems": 4.550387596899225,
+              "avgSpeedPxMs": 1.7315634218289087,
+              "maxSpeedPxMs": 4.452380952390211,
+              "distancePx": 195.66666666666669,
+              "durationMs": 113
+            },
+            {
+              "durationMs": 95.9999999999709,
+              "direction": "up",
+              "distanceItems": 3.3488372093023244,
+              "maxSpeedPxMs": 2.3541666666666714,
+              "avgSpeedPxMs": 1.500000000000454,
+              "distancePx": 143.99999999999994
+            },
+            {
+              "direction": "up",
+              "distancePx": 177.66666666666663,
+              "maxSpeedPxMs": 2.291666666670833,
+              "avgSpeedPxMs": 1.8701754385964908,
+              "durationMs": 95,
+              "distanceItems": 4.1317829457364335
+            },
+            {
+              "avgSpeedPxMs": 1.7044673539518904,
+              "maxSpeedPxMs": 2.583333333333332,
+              "direction": "up",
+              "durationMs": 97,
+              "distanceItems": 3.8449612403100786,
+              "distancePx": 165.33333333333337
+            },
+            {
+              "durationMs": 110,
+              "distanceItems": 3.4573643410852704,
+              "maxSpeedPxMs": 1.9999999999961195,
+              "distancePx": 148.66666666666663,
+              "avgSpeedPxMs": 1.3515151515151511,
+              "direction": "up"
+            }
+          ],
+          "timestamp": "2026-10-06T09:04:11.103Z",
+          "targetNumber": 300,
+          "overshootCount": 0,
+          "maxOvershootDistancePx": 0,
+          "switchbackCount": 0,
+          "timeMs": 14867
+        },
+        {
+          "switchbackCount": 0,
+          "targetNumber": 210,
+          "overshootCount": 0,
+          "didOvershoot": false,
+          "scrollDistance": 8638.836956105315,
+          "flickCount": 12,
+          "attemptInBlock": 7,
+          "timeMs": 9212,
+          "maxOvershootDistancePx": 0,
+          "flicks": [
+            {
+              "avgSpeedPxMs": 1.9359999999999995,
+              "durationMs": 125,
+              "direction": "up",
+              "distanceItems": 5.6279069767441845,
+              "maxSpeedPxMs": 5.222222222222219,
+              "distancePx": 241.99999999999994
+            },
+            {
+              "maxSpeedPxMs": 3.3958333333333286,
+              "distanceItems": 5.496124031007753,
+              "distancePx": 236.33333333333337,
+              "avgSpeedPxMs": 2.4618055555563023,
+              "durationMs": 95.9999999999709,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 19,
+              "avgSpeedPxMs": 2.601449275362318,
+              "durationMs": 46,
+              "distancePx": 119.66666666666663,
+              "distanceItems": 2.7829457364341077,
+              "direction": "up"
+            },
+            {
+              "distanceItems": 5.062015503875968,
+              "maxSpeedPxMs": 3.0980392156809686,
+              "distancePx": 217.66666666666663,
+              "durationMs": 94,
+              "avgSpeedPxMs": 2.315602836879432,
+              "direction": "up"
+            },
+            {
+              "durationMs": 113.9999999999709,
+              "direction": "up",
+              "avgSpeedPxMs": 1.570175438596892,
+              "distancePx": 179,
+              "distanceItems": 4.162790697674419,
+              "maxSpeedPxMs": 4.785714285714286
+            },
+            {
+              "distancePx": 206.99999999999994,
+              "maxSpeedPxMs": 3.083333333338944,
+              "avgSpeedPxMs": 2.1340206185567006,
+              "durationMs": 97,
+              "direction": "up",
+              "distanceItems": 4.813953488372092
+            },
+            {
+              "maxSpeedPxMs": 3.0625,
+              "distanceItems": 4.3100775193798455,
+              "distancePx": 185.33333333333337,
+              "durationMs": 96.9999999999709,
+              "direction": "up",
+              "avgSpeedPxMs": 1.910652920962773
+            },
+            {
+              "durationMs": 113.0000000000291,
+              "direction": "up",
+              "distanceItems": 5.015503875968991,
+              "avgSpeedPxMs": 1.9085545722708945,
+              "maxSpeedPxMs": 3.313725490196081,
+              "distancePx": 215.66666666666663
+            },
+            {
+              "direction": "up",
+              "distancePx": 174.33333333333326,
+              "distanceItems": 4.054263565891471,
+              "avgSpeedPxMs": 1.7972508591065284,
+              "maxSpeedPxMs": 2.8125,
+              "durationMs": 97
+            },
+            {
+              "distancePx": 166.66666666666663,
+              "maxSpeedPxMs": 3.291666666672652,
+              "avgSpeedPxMs": 1.7182130584192437,
+              "distanceItems": 3.8759689922480614,
+              "durationMs": 97,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.5208333333269244,
+              "distanceItems": 4.100775193798451,
+              "distancePx": 176.33333333333337,
+              "direction": "up",
+              "avgSpeedPxMs": 1.5467836257305996,
+              "durationMs": 114.0000000000291
+            },
+            {
+              "maxSpeedPxMs": 3.6078431372487207,
+              "distanceItems": 5.612403100775192,
+              "avgSpeedPxMs": 2.5673758865256167,
+              "distancePx": 241.33333333333326,
+              "durationMs": 93.9999999999709,
+              "direction": "up"
+            }
+          ],
+          "timestamp": "2026-10-06T09:04:21.121Z"
+        },
+        {
+          "flicks": [
+            {
+              "distanceItems": 6.379844961240308,
+              "durationMs": 142,
+              "avgSpeedPxMs": 1.9319248826291076,
+              "maxSpeedPxMs": 10.111111111013033,
+              "distancePx": 274.33333333333326,
+              "direction": "up"
+            },
+            {
+              "avgSpeedPxMs": 2.777777777777778,
+              "durationMs": 93,
+              "direction": "up",
+              "distanceItems": 6.007751937984497,
+              "maxSpeedPxMs": 33,
+              "distancePx": 258.33333333333337
+            },
+            {
+              "distancePx": 187.33333333333326,
+              "avgSpeedPxMs": 2.341666666666666,
+              "distanceItems": 4.35658914728682,
+              "durationMs": 80,
+              "maxSpeedPxMs": 15.333333332887113,
+              "direction": "up"
+            },
+            {
+              "maxSpeedPxMs": 3.1372549019607865,
+              "durationMs": 96.0000000000291,
+              "distancePx": 200.66666666666663,
+              "distanceItems": 4.666666666666666,
+              "direction": "up",
+              "avgSpeedPxMs": 2.0902777777771435
+            },
+            {
+              "direction": "up",
+              "maxSpeedPxMs": 3.13725490196078,
+              "distancePx": 201.33333333333331,
+              "durationMs": 113,
+              "distanceItems": 4.682170542635658,
+              "avgSpeedPxMs": 1.781710914454277
+            },
+            {
+              "maxSpeedPxMs": 2.9374999999999964,
+              "durationMs": 97,
+              "direction": "up",
+              "distanceItems": 5.062015503875968,
+              "distancePx": 217.66666666666663,
+              "avgSpeedPxMs": 2.2439862542955322
+            },
+            {
+              "distancePx": 156,
+              "maxSpeedPxMs": 2.8125,
+              "direction": "up",
+              "distanceItems": 3.627906976744186,
+              "durationMs": 113,
+              "avgSpeedPxMs": 1.3805309734513274
+            },
+            {
+              "distancePx": 218.33333333333331,
+              "avgSpeedPxMs": 1.9494047619042552,
+              "maxSpeedPxMs": 3.222222222222217,
+              "durationMs": 112.0000000000291,
+              "distanceItems": 5.0775193798449605,
+              "direction": "up"
+            },
+            {
+              "distancePx": 209.66666666666663,
+              "durationMs": 97,
+              "direction": "up",
+              "avgSpeedPxMs": 2.1615120274914084,
+              "distanceItems": 4.875968992248061,
+              "maxSpeedPxMs": 7.666666666666667
+            },
+            {
+              "avgSpeedPxMs": 1.124242424242425,
+              "distanceItems": 2.8759689922480636,
+              "direction": "up",
+              "maxSpeedPxMs": 2.333333333333338,
+              "distancePx": 123.66666666666674,
+              "durationMs": 110
+            }
+          ],
+          "maxOvershootDistancePx": 0,
+          "scrollDistance": 5962.801042065714,
+          "timeMs": 7613,
+          "timestamp": "2026-10-06T09:04:29.474Z",
+          "switchbackCount": 0,
+          "attemptInBlock": 8,
+          "targetNumber": 150,
+          "flickCount": 10,
+          "overshootCount": 0,
+          "didOvershoot": false
+        },
+        {
+          "maxOvershootDistancePx": 0,
+          "overshootCount": 0,
+          "attemptInBlock": 9,
+          "flickCount": 3,
+          "flicks": [
+            {
+              "maxSpeedPxMs": 4.3611111111111045,
+              "durationMs": 108,
+              "distanceItems": 5.023255813953487,
+              "direction": "up",
+              "avgSpeedPxMs": 1.9999999999999996,
+              "distancePx": 215.99999999999994
+            },
+            {
+              "maxSpeedPxMs": 1.958333333336898,
+              "distancePx": 190.33333333333326,
+              "distanceItems": 4.426356589147285,
+              "avgSpeedPxMs": 0.7264631043256995,
+              "durationMs": 262,
+              "direction": "up"
+            },
+            {
+              "distancePx": 0,
+              "durationMs": 108.9999999999709,
+              "direction": "none",
+              "maxSpeedPxMs": 0,
+              "distanceItems": 0,
+              "avgSpeedPxMs": 0
+            }
+          ],
+          "didOvershoot": false,
+          "scrollDistance": 845.8448511412914,
+          "timeMs": 1839,
+          "switchbackCount": 0,
+          "timestamp": "2026-10-06T09:04:31.870Z",
+          "targetNumber": 30
+        },
+        {
+          "didOvershoot": true,
+          "timeMs": 6680,
+          "maxOvershootDistancePx": 84.64627530117014,
+          "flicks": [
+            {
+              "durationMs": 106.0000000000291,
+              "avgSpeedPxMs": 2.5786163522005503,
+              "direction": "up",
+              "distancePx": 273.33333333333337,
+              "maxSpeedPxMs": 5.925925925925918,
+              "distanceItems": 6.356589147286822
+            },
+            {
+              "distanceItems": 4.891472868217054,
+              "avgSpeedPxMs": 2.1683848797250858,
+              "durationMs": 97,
+              "distancePx": 210.33333333333331,
+              "maxSpeedPxMs": 3.229166666666668,
+              "direction": "up"
+            },
+            {
+              "avgSpeedPxMs": 0.857487922705314,
+              "durationMs": 276,
+              "distancePx": 236.66666666666669,
+              "maxSpeedPxMs": 2.9166666666666643,
+              "distanceItems": 5.503875968992248,
+              "direction": "up"
+            },
+            {
+              "distancePx": 155,
+              "distanceItems": 3.604651162790698,
+              "avgSpeedPxMs": 0.7908163265304948,
+              "durationMs": 196.0000000000291,
+              "maxSpeedPxMs": 1.8541666666734098,
+              "direction": "up"
+            },
+            {
+              "durationMs": 108.9999999999709,
+              "distanceItems": 3.062015503875968,
+              "distancePx": 131.66666666666663,
+              "maxSpeedPxMs": 1.9375000000070486,
+              "avgSpeedPxMs": 1.2079510703367136,
+              "direction": "up"
+            },
+            {
+              "direction": "up",
+              "distancePx": 138.66666666666663,
+              "maxSpeedPxMs": 1.5208333333333357,
+              "durationMs": 146.0000000000291,
+              "distanceItems": 3.2248062015503867,
+              "avgSpeedPxMs": 0.9497716894975273
+            },
+            {
+              "distanceItems": 2.8372093023255816,
+              "durationMs": 110,
+              "avgSpeedPxMs": 1.1090909090909091,
+              "direction": "up",
+              "maxSpeedPxMs": 1.958333333340453,
+              "distancePx": 122
+            },
+            {
+              "avgSpeedPxMs": 1.1561561561561564,
+              "distancePx": 128.33333333333337,
+              "durationMs": 111,
+              "maxSpeedPxMs": 2.2291666666626093,
+              "distanceItems": 2.9844961240310086,
+              "direction": "up"
+            },
+            {
+              "direction": "down",
+              "avgSpeedPxMs": 0.15955284552844123,
+              "maxSpeedPxMs": 0.2745098039215731,
+              "distanceItems": 1.2170542635658923,
+              "distancePx": 52.33333333333337,
+              "durationMs": 328.0000000000291
+            }
+          ],
+          "scrollDistance": 3555.312941967837,
+          "attemptInBlock": 10,
+          "timestamp": "2026-10-06T09:04:39.176Z",
+          "overshootCount": 1,
+          "targetNumber": 90,
+          "flickCount": 9,
+          "switchbackCount": 1
+        }
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "targetNumber": 180,
+      "maxOvershootDistancePx": 0,
+      "switchbackCount": 0,
+      "flickCount": 7,
+      "scrollDistance": 7341.677352560967,
+      "didOvershoot": false,
+      "timestamp": "2026-10-06T09:00:50.570Z",
+      "attemptInBlock": 1,
+      "timeMs": 4452,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 5.777777777777781,
+          "distancePx": 314.33333333333326,
+          "avgSpeedPxMs": 2.9104938271605914,
+          "direction": "up",
+          "distanceItems": 7.310077519379843,
+          "durationMs": 107.99999999999636
+        },
+        {
+          "direction": "up",
+          "distancePx": 287,
+          "maxSpeedPxMs": 4.729166666666668,
+          "distanceItems": 6.674418604651163,
+          "durationMs": 96.99999999999636,
+          "avgSpeedPxMs": 2.9587628865980493
+        },
+        {
+          "direction": "up",
+          "distanceItems": 5.147286821705426,
+          "distancePx": 221.33333333333331,
+          "avgSpeedPxMs": 2.3055555555555554,
+          "durationMs": 96,
+          "maxSpeedPxMs": 7.666666666668657
+        },
+        {
+          "maxSpeedPxMs": 3.960784313725489,
+          "durationMs": 128,
+          "distancePx": 244.99999999999994,
+          "avgSpeedPxMs": 1.9140624999999996,
+          "distanceItems": 5.69767441860465,
+          "direction": "up"
+        },
+        {
+          "avgSpeedPxMs": 0.9742547425474253,
+          "distanceItems": 5.573643410852712,
+          "distancePx": 239.66666666666663,
+          "durationMs": 246,
+          "maxSpeedPxMs": 2.745098039215684,
+          "direction": "up"
+        },
+        {
+          "avgSpeedPxMs": 0.4169184290030212,
+          "durationMs": 662,
+          "direction": "up",
+          "maxSpeedPxMs": 1.3958333333333357,
+          "distanceItems": 6.4186046511627906,
+          "distancePx": 276
+        },
+        {
+          "distancePx": 212.66666666666663,
+          "avgSpeedPxMs": 1.487179487179487,
+          "distanceItems": 4.945736434108526,
+          "durationMs": 143,
+          "direction": "up",
+          "maxSpeedPxMs": 2.803921568628049
+        }
+      ],
+      "overshootCount": 0,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "flickCount": 7,
+      "targetNumber": 120,
+      "timeMs": 5184,
+      "overshootCount": 1,
+      "attemptInBlock": 2,
+      "timestamp": "2026-10-06T09:00:56.444Z",
+      "maxOvershootDistancePx": 220.30672323409544,
+      "scrollDistance": 4903.306723234095,
+      "switchbackCount": 1,
+      "flicks": [
+        {
+          "distanceItems": 6.612403100775195,
+          "distancePx": 284.33333333333337,
+          "avgSpeedPxMs": 1.7995780590717303,
+          "durationMs": 158,
+          "maxSpeedPxMs": 4.458333333333336,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.798449612403099,
+          "distancePx": 292.33333333333326,
+          "avgSpeedPxMs": 2.681957186544342,
+          "direction": "up",
+          "maxSpeedPxMs": 4.041666666666664,
+          "durationMs": 109
+        },
+        {
+          "avgSpeedPxMs": 2.7508771929824554,
+          "distanceItems": 6.07751937984496,
+          "durationMs": 95,
+          "distancePx": 261.33333333333326,
+          "maxSpeedPxMs": 4.43137254901961,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.9375,
+          "durationMs": 112,
+          "direction": "up",
+          "avgSpeedPxMs": 2.2916666666666665,
+          "distanceItems": 5.968992248062015,
+          "distancePx": 256.66666666666663
+        },
+        {
+          "direction": "up",
+          "distanceItems": 5.162790697674419,
+          "distancePx": 222,
+          "maxSpeedPxMs": 2.7708333333333357,
+          "durationMs": 163,
+          "avgSpeedPxMs": 1.361963190184049
+        },
+        {
+          "direction": "down",
+          "durationMs": 595,
+          "distancePx": 74.66666666666674,
+          "distanceItems": 1.7364341085271335,
+          "avgSpeedPxMs": 0.1254901960784315,
+          "maxSpeedPxMs": 0.3541666666666643
+        },
+        {
+          "durationMs": 1026,
+          "distancePx": 146.66666666666674,
+          "avgSpeedPxMs": 0.1429499675113711,
+          "direction": "down",
+          "distanceItems": 3.410852713178296,
+          "maxSpeedPxMs": 0.9166666666670847
+        }
+      ],
+      "didOvershoot": true,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "didOvershoot": true,
+      "timeMs": 5982,
+      "flickCount": 10,
+      "flicks": [
+        {
+          "avgSpeedPxMs": 3.434250764525993,
+          "direction": "up",
+          "durationMs": 109,
+          "distancePx": 374.33333333333326,
+          "maxSpeedPxMs": 5.888888888888886,
+          "distanceItems": 8.705426356589145
+        },
+        {
+          "maxSpeedPxMs": 4.294117647058823,
+          "distanceItems": 5.558139534883721,
+          "avgSpeedPxMs": 2.950617283950617,
+          "durationMs": 81,
+          "direction": "up",
+          "distancePx": 239
+        },
+        {
+          "distancePx": 259.99999999999994,
+          "avgSpeedPxMs": 2.6530612244897953,
+          "durationMs": 98,
+          "direction": "up",
+          "distanceItems": 6.046511627906975,
+          "maxSpeedPxMs": 4.645833333335445
+        },
+        {
+          "durationMs": 96,
+          "distanceItems": 5.992248062015503,
+          "distancePx": 257.66666666666663,
+          "maxSpeedPxMs": 4.520833333333332,
+          "direction": "up",
+          "avgSpeedPxMs": 2.6840277777777772
+        },
+        {
+          "distanceItems": 5.860465116279069,
+          "direction": "up",
+          "distancePx": 251.99999999999994,
+          "durationMs": 113,
+          "avgSpeedPxMs": 2.2300884955752207,
+          "maxSpeedPxMs": 4.3125
+        },
+        {
+          "distancePx": 305.6666666666667,
+          "maxSpeedPxMs": 4.0625,
+          "direction": "up",
+          "distanceItems": 7.108527131782946,
+          "avgSpeedPxMs": 2.369509043927649,
+          "durationMs": 129
+        },
+        {
+          "distanceItems": 6.5193798449612395,
+          "maxSpeedPxMs": 4.274509803921567,
+          "avgSpeedPxMs": 2.45906432748538,
+          "durationMs": 114,
+          "distancePx": 280.3333333333333,
+          "direction": "up"
+        },
+        {
+          "distancePx": 269.6666666666667,
+          "maxSpeedPxMs": 4.229166666666664,
+          "avgSpeedPxMs": 2.386430678466077,
+          "durationMs": 113,
+          "direction": "up",
+          "distanceItems": 6.271317829457365
+        },
+        {
+          "maxSpeedPxMs": 3.823529411764706,
+          "distancePx": 226,
+          "durationMs": 97.00000000000728,
+          "distanceItems": 5.255813953488372,
+          "direction": "up",
+          "avgSpeedPxMs": 2.32989690721632
+        },
+        {
+          "direction": "up",
+          "maxSpeedPxMs": 4.104166666664798,
+          "distancePx": 313.6666666666667,
+          "distanceItems": 7.294573643410853,
+          "durationMs": 111,
+          "avgSpeedPxMs": 2.825825825825826
+        }
+      ],
+      "overshootCount": 1,
+      "targetNumber": 240,
+      "timestamp": "2026-10-06T09:01:03.332Z",
+      "attemptInBlock": 3,
+      "switchbackCount": 0,
+      "scrollDistance": 10027.392841888011,
+      "maxOvershootDistancePx": 54.39284188801139,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "attemptInBlock": 4,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 8.533333333333326,
+          "distancePx": 305.66666666666663,
+          "avgSpeedPxMs": 2.46505376344086,
+          "durationMs": 124,
+          "distanceItems": 7.108527131782945,
+          "direction": "up"
+        },
+        {
+          "direction": "up",
+          "maxSpeedPxMs": 4.450980392154959,
+          "avgSpeedPxMs": 2.9087719298245607,
+          "distancePx": 276.33333333333326,
+          "durationMs": 95,
+          "distanceItems": 6.426356589147285
+        },
+        {
+          "maxSpeedPxMs": 4.45098039215686,
+          "distanceItems": 6.790697674418604,
+          "distancePx": 292,
+          "avgSpeedPxMs": 3.041666666666436,
+          "direction": "up",
+          "durationMs": 96.00000000000728
+        },
+        {
+          "maxSpeedPxMs": 4.921568627450982,
+          "durationMs": 95,
+          "avgSpeedPxMs": 2.5473684210526315,
+          "direction": "up",
+          "distancePx": 242,
+          "distanceItems": 5.627906976744186
+        },
+        {
+          "distanceItems": 5.953488372093022,
+          "distancePx": 255.99999999999994,
+          "avgSpeedPxMs": 3.160493827160777,
+          "maxSpeedPxMs": 7.215686274509805,
+          "direction": "up",
+          "durationMs": 80.99999999999272
+        },
+        {
+          "avgSpeedPxMs": 4.573839662447256,
+          "maxSpeedPxMs": 44.33333333333326,
+          "direction": "up",
+          "distanceItems": 8.403100775193796,
+          "distancePx": 361.3333333333332,
+          "durationMs": 79
+        },
+        {
+          "durationMs": 80,
+          "distanceItems": 6.9147286821705425,
+          "maxSpeedPxMs": 8.416666666666657,
+          "avgSpeedPxMs": 3.7166666666666663,
+          "distancePx": 297.3333333333333,
+          "direction": "up"
+        },
+        {
+          "avgSpeedPxMs": 1.7682539682539684,
+          "durationMs": 210,
+          "distancePx": 371.33333333333337,
+          "direction": "down",
+          "maxSpeedPxMs": 2.627450980392158,
+          "distanceItems": 8.635658914728683
+        },
+        {
+          "distanceItems": 2.5736434108527124,
+          "avgSpeedPxMs": 0.18112384069830872,
+          "durationMs": 611,
+          "maxSpeedPxMs": 1.2156862745098016,
+          "direction": "down",
+          "distancePx": 110.66666666666663
+        }
+      ],
+      "maxOvershootDistancePx": 487.095568886989,
+      "timestamp": "2026-10-06T09:01:10.621Z",
+      "timeMs": 6215,
+      "switchbackCount": 1,
+      "targetNumber": 270,
+      "overshootCount": 1,
+      "flickCount": 9,
+      "scrollDistance": 11268.095568886987,
+      "didOvershoot": true,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "flickCount": 3,
+      "attemptInBlock": 5,
+      "targetNumber": 90,
+      "scrollDistance": 3578.1751874204515,
+      "flicks": [
+        {
+          "avgSpeedPxMs": 2.0123456790123453,
+          "maxSpeedPxMs": 6.7499999999999964,
+          "durationMs": 108,
+          "distanceItems": 5.054263565891472,
+          "distancePx": 217.33333333333331,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.999999999999999,
+          "direction": "up",
+          "maxSpeedPxMs": 6.313725490196077,
+          "distancePx": 300.99999999999994,
+          "avgSpeedPxMs": 3.2021276595744674,
+          "durationMs": 94
+        },
+        {
+          "distancePx": 337.66666666666663,
+          "durationMs": 428.0000000000073,
+          "avgSpeedPxMs": 0.7889408099688339,
+          "maxSpeedPxMs": 2.0833333333333357,
+          "direction": "down",
+          "distanceItems": 7.8527131782945725
+        }
+      ],
+      "timestamp": "2026-10-06T09:01:14.831Z",
+      "didOvershoot": true,
+      "maxOvershootDistancePx": 392.841854087118,
+      "switchbackCount": 1,
+      "timeMs": 3168,
+      "overshootCount": 1,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "attemptInBlock": 6,
+      "scrollDistance": 2516.773554289386,
+      "switchbackCount": 1,
+      "targetNumber": 60,
+      "didOvershoot": true,
+      "timestamp": "2026-10-06T09:01:20.056Z",
+      "flicks": [
+        {
+          "durationMs": 107,
+          "distanceItems": 11.782945736434106,
+          "avgSpeedPxMs": 4.735202492211837,
+          "direction": "up",
+          "maxSpeedPxMs": 14.388888888871428,
+          "distancePx": 506.6666666666666
+        },
+        {
+          "durationMs": 360.9999999999927,
+          "maxSpeedPxMs": 2.3111111111111087,
+          "avgSpeedPxMs": 0.573407202216078,
+          "distanceItems": 4.813953488372093,
+          "distancePx": 207,
+          "direction": "down"
+        },
+        {
+          "distancePx": 302,
+          "durationMs": 428,
+          "distanceItems": 7.023255813953488,
+          "direction": "down",
+          "maxSpeedPxMs": 1.7291666666666679,
+          "avgSpeedPxMs": 0.705607476635514
+        },
+        {
+          "avgSpeedPxMs": 0.9274977895667551,
+          "maxSpeedPxMs": 2.270833333333332,
+          "distancePx": 349.6666666666667,
+          "distanceItems": 8.131782945736434,
+          "durationMs": 377,
+          "direction": "down"
+        },
+        {
+          "maxSpeedPxMs": 2.3541666666666643,
+          "durationMs": 410,
+          "distancePx": 353.33333333333337,
+          "avgSpeedPxMs": 0.861788617886179,
+          "distanceItems": 8.217054263565892,
+          "direction": "down"
+        },
+        {
+          "avgSpeedPxMs": 0.42825968357883254,
+          "distanceItems": 6.0852713178294575,
+          "durationMs": 611,
+          "distancePx": 261.6666666666667,
+          "direction": "down",
+          "maxSpeedPxMs": 1.8333333333341695
+        }
+      ],
+      "overshootCount": 1,
+      "maxOvershootDistancePx": 1757.440220956053,
+      "flickCount": 6,
+      "timeMs": 4617,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "scrollDistance": 8600.002187831873,
+      "didOvershoot": true,
+      "targetNumber": 210,
+      "timeMs": 12520,
+      "flicks": [
+        {
+          "direction": "up",
+          "distanceItems": 6.325581395348837,
+          "avgSpeedPxMs": 1.9568345323741008,
+          "maxSpeedPxMs": 5.607843137254904,
+          "durationMs": 139,
+          "distancePx": 272
+        },
+        {
+          "durationMs": 93,
+          "maxSpeedPxMs": 5.156862745098037,
+          "direction": "up",
+          "distanceItems": 6.868217054263564,
+          "distancePx": 295.33333333333326,
+          "avgSpeedPxMs": 3.1756272401433683
+        },
+        {
+          "avgSpeedPxMs": 3.3831417624521065,
+          "durationMs": 87,
+          "maxSpeedPxMs": 6.509803921565839,
+          "direction": "up",
+          "distancePx": 294.33333333333326,
+          "distanceItems": 6.8449612403100755
+        },
+        {
+          "direction": "up",
+          "distancePx": 272.66666666666663,
+          "avgSpeedPxMs": 2.9007092198581557,
+          "maxSpeedPxMs": 10.095238095238093,
+          "distanceItems": 6.341085271317828,
+          "durationMs": 94
+        },
+        {
+          "durationMs": 377,
+          "distancePx": 377.66666666666663,
+          "distanceItems": 8.782945736434108,
+          "avgSpeedPxMs": 1.0017683465959326,
+          "maxSpeedPxMs": 3.588235294117647,
+          "direction": "down"
+        },
+        {
+          "avgSpeedPxMs": 1.2474526928675398,
+          "durationMs": 229,
+          "direction": "down",
+          "distancePx": 285.66666666666663,
+          "distanceItems": 6.643410852713178,
+          "maxSpeedPxMs": 2.1041666666666643
+        },
+        {
+          "durationMs": 462,
+          "distanceItems": 7.441860465116279,
+          "direction": "down",
+          "maxSpeedPxMs": 1.4375,
+          "distancePx": 320,
+          "avgSpeedPxMs": 0.6926406926406926
+        },
+        {
+          "maxSpeedPxMs": 1.25,
+          "direction": "down",
+          "distanceItems": 7.023255813953488,
+          "avgSpeedPxMs": 0.7968337730870713,
+          "distancePx": 302,
+          "durationMs": 379
+        },
+        {
+          "avgSpeedPxMs": 1.3666666666666665,
+          "durationMs": 280,
+          "distancePx": 382.66666666666663,
+          "direction": "down",
+          "maxSpeedPxMs": 1.9375,
+          "distanceItems": 8.89922480620155
+        },
+        {
+          "durationMs": 294.00000000001455,
+          "distanceItems": 9.410852713178294,
+          "maxSpeedPxMs": 1.8039215686274521,
+          "direction": "down",
+          "distancePx": 404.66666666666663,
+          "avgSpeedPxMs": 1.3764172335600224
+        },
+        {
+          "direction": "down",
+          "distanceItems": 8.395348837209303,
+          "maxSpeedPxMs": 1.8125,
+          "distancePx": 361,
+          "avgSpeedPxMs": 0.916243654822335,
+          "durationMs": 394
+        },
+        {
+          "avgSpeedPxMs": 0.9506472491909385,
+          "maxSpeedPxMs": 1.4117647058811444,
+          "durationMs": 412,
+          "distancePx": 391.66666666666663,
+          "direction": "down",
+          "distanceItems": 9.108527131782944
+        },
+        {
+          "distanceItems": 9.705426356589145,
+          "maxSpeedPxMs": 1.0416666666666679,
+          "direction": "down",
+          "distancePx": 417.3333333333332,
+          "avgSpeedPxMs": 0.29959320411581397,
+          "durationMs": 1393.0000000000146
+        }
+      ],
+      "overshootCount": 1,
+      "flickCount": 13,
+      "attemptInBlock": 7,
+      "maxOvershootDistancePx": 3429.5362783359014,
+      "timestamp": "2026-10-06T09:01:33.318Z",
+      "switchbackCount": 1,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "attemptInBlock": 8,
+      "maxOvershootDistancePx": 433.15877108501445,
+      "targetNumber": 300,
+      "flickCount": 6,
+      "overshootCount": 1,
+      "didOvershoot": true,
+      "timeMs": 5749,
+      "timestamp": "2026-10-06T09:01:40.640Z",
+      "scrollDistance": 12645.158771085009,
+      "flicks": [
+        {
+          "durationMs": 75,
+          "distancePx": 405.33333333333337,
+          "distanceItems": 9.426356589147288,
+          "maxSpeedPxMs": 16.611111111111114,
+          "avgSpeedPxMs": 5.404444444444445,
+          "direction": "up"
+        },
+        {
+          "direction": "up",
+          "durationMs": 96,
+          "maxSpeedPxMs": 6.509803921568628,
+          "distanceItems": 7.782945736434107,
+          "distancePx": 334.66666666666663,
+          "avgSpeedPxMs": 3.4861111111111107
+        },
+        {
+          "distancePx": 427,
+          "durationMs": 112,
+          "direction": "up",
+          "maxSpeedPxMs": 7.274509803921569,
+          "distanceItems": 9.930232558139535,
+          "avgSpeedPxMs": 3.8125
+        },
+        {
+          "distanceItems": 7.3565891472868215,
+          "distancePx": 316.3333333333333,
+          "avgSpeedPxMs": 4.942708333333333,
+          "maxSpeedPxMs": 13.333333333333334,
+          "direction": "up",
+          "durationMs": 64
+        },
+        {
+          "maxSpeedPxMs": 6.607843137254901,
+          "avgSpeedPxMs": 4.039473684210526,
+          "direction": "up",
+          "durationMs": 76,
+          "distanceItems": 7.139534883720929,
+          "distancePx": 306.99999999999994
+        },
+        {
+          "direction": "down",
+          "distanceItems": 7.945736434108528,
+          "maxSpeedPxMs": 1.6458333333333321,
+          "avgSpeedPxMs": 0.4812206572769953,
+          "distancePx": 341.6666666666667,
+          "durationMs": 710
+        }
+      ],
+      "switchbackCount": 1,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "maxOvershootDistancePx": 321.4780661608211,
+      "attemptInBlock": 9,
+      "didOvershoot": true,
+      "timeMs": 4053,
+      "flickCount": 4,
+      "timestamp": "2026-10-06T09:01:45.499Z",
+      "flicks": [
+        {
+          "distanceItems": 9.294573643410853,
+          "direction": "up",
+          "avgSpeedPxMs": 3.1719576719580385,
+          "durationMs": 125.99999999998545,
+          "distancePx": 399.6666666666667,
+          "maxSpeedPxMs": 6.055555555555553
+        },
+        {
+          "durationMs": 63,
+          "distancePx": 282.6666666666667,
+          "avgSpeedPxMs": 4.486772486772487,
+          "direction": "up",
+          "distanceItems": 6.573643410852713,
+          "maxSpeedPxMs": 6.058823529411761
+        },
+        {
+          "avgSpeedPxMs": 5.7627118644067785,
+          "distancePx": 339.99999999999994,
+          "distanceItems": 7.9069767441860455,
+          "durationMs": 59,
+          "maxSpeedPxMs": 44.33333333333337,
+          "direction": "up"
+        },
+        {
+          "durationMs": 394,
+          "direction": "down",
+          "maxSpeedPxMs": 1.4166666666666679,
+          "distanceItems": 5.108527131782946,
+          "distancePx": 219.66666666666669,
+          "avgSpeedPxMs": 0.5575296108291032
+        }
+      ],
+      "targetNumber": 150,
+      "scrollDistance": 6204.811399494152,
+      "overshootCount": 1,
+      "switchbackCount": 1,
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "flicks": [
+        {
+          "direction": "up",
+          "distanceItems": 10.457364341085272,
+          "maxSpeedPxMs": 1.901960784313721,
+          "distancePx": 449.6666666666667,
+          "avgSpeedPxMs": 0.9818049490538574,
+          "durationMs": 458
+        },
+        {
+          "avgSpeedPxMs": 1.0154095701541317,
+          "durationMs": 410.99999999998545,
+          "distancePx": 417.33333333333337,
+          "distanceItems": 9.705426356589149,
+          "maxSpeedPxMs": 2.7083333333333357,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 867.0000000000002,
+      "timeMs": 2056,
+      "maxOvershootDistancePx": 0,
+      "attemptInBlock": 10,
+      "targetNumber": 30,
+      "didOvershoot": false,
+      "flickCount": 2,
+      "timestamp": "2026-10-06T09:01:48.578Z",
+      "blockIndex": 1,
+      "blockParameterSet": {
+        "decay": 0.98,
+        "scrollFriction": 0.149,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 7.2435,
+        "decelerationRateInputValue": 7.2435,
+        "inflexion": 0.83
+      }
+    },
+    {
+      "maxOvershootDistancePx": 1420.9327797871365,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 2.5098039215686287,
+          "direction": "up",
+          "avgSpeedPxMs": 1.0922619047619047,
+          "durationMs": 224,
+          "distancePx": 244.66666666666663,
+          "distanceItems": 5.6899224806201545
+        },
+        {
+          "durationMs": 63.00000000001455,
+          "maxSpeedPxMs": 3.4999999999968168,
+          "distanceItems": 3.1627906976744184,
+          "direction": "up",
+          "distancePx": 136,
+          "avgSpeedPxMs": 2.15873015872966
+        },
+        {
+          "avgSpeedPxMs": 1.6333333333331843,
+          "distancePx": 261.33333333333326,
+          "maxSpeedPxMs": 3.07407407407407,
+          "durationMs": 160.00000000001455,
+          "distanceItems": 6.07751937984496,
+          "direction": "up"
+        },
+        {
+          "direction": "up",
+          "distancePx": 327.99999999999994,
+          "distanceItems": 7.6279069767441845,
+          "maxSpeedPxMs": 26.333333333333314,
+          "avgSpeedPxMs": 3.5652173913043472,
+          "durationMs": 92
+        },
+        {
+          "direction": "up",
+          "avgSpeedPxMs": 2.9275362318840585,
+          "durationMs": 92,
+          "distancePx": 269.33333333333337,
+          "distanceItems": 6.263565891472869,
+          "maxSpeedPxMs": 7.921568627457759
+        },
+        {
+          "durationMs": 64,
+          "maxSpeedPxMs": 7.039215686274508,
+          "direction": "up",
+          "distanceItems": 5.837209302325581,
+          "distancePx": 251,
+          "avgSpeedPxMs": 3.921875
+        },
+        {
+          "direction": "up",
+          "distanceItems": 5.844961240310078,
+          "maxSpeedPxMs": 4.137254901964328,
+          "avgSpeedPxMs": 3.181434599156119,
+          "durationMs": 79,
+          "distancePx": 251.33333333333337
+        },
+        {
+          "avgSpeedPxMs": 1.186335403726708,
+          "maxSpeedPxMs": 3.2291666666666643,
+          "distanceItems": 4.441860465116279,
+          "durationMs": 161,
+          "direction": "down",
+          "distancePx": 191
+        },
+        {
+          "durationMs": 174,
+          "direction": "down",
+          "distancePx": 307,
+          "avgSpeedPxMs": 1.764367816091954,
+          "maxSpeedPxMs": 17,
+          "distanceItems": 7.1395348837209305
+        },
+        {
+          "durationMs": 275,
+          "distanceItems": 7.4031007751937965,
+          "maxSpeedPxMs": 1.8958333333333357,
+          "distancePx": 318.33333333333326,
+          "avgSpeedPxMs": 1.1575757575757573,
+          "direction": "down"
+        },
+        {
+          "distanceItems": 7.790697674418604,
+          "avgSpeedPxMs": 1.3842975206610737,
+          "durationMs": 242.00000000001455,
+          "direction": "down",
+          "maxSpeedPxMs": 1.9791666666666679,
+          "distancePx": 335
+        },
+        {
+          "avgSpeedPxMs": 0.6312785388127853,
+          "maxSpeedPxMs": 1.5208333333333321,
+          "distancePx": 184.33333333333331,
+          "distanceItems": 4.286821705426356,
+          "durationMs": 292,
+          "direction": "down"
+        }
+      ],
+      "scrollDistance": 6188.932779787135,
+      "timeMs": 6814,
+      "switchbackCount": 1,
+      "flickCount": 12,
+      "attemptInBlock": 1,
+      "didOvershoot": true,
+      "targetNumber": 150,
+      "timestamp": "2026-10-06T09:02:02.906Z",
+      "overshootCount": 1,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "timeMs": 7812,
+      "timestamp": "2026-10-06T09:02:12.574Z",
+      "targetNumber": 210,
+      "scrollDistance": 8475.79250092301,
+      "maxOvershootDistancePx": 0,
+      "flicks": [
+        {
+          "durationMs": 140,
+          "maxSpeedPxMs": 9.888888888888877,
+          "avgSpeedPxMs": 2.2238095238095235,
+          "direction": "up",
+          "distancePx": 311.3333333333333,
+          "distanceItems": 7.240310077519379
+        },
+        {
+          "direction": "up",
+          "distancePx": 271.99999999999994,
+          "avgSpeedPxMs": 3.3999999999999995,
+          "maxSpeedPxMs": 10.777777777777791,
+          "distanceItems": 6.325581395348836,
+          "durationMs": 80
+        },
+        {
+          "durationMs": 79,
+          "distanceItems": 5.348837209302324,
+          "direction": "up",
+          "distancePx": 229.99999999999994,
+          "avgSpeedPxMs": 2.9113924050632902,
+          "maxSpeedPxMs": 5.274509803917055
+        },
+        {
+          "distanceItems": 6.3023255813953485,
+          "distancePx": 271,
+          "durationMs": 111.99999999998545,
+          "direction": "up",
+          "avgSpeedPxMs": 2.4196428571431716,
+          "maxSpeedPxMs": 5.235294117642577
+        },
+        {
+          "durationMs": 80.00000000001455,
+          "direction": "up",
+          "distancePx": 210.66666666666663,
+          "avgSpeedPxMs": 2.6333333333328537,
+          "maxSpeedPxMs": 4.999999999995449,
+          "distanceItems": 4.899224806201549
+        },
+        {
+          "direction": "up",
+          "distancePx": 214.66666666666663,
+          "maxSpeedPxMs": 4.901960784313721,
+          "avgSpeedPxMs": 2.213058419243986,
+          "distanceItems": 4.992248062015503,
+          "durationMs": 97
+        },
+        {
+          "durationMs": 113,
+          "avgSpeedPxMs": 1.9911504424778756,
+          "distancePx": 224.99999999999994,
+          "maxSpeedPxMs": 4.666666666666668,
+          "distanceItems": 5.232558139534882,
+          "direction": "up"
+        },
+        {
+          "direction": "up",
+          "maxSpeedPxMs": 2.8627450980392135,
+          "avgSpeedPxMs": 1.006858710562414,
+          "durationMs": 243,
+          "distanceItems": 5.6899224806201545,
+          "distancePx": 244.66666666666663
+        },
+        {
+          "direction": "up",
+          "durationMs": 1078,
+          "avgSpeedPxMs": 0.17161410018552875,
+          "maxSpeedPxMs": 0.47058823529411764,
+          "distanceItems": 4.3023255813953485,
+          "distancePx": 185
+        },
+        {
+          "distancePx": 82.99999999999989,
+          "avgSpeedPxMs": 0.1747368421052629,
+          "durationMs": 475,
+          "distanceItems": 1.9302325581395323,
+          "direction": "up",
+          "maxSpeedPxMs": 0.6274509803921546
+        },
+        {
+          "distancePx": 232.33333333333326,
+          "direction": "up",
+          "distanceItems": 5.4031007751937965,
+          "avgSpeedPxMs": 0.5911789652247665,
+          "durationMs": 393,
+          "maxSpeedPxMs": 1.2499999999988631
+        }
+      ],
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "flickCount": 11,
+      "attemptInBlock": 2,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "flickCount": 4,
+      "scrollDistance": 986.8147950021076,
+      "attemptInBlock": 3,
+      "switchbackCount": 1,
+      "overshootCount": 1,
+      "timeMs": 2603,
+      "timestamp": "2026-10-06T09:02:17.599Z",
+      "maxOvershootDistancePx": 656.1481283354408,
+      "didOvershoot": true,
+      "flicks": [
+        {
+          "direction": "up",
+          "avgSpeedPxMs": 2.1464174454828653,
+          "durationMs": 107,
+          "distanceItems": 5.341085271317827,
+          "distancePx": 229.66666666666657,
+          "maxSpeedPxMs": 5.09523809523809
+        },
+        {
+          "direction": "down",
+          "avgSpeedPxMs": 0.8220858895705522,
+          "durationMs": 163,
+          "maxSpeedPxMs": 1.6666666666666643,
+          "distancePx": 134,
+          "distanceItems": 3.116279069767442
+        },
+        {
+          "avgSpeedPxMs": 1.0548696844993137,
+          "distancePx": 256.33333333333326,
+          "maxSpeedPxMs": 2.0208333333333286,
+          "durationMs": 243,
+          "direction": "down",
+          "distanceItems": 5.9612403100775175
+        },
+        {
+          "durationMs": 277,
+          "direction": "down",
+          "maxSpeedPxMs": 1.5416666666666643,
+          "distanceItems": 5.162790697674419,
+          "distancePx": 222,
+          "avgSpeedPxMs": 0.8014440433212996
+        }
+      ],
+      "targetNumber": 30,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "switchbackCount": 1,
+      "overshootCount": 1,
+      "didOvershoot": true,
+      "scrollDistance": 12653.76756748639,
+      "attemptInBlock": 4,
+      "flickCount": 15,
+      "timeMs": 8046,
+      "maxOvershootDistancePx": 1004.4342341530592,
+      "timestamp": "2026-10-06T09:02:26.652Z",
+      "flicks": [
+        {
+          "distanceItems": 6.372093023255813,
+          "distancePx": 273.99999999999994,
+          "maxSpeedPxMs": 5.785714285720296,
+          "avgSpeedPxMs": 3.0109890109890105,
+          "durationMs": 91,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.596899224806202,
+          "distancePx": 283.6666666666667,
+          "durationMs": 98,
+          "maxSpeedPxMs": 4.895833333337785,
+          "direction": "up",
+          "avgSpeedPxMs": 2.8945578231292517
+        },
+        {
+          "direction": "up",
+          "distanceItems": 6.558139534883722,
+          "avgSpeedPxMs": 3.525000000000001,
+          "maxSpeedPxMs": 40.33333333333337,
+          "distancePx": 282.00000000000006,
+          "durationMs": 80
+        },
+        {
+          "distanceItems": 6.434108527131782,
+          "maxSpeedPxMs": 4.874999999995566,
+          "direction": "up",
+          "avgSpeedPxMs": 3.458333333333333,
+          "durationMs": 80,
+          "distancePx": 276.66666666666663
+        },
+        {
+          "distancePx": 284.6666666666667,
+          "maxSpeedPxMs": 4.875,
+          "avgSpeedPxMs": 2.965277777777778,
+          "durationMs": 96,
+          "direction": "up",
+          "distanceItems": 6.62015503875969
+        },
+        {
+          "durationMs": 80,
+          "distancePx": 267.33333333333326,
+          "maxSpeedPxMs": 6.75,
+          "avgSpeedPxMs": 3.341666666666666,
+          "direction": "up",
+          "distanceItems": 6.21705426356589
+        },
+        {
+          "direction": "up",
+          "maxSpeedPxMs": 4.958333333333332,
+          "distanceItems": 6.348837209302325,
+          "avgSpeedPxMs": 2.84375,
+          "distancePx": 273,
+          "durationMs": 96
+        },
+        {
+          "durationMs": 113,
+          "distancePx": 302.66666666666663,
+          "maxSpeedPxMs": 4.520833333333332,
+          "avgSpeedPxMs": 2.6784660766961648,
+          "distanceItems": 7.03875968992248,
+          "direction": "up"
+        },
+        {
+          "durationMs": 112,
+          "distancePx": 281.6666666666667,
+          "maxSpeedPxMs": 4.313725490196077,
+          "distanceItems": 6.550387596899225,
+          "avgSpeedPxMs": 2.5148809523809526,
+          "direction": "up"
+        },
+        {
+          "distancePx": 318.33333333333337,
+          "avgSpeedPxMs": 2.817109144542773,
+          "maxSpeedPxMs": 4.4313725490234,
+          "distanceItems": 7.403100775193799,
+          "direction": "up",
+          "durationMs": 113
+        },
+        {
+          "maxSpeedPxMs": 4.791666666666668,
+          "avgSpeedPxMs": 2.5435435435432105,
+          "distanceItems": 6.565891472868218,
+          "durationMs": 111.00000000001455,
+          "direction": "up",
+          "distancePx": 282.33333333333337
+        },
+        {
+          "maxSpeedPxMs": 3.7499999999965894,
+          "distanceItems": 6.782945736434107,
+          "distancePx": 291.66666666666663,
+          "avgSpeedPxMs": 2.6515151515151514,
+          "durationMs": 110,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.604651162790698,
+          "maxSpeedPxMs": 6.083333333333329,
+          "distancePx": 284,
+          "avgSpeedPxMs": 1.5777777777777777,
+          "direction": "down",
+          "durationMs": 180
+        },
+        {
+          "maxSpeedPxMs": 2.481481481481479,
+          "durationMs": 193,
+          "distanceItems": 6.914728682170541,
+          "avgSpeedPxMs": 1.5405872193436956,
+          "direction": "down",
+          "distancePx": 297.33333333333326
+        },
+        {
+          "distanceItems": 7.49612403100775,
+          "durationMs": 241.99999999998545,
+          "maxSpeedPxMs": 2.3333333333333344,
+          "distancePx": 322.33333333333326,
+          "avgSpeedPxMs": 1.3319559228650935,
+          "direction": "down"
+        }
+      ],
+      "targetNumber": 300,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "flickCount": 9,
+      "didOvershoot": false,
+      "scrollDistance": 9700.653379067575,
+      "timeMs": 7213,
+      "targetNumber": 240,
+      "flicks": [
+        {
+          "direction": "up",
+          "distanceItems": 7.5038759689922445,
+          "avgSpeedPxMs": 3.0155763239875375,
+          "maxSpeedPxMs": 17.16666666660422,
+          "distancePx": 322.6666666666665,
+          "durationMs": 107
+        },
+        {
+          "distancePx": 297.66666666666663,
+          "avgSpeedPxMs": 2.588405797102104,
+          "distanceItems": 6.922480620155038,
+          "direction": "up",
+          "durationMs": 114.9999999999709,
+          "maxSpeedPxMs": 4.313725490196081
+        },
+        {
+          "direction": "up",
+          "distancePx": 316.99999999999994,
+          "maxSpeedPxMs": 5.880952380946263,
+          "distanceItems": 7.372093023255813,
+          "durationMs": 94,
+          "avgSpeedPxMs": 3.3723404255319145
+        },
+        {
+          "direction": "up",
+          "distancePx": 324.33333333333337,
+          "distanceItems": 7.54263565891473,
+          "maxSpeedPxMs": 4.645833333337557,
+          "avgSpeedPxMs": 2.8702064896755166,
+          "durationMs": 113
+        },
+        {
+          "distanceItems": 5.82170542635659,
+          "distancePx": 250.33333333333337,
+          "maxSpeedPxMs": 20.333333333037483,
+          "avgSpeedPxMs": 3.1687763713074335,
+          "durationMs": 79.00000000001455,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 4.019607843137254,
+          "distanceItems": 6.728682170542634,
+          "distancePx": 289.33333333333326,
+          "avgSpeedPxMs": 2.5380116959061083,
+          "durationMs": 114.00000000001455,
+          "direction": "up"
+        },
+        {
+          "avgSpeedPxMs": 3.03125,
+          "maxSpeedPxMs": 3.980392156862743,
+          "distancePx": 291,
+          "distanceItems": 6.767441860465116,
+          "durationMs": 96,
+          "direction": "up"
+        },
+        {
+          "distancePx": 320.3333333333333,
+          "maxSpeedPxMs": 35.33333333333337,
+          "direction": "up",
+          "avgSpeedPxMs": 3.407801418438661,
+          "distanceItems": 7.449612403100775,
+          "durationMs": 94.0000000000291
+        },
+        {
+          "distancePx": 383.3333333333333,
+          "avgSpeedPxMs": 0.612353567625133,
+          "maxSpeedPxMs": 0.9411764705898465,
+          "durationMs": 626,
+          "direction": "up",
+          "distanceItems": 8.914728682170542
+        }
+      ],
+      "timestamp": "2026-10-06T09:02:34.523Z",
+      "attemptInBlock": 5,
+      "overshootCount": 0,
+      "maxOvershootDistancePx": 0,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "maxOvershootDistancePx": 385.18145168868796,
+      "overshootCount": 1,
+      "targetNumber": 120,
+      "didOvershoot": true,
+      "attemptInBlock": 6,
+      "flickCount": 6,
+      "timestamp": "2026-10-06T09:02:40.281Z",
+      "switchbackCount": 1,
+      "scrollDistance": 4871.514785022019,
+      "timeMs": 4835,
+      "flicks": [
+        {
+          "avgSpeedPxMs": 2.676056338028169,
+          "durationMs": 142,
+          "distanceItems": 8.837209302325581,
+          "distancePx": 380,
+          "maxSpeedPxMs": 11.416666666666657,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 25,
+          "avgSpeedPxMs": 3.1701388888888893,
+          "distancePx": 304.33333333333337,
+          "durationMs": 96,
+          "distanceItems": 7.077519379844962,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.75,
+          "direction": "up",
+          "durationMs": 110,
+          "distanceItems": 6.984496124031006,
+          "distancePx": 300.33333333333326,
+          "avgSpeedPxMs": 2.7303030303030296
+        },
+        {
+          "distanceItems": 7.069767441860465,
+          "maxSpeedPxMs": 4.555555555555558,
+          "durationMs": 129,
+          "direction": "up",
+          "avgSpeedPxMs": 2.356589147286822,
+          "distancePx": 304
+        },
+        {
+          "durationMs": 348,
+          "distancePx": 107.33333333333326,
+          "distanceItems": 2.49612403100775,
+          "maxSpeedPxMs": 1.2916666666690138,
+          "avgSpeedPxMs": 0.30842911877394613,
+          "direction": "down"
+        },
+        {
+          "distancePx": 248.33333333333326,
+          "direction": "down",
+          "distanceItems": 5.77519379844961,
+          "durationMs": 328,
+          "maxSpeedPxMs": 2.0416666666666643,
+          "avgSpeedPxMs": 0.7571138211382111
+        }
+      ],
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "overshootCount": 1,
+      "scrollDistance": 2333.3653901373455,
+      "attemptInBlock": 7,
+      "switchbackCount": 1,
+      "timeMs": 2623,
+      "flickCount": 3,
+      "flicks": [
+        {
+          "avgSpeedPxMs": 2.134469696969697,
+          "maxSpeedPxMs": 9.583333333333314,
+          "distancePx": 375.66666666666663,
+          "distanceItems": 8.736434108527131,
+          "direction": "up",
+          "durationMs": 176
+        },
+        {
+          "durationMs": 110,
+          "direction": "up",
+          "maxSpeedPxMs": 4.354166666666668,
+          "distanceItems": 8,
+          "distancePx": 344,
+          "avgSpeedPxMs": 3.1272727272727274
+        },
+        {
+          "maxSpeedPxMs": 0.5,
+          "distanceItems": 1.3023255813953463,
+          "distancePx": 55.999999999999886,
+          "avgSpeedPxMs": 0.24669603524229025,
+          "durationMs": 227,
+          "direction": "down"
+        }
+      ],
+      "timestamp": "2026-10-06T09:02:43.925Z",
+      "didOvershoot": true,
+      "targetNumber": 60,
+      "maxOvershootDistancePx": 152.69872347067894,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "maxOvershootDistancePx": 0,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 4.520833333333336,
+          "distanceItems": 8.666666666666668,
+          "distancePx": 372.6666666666667,
+          "durationMs": 141,
+          "avgSpeedPxMs": 2.6430260047281324,
+          "direction": "up"
+        },
+        {
+          "direction": "up",
+          "avgSpeedPxMs": 3.8059071729957803,
+          "distancePx": 300.66666666666663,
+          "distanceItems": 6.992248062015503,
+          "durationMs": 79,
+          "maxSpeedPxMs": 39.66666666666674
+        },
+        {
+          "durationMs": 79,
+          "avgSpeedPxMs": 3.8185654008438807,
+          "distancePx": 301.6666666666666,
+          "maxSpeedPxMs": 46.66666666666663,
+          "direction": "up",
+          "distanceItems": 7.01550387596899
+        },
+        {
+          "maxSpeedPxMs": 37,
+          "avgSpeedPxMs": 3.4409722222222214,
+          "distancePx": 330.33333333333326,
+          "durationMs": 96,
+          "direction": "up",
+          "distanceItems": 7.6821705426356575
+        },
+        {
+          "maxSpeedPxMs": 4.770833333333332,
+          "avgSpeedPxMs": 2.9852507374638955,
+          "direction": "up",
+          "distanceItems": 7.844961240310077,
+          "distancePx": 337.3333333333333,
+          "durationMs": 112.9999999999709
+        },
+        {
+          "avgSpeedPxMs": 3.345833333334551,
+          "maxSpeedPxMs": 4.305555555566004,
+          "durationMs": 79.9999999999709,
+          "direction": "up",
+          "distancePx": 267.6666666666667,
+          "distanceItems": 6.224806201550388
+        },
+        {
+          "durationMs": 111,
+          "avgSpeedPxMs": 2.7027027027027026,
+          "direction": "up",
+          "maxSpeedPxMs": 4.392156862737576,
+          "distancePx": 300,
+          "distanceItems": 6.976744186046512
+        },
+        {
+          "maxSpeedPxMs": 3.0784313725490184,
+          "distancePx": 209.33333333333337,
+          "distanceItems": 4.8682170542635665,
+          "avgSpeedPxMs": 2.2269503546099294,
+          "direction": "up",
+          "durationMs": 94
+        },
+        {
+          "distancePx": 287.99999999999994,
+          "distanceItems": 6.69767441860465,
+          "direction": "up",
+          "maxSpeedPxMs": 2.145833333333332,
+          "avgSpeedPxMs": 1.4922279792746111,
+          "durationMs": 193
+        },
+        {
+          "maxSpeedPxMs": 0.6041666666666643,
+          "distancePx": 70.66666666666663,
+          "distanceItems": 1.6434108527131774,
+          "avgSpeedPxMs": 0.17845117845117836,
+          "durationMs": 396,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 11236.910079800084,
+      "attemptInBlock": 8,
+      "flickCount": 10,
+      "timestamp": "2026-10-06T09:02:52.795Z",
+      "overshootCount": 0,
+      "didOvershoot": false,
+      "timeMs": 8196,
+      "switchbackCount": 0,
+      "targetNumber": 270,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "overshootCount": 1,
+      "targetNumber": 90,
+      "maxOvershootDistancePx": 117.04155241820217,
+      "timestamp": "2026-10-06T09:02:56.838Z",
+      "scrollDistance": 3640.041552418202,
+      "timeMs": 3301,
+      "flicks": [
+        {
+          "durationMs": 122.9999999999709,
+          "maxSpeedPxMs": 7.208333333333329,
+          "direction": "up",
+          "distanceItems": 8.209302325581392,
+          "avgSpeedPxMs": 2.86991869918767,
+          "distancePx": 352.9999999999999
+        },
+        {
+          "direction": "up",
+          "avgSpeedPxMs": 2.6934523809523805,
+          "durationMs": 112,
+          "maxSpeedPxMs": 4.166666666659089,
+          "distancePx": 301.66666666666663,
+          "distanceItems": 7.015503875968991
+        },
+        {
+          "distanceItems": 5.387596899224807,
+          "durationMs": 394,
+          "avgSpeedPxMs": 0.5879864636209814,
+          "maxSpeedPxMs": 3.1176470588235294,
+          "distancePx": 231.66666666666669,
+          "direction": "up"
+        },
+        {
+          "avgSpeedPxMs": 0,
+          "direction": "none",
+          "distanceItems": 0,
+          "distancePx": 0,
+          "maxSpeedPxMs": 0,
+          "durationMs": 378
+        }
+      ],
+      "attemptInBlock": 9,
+      "switchbackCount": 0,
+      "didOvershoot": true,
+      "flickCount": 4,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "scrollDistance": 7291.835776225625,
+      "maxOvershootDistancePx": 0,
+      "flicks": [
+        {
+          "distanceItems": 8.511627906976745,
+          "distancePx": 366.00000000000006,
+          "avgSpeedPxMs": 3.3272727272727276,
+          "durationMs": 110,
+          "maxSpeedPxMs": 18.41666666680067,
+          "direction": "up"
+        },
+        {
+          "direction": "up",
+          "avgSpeedPxMs": 3.045267489711935,
+          "distancePx": 246.66666666666674,
+          "maxSpeedPxMs": 41.333333333333314,
+          "distanceItems": 5.736434108527134,
+          "durationMs": 81
+        },
+        {
+          "distanceItems": 6.31782945736434,
+          "distancePx": 271.66666666666663,
+          "avgSpeedPxMs": 2.8900709219858154,
+          "durationMs": 94,
+          "direction": "up",
+          "maxSpeedPxMs": 9.333333333333334
+        },
+        {
+          "avgSpeedPxMs": 2.4270833333333335,
+          "distancePx": 233,
+          "durationMs": 96,
+          "distanceItems": 5.4186046511627906,
+          "direction": "up",
+          "maxSpeedPxMs": 3.5833333333333357
+        },
+        {
+          "avgSpeedPxMs": 1.1451942740286296,
+          "maxSpeedPxMs": 2.764705882352941,
+          "distanceItems": 4.341085271317828,
+          "durationMs": 163,
+          "direction": "up",
+          "distancePx": 186.66666666666663
+        },
+        {
+          "avgSpeedPxMs": 1.1017214397496087,
+          "distancePx": 234.66666666666663,
+          "distanceItems": 5.45736434108527,
+          "durationMs": 213,
+          "direction": "up",
+          "maxSpeedPxMs": 2.5490196078431326
+        },
+        {
+          "maxSpeedPxMs": 2.75,
+          "avgSpeedPxMs": 1.1267893660531698,
+          "distanceItems": 4.271317829457365,
+          "direction": "up",
+          "durationMs": 163,
+          "distancePx": 183.66666666666669
+        }
+      ],
+      "didOvershoot": false,
+      "attemptInBlock": 10,
+      "overshootCount": 0,
+      "timeMs": 4404,
+      "flickCount": 7,
+      "timestamp": "2026-10-06T09:03:01.880Z",
+      "targetNumber": 180,
+      "switchbackCount": 0,
+      "blockIndex": 2,
+      "blockParameterSet": {
+        "decelerationRate": 9.9696,
+        "scrollFriction": 0.264,
+        "decelerationRateInputValue": 9.9696,
+        "inflexion": 0.86,
+        "fingerVelocityPxMs": -0.002781589378595896,
+        "decay": 0.98
+      }
+    },
+    {
+      "overshootCount": 1,
+      "flickCount": 12,
+      "maxOvershootDistancePx": 322.97362042055374,
+      "timestamp": "2026-10-06T09:03:19.703Z",
+      "targetNumber": 180,
+      "switchbackCount": 1,
+      "didOvershoot": true,
+      "scrollDistance": 7548.640287087221,
+      "timeMs": 9529,
+      "attemptInBlock": 1,
+      "flicks": [
+        {
+          "direction": "up",
+          "avgSpeedPxMs": 1.8226299694189605,
+          "durationMs": 109,
+          "maxSpeedPxMs": 9.333333333333343,
+          "distanceItems": 4.62015503875969,
+          "distancePx": 198.66666666666669
+        },
+        {
+          "distanceItems": 4.023255813953488,
+          "durationMs": 93,
+          "maxSpeedPxMs": 4.208333333333332,
+          "avgSpeedPxMs": 1.8602150537634408,
+          "direction": "up",
+          "distancePx": 173
+        },
+        {
+          "distancePx": 190.33333333333337,
+          "direction": "up",
+          "maxSpeedPxMs": 4.104166666666664,
+          "distanceItems": 4.426356589147288,
+          "avgSpeedPxMs": 1.6695906432748542,
+          "durationMs": 114
+        },
+        {
+          "distancePx": 147,
+          "direction": "up",
+          "distanceItems": 3.4186046511627906,
+          "maxSpeedPxMs": 3.1372549019607834,
+          "avgSpeedPxMs": 1.3008849557522124,
+          "durationMs": 113
+        },
+        {
+          "distanceItems": 3.806201550387596,
+          "durationMs": 115,
+          "distancePx": 163.66666666666663,
+          "maxSpeedPxMs": 2.604166666666668,
+          "avgSpeedPxMs": 1.4231884057971012,
+          "direction": "up"
+        },
+        {
+          "direction": "up",
+          "distanceItems": 3.062015503875968,
+          "avgSpeedPxMs": 1.2660256410256407,
+          "maxSpeedPxMs": 3.3137254902017506,
+          "distancePx": 131.66666666666663,
+          "durationMs": 104
+        },
+        {
+          "distanceItems": 6.519379844961239,
+          "avgSpeedPxMs": 3.5940170940170932,
+          "direction": "up",
+          "durationMs": 78,
+          "maxSpeedPxMs": 5.137254901969581,
+          "distancePx": 280.33333333333326
+        },
+        {
+          "direction": "up",
+          "distanceItems": 3.984496124031006,
+          "distancePx": 171.33333333333326,
+          "maxSpeedPxMs": 3.490196078425393,
+          "avgSpeedPxMs": 1.543543543543543,
+          "durationMs": 111
+        },
+        {
+          "durationMs": 96,
+          "direction": "up",
+          "maxSpeedPxMs": 4.020833333333336,
+          "distanceItems": 4.899224806201549,
+          "distancePx": 210.66666666666663,
+          "avgSpeedPxMs": 2.194444444444444
+        },
+        {
+          "durationMs": 113,
+          "direction": "up",
+          "avgSpeedPxMs": 1.6401179941002952,
+          "distancePx": 185.33333333333337,
+          "maxSpeedPxMs": 2.7450980392156907,
+          "distanceItems": 4.3100775193798455
+        },
+        {
+          "maxSpeedPxMs": 5.642857142857143,
+          "distanceItems": 4.015503875968991,
+          "distancePx": 172.66666666666663,
+          "durationMs": 97,
+          "avgSpeedPxMs": 1.7800687285223364,
+          "direction": "up"
+        },
+        {
+          "durationMs": 247,
+          "direction": "down",
+          "distancePx": 167.33333333333337,
+          "avgSpeedPxMs": 0.677462887989204,
+          "maxSpeedPxMs": 1.2708333333333357,
+          "distanceItems": 3.891472868217055
+        }
+      ],
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "overshootCount": 0,
+      "maxOvershootDistancePx": 0,
+      "flicks": [
+        {
+          "distancePx": 325.99999999999994,
+          "maxSpeedPxMs": 19.583333333475803,
+          "distanceItems": 7.581395348837208,
+          "avgSpeedPxMs": 3.5434782608695645,
+          "durationMs": 92,
+          "direction": "up"
+        },
+        {
+          "avgSpeedPxMs": 2.534391534391534,
+          "durationMs": 63,
+          "distanceItems": 3.7131782945736425,
+          "distancePx": 159.66666666666663,
+          "maxSpeedPxMs": 3.1388888888888857,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 29.999999999126885,
+          "direction": "up",
+          "distanceItems": 6.17829457364341,
+          "durationMs": 95.0000000000291,
+          "avgSpeedPxMs": 2.796491228069318,
+          "distancePx": 265.66666666666663
+        },
+        {
+          "durationMs": 113,
+          "distanceItems": 6.573643410852713,
+          "avgSpeedPxMs": 2.5014749262536875,
+          "distancePx": 282.6666666666667,
+          "direction": "up",
+          "maxSpeedPxMs": 4.770833333333336
+        },
+        {
+          "maxSpeedPxMs": 3.0000000000058207,
+          "avgSpeedPxMs": 1.774358974358974,
+          "distancePx": 230.66666666666663,
+          "direction": "up",
+          "distanceItems": 5.364341085271317,
+          "durationMs": 130
+        },
+        {
+          "distancePx": 222.33333333333331,
+          "distanceItems": 5.170542635658914,
+          "avgSpeedPxMs": 0.5383373688458434,
+          "durationMs": 413,
+          "direction": "up",
+          "maxSpeedPxMs": 1.7647058823529411
+        },
+        {
+          "avgSpeedPxMs": 0.47461773700305815,
+          "maxSpeedPxMs": 1.0625,
+          "distanceItems": 6.015503875968992,
+          "distancePx": 258.6666666666667,
+          "durationMs": 545,
+          "direction": "up"
+        }
+      ],
+      "timeMs": 5135,
+      "timestamp": "2026-10-06T09:03:25.494Z",
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "flickCount": 7,
+      "scrollDistance": 4547.77435697553,
+      "attemptInBlock": 2,
+      "targetNumber": 120,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "timestamp": "2026-10-06T09:03:29.437Z",
+      "scrollDistance": 1974.973358872614,
+      "flickCount": 3,
+      "targetNumber": 60,
+      "flicks": [
+        {
+          "distancePx": 235.33333333333337,
+          "avgSpeedPxMs": 2.5579710144935635,
+          "maxSpeedPxMs": 4.266666666666668,
+          "durationMs": 91.9999999999709,
+          "direction": "up",
+          "distanceItems": 5.472868217054264
+        },
+        {
+          "direction": "up",
+          "maxSpeedPxMs": 3.745098039209276,
+          "durationMs": 128,
+          "distancePx": 301.66666666666663,
+          "distanceItems": 7.015503875968991,
+          "avgSpeedPxMs": 2.356770833333333
+        },
+        {
+          "direction": "up",
+          "maxSpeedPxMs": 0.8431372549019563,
+          "distanceItems": 3.49612403100775,
+          "avgSpeedPxMs": 0.25223713646532425,
+          "distancePx": 150.33333333333326,
+          "durationMs": 596
+        }
+      ],
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "didOvershoot": false,
+      "attemptInBlock": 3,
+      "maxOvershootDistancePx": 0,
+      "timeMs": 3270,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "attemptInBlock": 4,
+      "scrollDistance": 11337.714539692885,
+      "timestamp": "2026-10-06T09:03:42.748Z",
+      "targetNumber": 270,
+      "timeMs": 12655,
+      "flicks": [
+        {
+          "avgSpeedPxMs": 1.467013888888889,
+          "distanceItems": 6.550387596899225,
+          "distancePx": 281.6666666666667,
+          "durationMs": 192,
+          "maxSpeedPxMs": 2.729166666666668,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 5.937984496124032,
+          "durationMs": 146,
+          "maxSpeedPxMs": 2.980392156862746,
+          "distancePx": 255.33333333333337,
+          "avgSpeedPxMs": 1.7488584474885847,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 5.038759689922481,
+          "durationMs": 163,
+          "direction": "up",
+          "maxSpeedPxMs": 2.770833333333332,
+          "avgSpeedPxMs": 1.329243353783231,
+          "distancePx": 216.66666666666669
+        },
+        {
+          "distancePx": 298.99999999999994,
+          "avgSpeedPxMs": 2.6696428571428568,
+          "durationMs": 112,
+          "maxSpeedPxMs": 3.9411764705882355,
+          "direction": "up",
+          "distanceItems": 6.953488372093022
+        },
+        {
+          "distancePx": 306.33333333333337,
+          "distanceItems": 7.124031007751939,
+          "maxSpeedPxMs": 4.019607843137254,
+          "durationMs": 113,
+          "direction": "up",
+          "avgSpeedPxMs": 2.7109144542772863
+        },
+        {
+          "avgSpeedPxMs": 3.034722222223142,
+          "direction": "up",
+          "maxSpeedPxMs": 4.313725490196081,
+          "distanceItems": 6.775193798449612,
+          "distancePx": 291.3333333333333,
+          "durationMs": 95.9999999999709
+        },
+        {
+          "maxSpeedPxMs": 4.098039215693292,
+          "distancePx": 284.66666666666663,
+          "avgSpeedPxMs": 2.519174041297935,
+          "direction": "up",
+          "distanceItems": 6.620155038759689,
+          "durationMs": 113
+        },
+        {
+          "avgSpeedPxMs": 2.4,
+          "direction": "up",
+          "distancePx": 264,
+          "distanceItems": 6.1395348837209305,
+          "durationMs": 110,
+          "maxSpeedPxMs": 3.5416666666666643
+        },
+        {
+          "maxSpeedPxMs": 3.5416666666666643,
+          "avgSpeedPxMs": 2.3687315634218287,
+          "durationMs": 113,
+          "distancePx": 267.66666666666663,
+          "direction": "up",
+          "distanceItems": 6.224806201550387
+        },
+        {
+          "maxSpeedPxMs": 2.6875,
+          "durationMs": 126,
+          "direction": "up",
+          "distancePx": 217.66666666666663,
+          "avgSpeedPxMs": 1.7275132275132272,
+          "distanceItems": 5.062015503875968
+        },
+        {
+          "maxSpeedPxMs": 3.7291666666598844,
+          "direction": "up",
+          "distancePx": 260,
+          "distanceItems": 6.046511627906977,
+          "avgSpeedPxMs": 2.3423423423429566,
+          "durationMs": 110.9999999999709
+        },
+        {
+          "direction": "up",
+          "distancePx": 247.66666666666669,
+          "maxSpeedPxMs": 3.392156862750903,
+          "distanceItems": 5.759689922480621,
+          "durationMs": 114,
+          "avgSpeedPxMs": 2.172514619883041
+        },
+        {
+          "distanceItems": 6.147286821705425,
+          "durationMs": 112,
+          "distancePx": 264.33333333333326,
+          "direction": "up",
+          "maxSpeedPxMs": 3.6078431372548976,
+          "avgSpeedPxMs": 2.360119047619047
+        },
+        {
+          "maxSpeedPxMs": 3.3125,
+          "distanceItems": 5.054263565891472,
+          "avgSpeedPxMs": 2.2405498281786937,
+          "distancePx": 217.33333333333331,
+          "direction": "up",
+          "durationMs": 97
+        },
+        {
+          "maxSpeedPxMs": 3.4583333333270416,
+          "avgSpeedPxMs": 2.2589285714285716,
+          "distanceItems": 5.883720930232558,
+          "direction": "up",
+          "durationMs": 112,
+          "distancePx": 253
+        },
+        {
+          "durationMs": 111.0000000000291,
+          "distanceItems": 6.573643410852712,
+          "direction": "up",
+          "maxSpeedPxMs": 23.66666666666663,
+          "distancePx": 282.66666666666663,
+          "avgSpeedPxMs": 2.5465465465458785
+        },
+        {
+          "distancePx": 133.9999999999999,
+          "durationMs": 312,
+          "avgSpeedPxMs": 0.4294871794871791,
+          "maxSpeedPxMs": 0.9999999999980598,
+          "direction": "down",
+          "distanceItems": 3.1162790697674394
+        }
+      ],
+      "flickCount": 17,
+      "switchbackCount": 1,
+      "maxOvershootDistancePx": 183.3812063595542,
+      "overshootCount": 1,
+      "didOvershoot": true,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "maxOvershootDistancePx": 0,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 7.541666666666657,
+          "avgSpeedPxMs": 2.834862385320344,
+          "durationMs": 109.0000000000291,
+          "distancePx": 309,
+          "direction": "up",
+          "distanceItems": 7.186046511627907
+        },
+        {
+          "distanceItems": 6.62015503875969,
+          "distancePx": 284.6666666666667,
+          "maxSpeedPxMs": 4.208333333333343,
+          "avgSpeedPxMs": 2.904761904761905,
+          "durationMs": 98,
+          "direction": "up"
+        },
+        {
+          "durationMs": 96.9999999999709,
+          "distanceItems": 6.023255813953487,
+          "direction": "up",
+          "distancePx": 258.99999999999994,
+          "maxSpeedPxMs": 8.777777777692634,
+          "avgSpeedPxMs": 2.6701030927843057
+        },
+        {
+          "maxSpeedPxMs": 4.020833333333329,
+          "distanceItems": 5.100775193798451,
+          "durationMs": 79,
+          "distancePx": 219.33333333333337,
+          "direction": "up",
+          "avgSpeedPxMs": 2.776371308016878
+        },
+        {
+          "maxSpeedPxMs": 3.9375,
+          "avgSpeedPxMs": 2.538194444444444,
+          "durationMs": 96,
+          "distanceItems": 5.666666666666666,
+          "distancePx": 243.66666666666663,
+          "direction": "up"
+        },
+        {
+          "distancePx": 242.33333333333326,
+          "durationMs": 113,
+          "avgSpeedPxMs": 2.144542772861356,
+          "distanceItems": 5.635658914728681,
+          "direction": "up",
+          "maxSpeedPxMs": 3.666666666666668
+        },
+        {
+          "distanceItems": 4.519379844961239,
+          "maxSpeedPxMs": 8.5,
+          "durationMs": 80,
+          "direction": "up",
+          "avgSpeedPxMs": 2.429166666666666,
+          "distancePx": 194.33333333333326
+        },
+        {
+          "direction": "up",
+          "distancePx": 249,
+          "maxSpeedPxMs": 3.7291666666666643,
+          "durationMs": 96,
+          "distanceItems": 5.790697674418604,
+          "avgSpeedPxMs": 2.59375
+        },
+        {
+          "durationMs": 96,
+          "direction": "up",
+          "distanceItems": 5.620155038759689,
+          "avgSpeedPxMs": 2.5173611111111107,
+          "maxSpeedPxMs": 3.4705882352941178,
+          "distancePx": 241.66666666666663
+        },
+        {
+          "direction": "up",
+          "avgSpeedPxMs": 2.1002949852507373,
+          "maxSpeedPxMs": 3.375,
+          "distanceItems": 5.5193798449612395,
+          "durationMs": 113,
+          "distancePx": 237.33333333333331
+        },
+        {
+          "avgSpeedPxMs": 2.134751773049645,
+          "durationMs": 94,
+          "distancePx": 200.66666666666663,
+          "direction": "up",
+          "maxSpeedPxMs": 3.1176470588235294,
+          "distanceItems": 4.666666666666666
+        },
+        {
+          "distancePx": 250.33333333333331,
+          "distanceItems": 5.821705426356589,
+          "maxSpeedPxMs": 2.2666666666666666,
+          "avgSpeedPxMs": 1.4063670411985019,
+          "durationMs": 178,
+          "direction": "up"
+        }
+      ],
+      "scrollDistance": 9784.898725677982,
+      "overshootCount": 0,
+      "switchbackCount": 0,
+      "timeMs": 8911,
+      "timestamp": "2026-10-06T09:03:54.296Z",
+      "targetNumber": 240,
+      "flickCount": 12,
+      "didOvershoot": false,
+      "attemptInBlock": 5,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "attemptInBlock": 6,
+      "scrollDistance": 12416.310951592208,
+      "flickCount": 21,
+      "didOvershoot": false,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 12.916666666666657,
+          "distancePx": 300,
+          "distanceItems": 6.976744186046512,
+          "durationMs": 123,
+          "avgSpeedPxMs": 2.4390243902439024,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 6.116279069767442,
+          "direction": "up",
+          "avgSpeedPxMs": 2.7395833333333335,
+          "distancePx": 263,
+          "maxSpeedPxMs": 3.4374999999999964,
+          "durationMs": 96
+        },
+        {
+          "maxSpeedPxMs": 3.4791666666666714,
+          "durationMs": 96,
+          "direction": "up",
+          "distanceItems": 6.007751937984494,
+          "avgSpeedPxMs": 2.6909722222222214,
+          "distancePx": 258.33333333333326
+        },
+        {
+          "direction": "up",
+          "distancePx": 229.33333333333331,
+          "durationMs": 96,
+          "avgSpeedPxMs": 2.388888888888889,
+          "maxSpeedPxMs": 3.3958333333333286,
+          "distanceItems": 5.333333333333333
+        },
+        {
+          "direction": "up",
+          "distanceItems": 4.4651162790697665,
+          "durationMs": 60.999999999970896,
+          "avgSpeedPxMs": 3.1475409836080583,
+          "distancePx": 191.99999999999994,
+          "maxSpeedPxMs": 16.444444444444457
+        },
+        {
+          "durationMs": 109,
+          "maxSpeedPxMs": 3.0416666666666643,
+          "avgSpeedPxMs": 2.2538226299694184,
+          "distancePx": 245.66666666666663,
+          "distanceItems": 5.713178294573643,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 4.984496124031009,
+          "maxSpeedPxMs": 38.33333333333337,
+          "durationMs": 78,
+          "direction": "up",
+          "distancePx": 214.33333333333337,
+          "avgSpeedPxMs": 2.7478632478632483
+        },
+        {
+          "direction": "up",
+          "durationMs": 77,
+          "distanceItems": 4.1860465116279055,
+          "maxSpeedPxMs": 3.2916666666666643,
+          "distancePx": 179.99999999999994,
+          "avgSpeedPxMs": 2.337662337662337
+        },
+        {
+          "avgSpeedPxMs": 2.2515151515145555,
+          "durationMs": 110.0000000000291,
+          "direction": "up",
+          "maxSpeedPxMs": 5.644444444444442,
+          "distanceItems": 5.759689922480619,
+          "distancePx": 247.66666666666663
+        },
+        {
+          "distancePx": 268.3333333333333,
+          "durationMs": 128.9999999999709,
+          "direction": "up",
+          "distanceItems": 6.240310077519379,
+          "maxSpeedPxMs": 2.8125,
+          "avgSpeedPxMs": 2.0801033591735956
+        },
+        {
+          "distancePx": 265,
+          "distanceItems": 6.162790697674419,
+          "direction": "up",
+          "maxSpeedPxMs": 3.375000000006139,
+          "avgSpeedPxMs": 2.3451327433628317,
+          "durationMs": 113
+        },
+        {
+          "direction": "up",
+          "avgSpeedPxMs": 2.570833333333333,
+          "maxSpeedPxMs": 9.55555555555558,
+          "distancePx": 205.66666666666663,
+          "distanceItems": 4.782945736434107,
+          "durationMs": 80
+        },
+        {
+          "durationMs": 111.0000000000291,
+          "distancePx": 261.66666666666663,
+          "distanceItems": 6.085271317829457,
+          "direction": "up",
+          "maxSpeedPxMs": 3.4166666666666643,
+          "avgSpeedPxMs": 2.357357357356739
+        },
+        {
+          "maxSpeedPxMs": 3.1666666666666714,
+          "distanceItems": 5.147286821705425,
+          "distancePx": 221.33333333333326,
+          "direction": "up",
+          "avgSpeedPxMs": 1.9587020648967546,
+          "durationMs": 113
+        },
+        {
+          "maxSpeedPxMs": 2.624999999995225,
+          "distanceItems": 4.310077519379845,
+          "avgSpeedPxMs": 1.9305555555555554,
+          "direction": "up",
+          "durationMs": 96,
+          "distancePx": 185.33333333333331
+        },
+        {
+          "maxSpeedPxMs": 3.125,
+          "distanceItems": 5.015503875968991,
+          "avgSpeedPxMs": 2.2233676975945014,
+          "direction": "up",
+          "distancePx": 215.66666666666663,
+          "durationMs": 97
+        },
+        {
+          "direction": "up",
+          "distanceItems": 4.550387596899225,
+          "avgSpeedPxMs": 1.7315634218289087,
+          "maxSpeedPxMs": 4.452380952390211,
+          "distancePx": 195.66666666666669,
+          "durationMs": 113
+        },
+        {
+          "durationMs": 95.9999999999709,
+          "direction": "up",
+          "distanceItems": 3.3488372093023244,
+          "maxSpeedPxMs": 2.3541666666666714,
+          "avgSpeedPxMs": 1.500000000000454,
+          "distancePx": 143.99999999999994
+        },
+        {
+          "direction": "up",
+          "distancePx": 177.66666666666663,
+          "maxSpeedPxMs": 2.291666666670833,
+          "avgSpeedPxMs": 1.8701754385964908,
+          "durationMs": 95,
+          "distanceItems": 4.1317829457364335
+        },
+        {
+          "avgSpeedPxMs": 1.7044673539518904,
+          "maxSpeedPxMs": 2.583333333333332,
+          "direction": "up",
+          "durationMs": 97,
+          "distanceItems": 3.8449612403100786,
+          "distancePx": 165.33333333333337
+        },
+        {
+          "durationMs": 110,
+          "distanceItems": 3.4573643410852704,
+          "maxSpeedPxMs": 1.9999999999961195,
+          "distancePx": 148.66666666666663,
+          "avgSpeedPxMs": 1.3515151515151511,
+          "direction": "up"
+        }
+      ],
+      "timestamp": "2026-10-06T09:04:11.103Z",
+      "targetNumber": 300,
+      "overshootCount": 0,
+      "maxOvershootDistancePx": 0,
+      "switchbackCount": 0,
+      "timeMs": 14867,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "switchbackCount": 0,
+      "targetNumber": 210,
+      "overshootCount": 0,
+      "didOvershoot": false,
+      "scrollDistance": 8638.836956105315,
+      "flickCount": 12,
+      "attemptInBlock": 7,
+      "timeMs": 9212,
+      "maxOvershootDistancePx": 0,
+      "flicks": [
+        {
+          "avgSpeedPxMs": 1.9359999999999995,
+          "durationMs": 125,
+          "direction": "up",
+          "distanceItems": 5.6279069767441845,
+          "maxSpeedPxMs": 5.222222222222219,
+          "distancePx": 241.99999999999994
+        },
+        {
+          "maxSpeedPxMs": 3.3958333333333286,
+          "distanceItems": 5.496124031007753,
+          "distancePx": 236.33333333333337,
+          "avgSpeedPxMs": 2.4618055555563023,
+          "durationMs": 95.9999999999709,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 19,
+          "avgSpeedPxMs": 2.601449275362318,
+          "durationMs": 46,
+          "distancePx": 119.66666666666663,
+          "distanceItems": 2.7829457364341077,
+          "direction": "up"
+        },
+        {
+          "distanceItems": 5.062015503875968,
+          "maxSpeedPxMs": 3.0980392156809686,
+          "distancePx": 217.66666666666663,
+          "durationMs": 94,
+          "avgSpeedPxMs": 2.315602836879432,
+          "direction": "up"
+        },
+        {
+          "durationMs": 113.9999999999709,
+          "direction": "up",
+          "avgSpeedPxMs": 1.570175438596892,
+          "distancePx": 179,
+          "distanceItems": 4.162790697674419,
+          "maxSpeedPxMs": 4.785714285714286
+        },
+        {
+          "distancePx": 206.99999999999994,
+          "maxSpeedPxMs": 3.083333333338944,
+          "avgSpeedPxMs": 2.1340206185567006,
+          "durationMs": 97,
+          "direction": "up",
+          "distanceItems": 4.813953488372092
+        },
+        {
+          "maxSpeedPxMs": 3.0625,
+          "distanceItems": 4.3100775193798455,
+          "distancePx": 185.33333333333337,
+          "durationMs": 96.9999999999709,
+          "direction": "up",
+          "avgSpeedPxMs": 1.910652920962773
+        },
+        {
+          "durationMs": 113.0000000000291,
+          "direction": "up",
+          "distanceItems": 5.015503875968991,
+          "avgSpeedPxMs": 1.9085545722708945,
+          "maxSpeedPxMs": 3.313725490196081,
+          "distancePx": 215.66666666666663
+        },
+        {
+          "direction": "up",
+          "distancePx": 174.33333333333326,
+          "distanceItems": 4.054263565891471,
+          "avgSpeedPxMs": 1.7972508591065284,
+          "maxSpeedPxMs": 2.8125,
+          "durationMs": 97
+        },
+        {
+          "distancePx": 166.66666666666663,
+          "maxSpeedPxMs": 3.291666666672652,
+          "avgSpeedPxMs": 1.7182130584192437,
+          "distanceItems": 3.8759689922480614,
+          "durationMs": 97,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.5208333333269244,
+          "distanceItems": 4.100775193798451,
+          "distancePx": 176.33333333333337,
+          "direction": "up",
+          "avgSpeedPxMs": 1.5467836257305996,
+          "durationMs": 114.0000000000291
+        },
+        {
+          "maxSpeedPxMs": 3.6078431372487207,
+          "distanceItems": 5.612403100775192,
+          "avgSpeedPxMs": 2.5673758865256167,
+          "distancePx": 241.33333333333326,
+          "durationMs": 93.9999999999709,
+          "direction": "up"
+        }
+      ],
+      "timestamp": "2026-10-06T09:04:21.121Z",
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "flicks": [
+        {
+          "distanceItems": 6.379844961240308,
+          "durationMs": 142,
+          "avgSpeedPxMs": 1.9319248826291076,
+          "maxSpeedPxMs": 10.111111111013033,
+          "distancePx": 274.33333333333326,
+          "direction": "up"
+        },
+        {
+          "avgSpeedPxMs": 2.777777777777778,
+          "durationMs": 93,
+          "direction": "up",
+          "distanceItems": 6.007751937984497,
+          "maxSpeedPxMs": 33,
+          "distancePx": 258.33333333333337
+        },
+        {
+          "distancePx": 187.33333333333326,
+          "avgSpeedPxMs": 2.341666666666666,
+          "distanceItems": 4.35658914728682,
+          "durationMs": 80,
+          "maxSpeedPxMs": 15.333333332887113,
+          "direction": "up"
+        },
+        {
+          "maxSpeedPxMs": 3.1372549019607865,
+          "durationMs": 96.0000000000291,
+          "distancePx": 200.66666666666663,
+          "distanceItems": 4.666666666666666,
+          "direction": "up",
+          "avgSpeedPxMs": 2.0902777777771435
+        },
+        {
+          "direction": "up",
+          "maxSpeedPxMs": 3.13725490196078,
+          "distancePx": 201.33333333333331,
+          "durationMs": 113,
+          "distanceItems": 4.682170542635658,
+          "avgSpeedPxMs": 1.781710914454277
+        },
+        {
+          "maxSpeedPxMs": 2.9374999999999964,
+          "durationMs": 97,
+          "direction": "up",
+          "distanceItems": 5.062015503875968,
+          "distancePx": 217.66666666666663,
+          "avgSpeedPxMs": 2.2439862542955322
+        },
+        {
+          "distancePx": 156,
+          "maxSpeedPxMs": 2.8125,
+          "direction": "up",
+          "distanceItems": 3.627906976744186,
+          "durationMs": 113,
+          "avgSpeedPxMs": 1.3805309734513274
+        },
+        {
+          "distancePx": 218.33333333333331,
+          "avgSpeedPxMs": 1.9494047619042552,
+          "maxSpeedPxMs": 3.222222222222217,
+          "durationMs": 112.0000000000291,
+          "distanceItems": 5.0775193798449605,
+          "direction": "up"
+        },
+        {
+          "distancePx": 209.66666666666663,
+          "durationMs": 97,
+          "direction": "up",
+          "avgSpeedPxMs": 2.1615120274914084,
+          "distanceItems": 4.875968992248061,
+          "maxSpeedPxMs": 7.666666666666667
+        },
+        {
+          "avgSpeedPxMs": 1.124242424242425,
+          "distanceItems": 2.8759689922480636,
+          "direction": "up",
+          "maxSpeedPxMs": 2.333333333333338,
+          "distancePx": 123.66666666666674,
+          "durationMs": 110
+        }
+      ],
+      "maxOvershootDistancePx": 0,
+      "scrollDistance": 5962.801042065714,
+      "timeMs": 7613,
+      "timestamp": "2026-10-06T09:04:29.474Z",
+      "switchbackCount": 0,
+      "attemptInBlock": 8,
+      "targetNumber": 150,
+      "flickCount": 10,
+      "overshootCount": 0,
+      "didOvershoot": false,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "maxOvershootDistancePx": 0,
+      "overshootCount": 0,
+      "attemptInBlock": 9,
+      "flickCount": 3,
+      "flicks": [
+        {
+          "maxSpeedPxMs": 4.3611111111111045,
+          "durationMs": 108,
+          "distanceItems": 5.023255813953487,
+          "direction": "up",
+          "avgSpeedPxMs": 1.9999999999999996,
+          "distancePx": 215.99999999999994
+        },
+        {
+          "maxSpeedPxMs": 1.958333333336898,
+          "distancePx": 190.33333333333326,
+          "distanceItems": 4.426356589147285,
+          "avgSpeedPxMs": 0.7264631043256995,
+          "durationMs": 262,
+          "direction": "up"
+        },
+        {
+          "distancePx": 0,
+          "durationMs": 108.9999999999709,
+          "direction": "none",
+          "maxSpeedPxMs": 0,
+          "distanceItems": 0,
+          "avgSpeedPxMs": 0
+        }
+      ],
+      "didOvershoot": false,
+      "scrollDistance": 845.8448511412914,
+      "timeMs": 1839,
+      "switchbackCount": 0,
+      "timestamp": "2026-10-06T09:04:31.870Z",
+      "targetNumber": 30,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    },
+    {
+      "didOvershoot": true,
+      "timeMs": 6680,
+      "maxOvershootDistancePx": 84.64627530117014,
+      "flicks": [
+        {
+          "durationMs": 106.0000000000291,
+          "avgSpeedPxMs": 2.5786163522005503,
+          "direction": "up",
+          "distancePx": 273.33333333333337,
+          "maxSpeedPxMs": 5.925925925925918,
+          "distanceItems": 6.356589147286822
+        },
+        {
+          "distanceItems": 4.891472868217054,
+          "avgSpeedPxMs": 2.1683848797250858,
+          "durationMs": 97,
+          "distancePx": 210.33333333333331,
+          "maxSpeedPxMs": 3.229166666666668,
+          "direction": "up"
+        },
+        {
+          "avgSpeedPxMs": 0.857487922705314,
+          "durationMs": 276,
+          "distancePx": 236.66666666666669,
+          "maxSpeedPxMs": 2.9166666666666643,
+          "distanceItems": 5.503875968992248,
+          "direction": "up"
+        },
+        {
+          "distancePx": 155,
+          "distanceItems": 3.604651162790698,
+          "avgSpeedPxMs": 0.7908163265304948,
+          "durationMs": 196.0000000000291,
+          "maxSpeedPxMs": 1.8541666666734098,
+          "direction": "up"
+        },
+        {
+          "durationMs": 108.9999999999709,
+          "distanceItems": 3.062015503875968,
+          "distancePx": 131.66666666666663,
+          "maxSpeedPxMs": 1.9375000000070486,
+          "avgSpeedPxMs": 1.2079510703367136,
+          "direction": "up"
+        },
+        {
+          "direction": "up",
+          "distancePx": 138.66666666666663,
+          "maxSpeedPxMs": 1.5208333333333357,
+          "durationMs": 146.0000000000291,
+          "distanceItems": 3.2248062015503867,
+          "avgSpeedPxMs": 0.9497716894975273
+        },
+        {
+          "distanceItems": 2.8372093023255816,
+          "durationMs": 110,
+          "avgSpeedPxMs": 1.1090909090909091,
+          "direction": "up",
+          "maxSpeedPxMs": 1.958333333340453,
+          "distancePx": 122
+        },
+        {
+          "avgSpeedPxMs": 1.1561561561561564,
+          "distancePx": 128.33333333333337,
+          "durationMs": 111,
+          "maxSpeedPxMs": 2.2291666666626093,
+          "distanceItems": 2.9844961240310086,
+          "direction": "up"
+        },
+        {
+          "direction": "down",
+          "avgSpeedPxMs": 0.15955284552844123,
+          "maxSpeedPxMs": 0.2745098039215731,
+          "distanceItems": 1.2170542635658923,
+          "distancePx": 52.33333333333337,
+          "durationMs": 328.0000000000291
+        }
+      ],
+      "scrollDistance": 3555.312941967837,
+      "attemptInBlock": 10,
+      "timestamp": "2026-10-06T09:04:39.176Z",
+      "overshootCount": 1,
+      "targetNumber": 90,
+      "flickCount": 9,
+      "switchbackCount": 1,
+      "blockIndex": 3,
+      "blockParameterSet": {
+        "decelerationRateInputValue": 11.4147,
+        "fingerVelocityPxMs": 0,
+        "decelerationRate": 11.4147,
+        "decay": 0.98,
+        "inflexion": 0.42,
+        "scrollFriction": 0.145
+      }
+    }
+  ]
+}

@@ -705,46 +705,54 @@
 
         \chapter{Results and/or Evaluation}
 
-        This chapter evaluates whether the per-participant optimized transfer function improves scrolling performance over Android's default function. The evaluation rests on the within-participant comparison built into the study design: the two final blocks present, in counterbalanced order, once the learned recommendation (the \emph{optimized} condition) and once the unmodified Android defaults (the \emph{Android} condition), so that every participant contributes one block under each condition. Three questions are addressed in turn: (i) does the optimized function outperform the Android default across all participants; (ii) does this effect differ between women and men; and (iii) how does the comparison depend on the scrolling distance to the target.
+        This chapter evaluates whether the per-participant optimized transfer function improves scrolling performance over Android's default function. The evaluation rests on the within-participant comparison built into the study design: the two final blocks present, in counterbalanced order, once the learned recommendation (the \emph{optimized} condition) and once the unmodified Android defaults (the \emph{Android} condition), so that every participant contributes one block under each condition. Four questions are addressed in turn: (i) does the optimized function outperform the Android default across all participants; (ii) does this effect differ between women and men; (iii) how does the comparison depend on the scrolling distance to the target; and (iv) how does the overshoot behaviour of a transfer function depend on its parameters, in particular relative to the Android default.
 
         \section{Outcome Measure and Analysis Approach}
 
-        The primary outcome is the completion time of a trial, i.e.\ the elapsed time \texttt{timeMs} from the appearance of a target until the correct list entry is tapped. Because the ten targets of a block lie at systematically different distances, raw times are not directly comparable across trials; the length-normalized time
-        \begin{equation}
-        \hat{t}_{i} \;=\; \frac{t_i}{n_i},
-        \label{eq:eval-normalized-time}
-        \end{equation}
-        where $t_i$ is the completion time and $n_i \in \{30,60,\dots,300\}$ the target index (proportional to the required scroll distance), is used as the distance-invariant performance measure, consistent with the optimization objective of Equation~\eqref{eq:sd-scalar-objective}. For the aggregate analyses, each participant contributes a single value per condition, obtained by averaging $\hat{t}_i$ over the ten trials of the respective block.
+        The primary outcome is the completion time of a trial, i.e.\ the elapsed time \texttt{timeMs} from the appearance of a target until the correct list entry is tapped. Because completion times are strongly right-skewed, all timing analyses are carried out on the \emph{log-transformed} time $y=\log(\text{timeMs})$, which renders the distribution approximately symmetric and stabilizes the variance. The effect of the transformation is confirmed descriptively by the skewness, which drops from \evalval{skewRaw} on the raw scale to \evalval{skewLog} on the log scale (Figure~\ref{fig:eval-distribution}).
 
-        Analysis proceeds in two stages, following common practice for pointing- and scrolling-style tasks. First, an \emph{error rate} is computed as the proportion of trials in which the target was overshot at least once (\texttt{didOvershoot}); trials are additionally screened for extreme outliers in completion time, which are removed before the timing analysis. Second, the timing comparison is carried out on the cleaned data. Because the design is within-participant, all condition comparisons are paired; normality of the paired differences is checked, and a paired $t$-test is used when it is tenable and the Wilcoxon signed-rank test otherwise. Effect sizes (Cohen's $d_z$ or the rank-biserial correlation) and the counterbalancing order are reported so that potential order effects can be ruled out.
-
-        \section{Statistical Methods and Robustness Checks}
-
-        Because the tests differ in whether they compare \emph{paired} (within-participant) or \emph{independent} (between-group) samples, the appropriate procedure is chosen per question rather than applying a single test throughout. The Android-versus-optimized contrast is inherently paired, since each participant provides one block per condition, so it is analysed with the Wilcoxon signed-rank test (or a paired $t$-test when the paired differences are approximately normal). Comparisons \emph{between} the two gender groups are independent and therefore use the Mann-Whitney $U$ test, applied to the per-participant improvement $\Delta=\hat{t}_{\text{opt}}-\hat{t}_{\text{And.}}$; a mixed analysis of variance provides the equivalent parametric account through its \emph{Function}~$\times$~\emph{Gender} interaction. Categorical outcomes are treated analogously: a $2\times 2$ table of independent counts, such as the number of participants for whom the optimized function was faster split by gender, is assessed with Fisher's exact test, whereas a paired binary outcome, such as whether a participant overshot more often under one condition than the other, is assessed with McNemar's test.
-
-        The distance-resolved analysis warrants particular care, because each participant contributes only a single trial per condition and distance, leaving no within-cell replication. In addition to the $2\times 10$ repeated-measures analysis of variance, the same data are therefore modelled with a linear mixed-effects model with fixed effects for \emph{Function}, \emph{Distance}, and their interaction and a random intercept per participant, which handles the nesting of trials within participants without requiring aggregation. The trial-level secondary measures (overshoots, direction reversals) are similarly non-independent and are either aggregated to one value per participant and condition before a paired test, or modelled with a generalised linear mixed-effects model with a per-participant random intercept.
-
-        The reported conclusions are supported by the following robustness checks:
-        \begin{itemize}
-        \item \emph{Distribution-free confirmation.} Every paired comparison is repeated with a paired sign-flip permutation test ($10^4$ Monte Carlo resamples), and each between-group comparison with a label-shuffle permutation test, so that the conclusions do not rest on a distributional assumption.
-        \item \emph{Parametric versus non-parametric.} Paired $t$-test and Wilcoxon results are reported side by side; agreement between them indicates that the choice of test does not drive the conclusion.
-        \item \emph{Aggregation and outliers.} Results are recomputed using the per-participant median instead of the mean, and with and without the removed completion-time outliers (flagged per participant/distance rather than globally), to confirm that neither choice materially changes the outcome.
-        \item \emph{Order effects.} The counterbalancing group (block order) is added as a factor to verify that the effect of \emph{Function} is not confounded with presentation order or carry-over.
-        \item \emph{Effect sizes with uncertainty.} Alongside $p$-values, standardized effect sizes (Cohen's $d_z$; rank-biserial correlation) and $95\%$ bootstrap confidence intervals for the mean difference and the percentage improvement are reported, which is especially important given the moderate sample size ($n=\evalval{nParticipants}$; \evalval{nFemale} women and \evalval{nMale} men), where the \emph{Function}~$\times$~\emph{Gender} interaction is only modestly powered and is therefore treated as exploratory.
-        \item \emph{Multiple comparisons.} Where a family of tests is run, in particular across the ten target distances and the secondary measures, $p$-values are corrected with the Holm or Benjamini-Hochberg procedure, and a single primary outcome (the overall paired time comparison) is distinguished in advance from the exploratory analyses.
-        \end{itemize}
-        Finally, the overshoot-based ``error rate'' is a proxy for accuracy rather than a count of mis-taps, since the task requires tapping the correct entry to proceed and wrong taps are not separately recorded; it is interpreted accordingly.
-
-        \section{Overall Comparison: Android vs.\ Optimized}
-
-        The first analysis pools all \evalval{nParticipants} participants and compares the mean length-normalized time of the optimized condition against the Android condition. Figure~\ref{fig:eval-overall} contrasts the two conditions, and Table~\ref{tab:eval-overall} reports the paired difference together with its effect size and significance. A negative difference (optimized minus Android) indicates that the learned function let participants reach the targets faster than the Android default. The same paired test is applied to the secondary measures, the overshoot-based error rate and the number of direction reversals (\texttt{switchbackCount}), to check whether any timing gain is accompanied by more or fewer corrective movements.
-
-        Across the \evalval{nParticipants} participants, the optimized function lowered the mean length-normalized time from \evalval{overallAndroidMean} to \evalval{overallOptimizedMean}\,ms/index, a paired difference of \evalval{overallDiff}\,ms/index (\evalval{overallPctImprovement}\,\% faster; $95\%$ bootstrap CI $[\evalval{overallCiLow},\,\evalval{overallCiHigh}]$; Cohen's $d_z=\evalval{overallCohenDz}$; paired $t$-test $p=\evalval{overallTp}$, Wilcoxon $p=\evalval{overallWilcoxonP}$, sign-flip permutation $p=\evalval{overallPermP}$).
+        Because each participant completes one block under each function, every condition comparison is \emph{within-participant} (paired). For the aggregate comparison, each participant contributes a single value per condition, the mean of $y$ over the ten trials of the respective block. For the distance-resolved analysis, the distance to the target is retained as an explicit second factor rather than being normalized away; this replaces the length-normalized objective of Equation~\eqref{eq:sd-scalar-objective} used during optimization.
 
         \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.7\textwidth]{eval_android_vs_optimized_overall.png}
-        \caption{Mean length-normalized completion time under the Android and the optimized transfer function, aggregated over all participants. Error bars denote the standard error of the paired means.}
+        \includegraphics[width=0.9\textwidth]{eval_time_distribution.png}
+        \caption{Distribution of completion times before (left) and after (right) the log-transformation. The log-transform removes most of the right-skew (skewness \evalval{skewRaw} $\to$ \evalval{skewLog}).}
+        \label{fig:eval-distribution}
+        \end{figure}
+
+        \section{Statistical Methods}
+
+        The analysis follows a small set of assumption-checked procedures.
+
+        \paragraph{Normality.} The paired $t$-test assumes approximately normal \emph{differences}. The per-participant log-time differences (optimized minus Android) are therefore checked with the Shapiro-Wilk test ($p=\evalval{shapiroDiffP}$) and a Q-Q plot (Figure~\ref{fig:eval-qqdiff}); the residuals of the repeated-measures model are checked analogously ($p=\evalval{shapiroResidP}$).
+
+        \paragraph{Primary comparison.} The Android-versus-optimized contrast is paired and analysed with a paired $t$-test on the log-times; the Wilcoxon signed-rank test is reported alongside as a distribution-free safeguard, together with the standardized effect size Cohen's $d_z$.
+
+        \paragraph{Standard error, confidence interval, and back-transformation.} For the paired differences $d_i$ the standard error is $\mathrm{SE}=s_d/\sqrt{n}$ and the $95\%$ confidence interval is $\bar d\pm t_{n-1,0.975}\,\mathrm{SE}$. Because the analysis is on the log scale, the mean difference is the logarithm of a ratio: $\exp(\bar d)$ is the ratio of the geometric mean times (optimized over Android), and exponentiating the interval bounds yields its confidence interval. A ratio below one, with an interval not crossing one, indicates a significant speed-up. Each condition's geometric mean time and its interval are obtained analogously, and a nonparametric bootstrap ($10^4$ resamples) provides a distribution-free interval for the ratio.
+
+        \paragraph{Distance analysis.} The joint effect of \emph{Function} and \emph{Distance} is assessed with a two-way repeated-measures ANOVA on the log-times, with one value per participant and cell. Because the ten-level \emph{Distance} factor and the interaction can violate sphericity, Mauchly's test is reported and, where sphericity is rejected, Greenhouse-Geisser-corrected $p$-values are used. A linear mixed-effects model with a per-participant random intercept serves as a cross-check that does not rely on the sphericity assumption.
+
+        \paragraph{Overshoot and parameters.} The relation between the parameters and overshoot is analysed on the level of blocks, using the blocks 1--18 in which each participant experienced different parameter sets (the \emph{explored} blocks). Each block contains every target distance exactly once, so block-level measures are comparable across blocks. Two measures are used: the overshoot rate (share of trials with an overshoot) and the overshoot extent (mean of \texttt{maxOvershootDistancePx} over the ten trials, counting trials without overshoot as zero). For each parameter, Spearman's rank correlation with both measures is computed over all explored blocks (pooled) and separately within each participant; the individual correlations are then tested against zero with a Wilcoxon signed-rank test, which removes between-participant differences. Because the three parameters vary simultaneously, a linear mixed-effects model with all three standardized parameters ($\mu$ on the logarithmic scale) and a per-participant random intercept additionally estimates the effect of each parameter while holding the others constant. To compare against the Android default, the range of each parameter over the explored blocks is split into three classes of equal block count (terciles), the overshoot measures of each class are averaged per participant and compared with the participant's own Android block (paired Wilcoxon test). The resulting $p$-values are adjusted for multiple comparisons with the Holm procedure.
+
+        \paragraph{Secondary and subgroup measures.} The overshoot-based error rate and the number of direction reversals (\texttt{switchbackCount}) are aggregated per participant and condition and compared with a paired Wilcoxon test; the paired binary overshoot outcome is additionally assessed with McNemar's test. The between-gender difference in the per-participant improvement is tested with the Mann-Whitney $U$ test, and the per-gender comparison is only reported when the group is large enough. The overshoot-based ``error rate'' is a proxy for accuracy rather than a count of mis-taps, since reaching the next trial requires tapping the correct entry, and is interpreted accordingly.
+
+        \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.5\textwidth]{eval_qq_paired_diff.png}
+        \caption{Q-Q plot of the per-participant paired log-time differences against a normal distribution (Shapiro-Wilk $p=\evalval{shapiroDiffP}$).}
+        \label{fig:eval-qqdiff}
+        \end{figure}
+
+        \section{Overall Comparison: Android vs.\ Optimized}
+
+        The first analysis pools all \evalval{nParticipants} participants ($n=\evalval{nPaired}$ with a complete pair of blocks) and compares the optimized against the Android condition on the log-time. Figure~\ref{fig:eval-overall} contrasts the geometric mean times, and Table~\ref{tab:eval-overall} reports the effect together with its significance.
+
+        Across the \evalval{nPaired} paired participants, the optimized function changed the geometric mean completion time from \evalval{gmAndroid}\,ms (Android) to \evalval{gmOptimized}\,ms (optimized), a ratio of \evalval{ratioOptAnd} ($95\%$ CI $[\evalval{ratioCiLow},\,\evalval{ratioCiHigh}]$; bootstrap CI $[\evalval{bootRatioCiLow},\,\evalval{bootRatioCiHigh}]$), i.e.\ a change of \evalval{pctChange}\,\% (negative indicates faster). The paired $t$-test on the log-times gives $t(\evalval{tDf})=\evalval{tStat}$, $p=\evalval{tP}$ (Wilcoxon $p=\evalval{wilcoxonP}$; Cohen's $d_z=\evalval{cohenDz}$).
+
+        \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.6\textwidth]{eval_android_vs_optimized_overall.png}
+        \caption{Geometric mean completion time under the Android and the optimized transfer function, aggregated over all paired participants. Error bars denote the $95\%$ confidence interval.}
         \label{fig:eval-overall}
         \end{figure}
 
@@ -752,102 +760,141 @@
         \centering
         \begin{tabular}{l r r r r}
         \hline
-        Measure & Android & Optimized & $\Delta$ (Opt.$-$And.) & $p$ \\
+        Measure & Android & Optimized & Effect & $p$ \\
         \hline
-        Norm.\ time (ms/index) & \evalval{overallAndroidMean} & \evalval{overallOptimizedMean} & \evalval{overallDiff} & \evalval{overallWilcoxonP} \\
+        Completion time (geom.\ mean, ms) & \evalval{gmAndroid} & \evalval{gmOptimized} & ratio \evalval{ratioOptAnd} & \evalval{tP} \\
         Error rate (overshoot) & \evalval{errAndroid} & \evalval{errOptimized} & \evalval{errDiff} & \evalval{errWilcoxonP} \\
-        Switchbacks per trial   & \evalval{swAndroid} & \evalval{swOptimized} & \evalval{swDiff} & \evalval{swWilcoxonP} \\
+        Switchbacks per trial & \evalval{swAndroid} & \evalval{swOptimized} & \evalval{swDiff} & \evalval{swWilcoxonP} \\
         \hline
         \end{tabular}
-        \caption{Overall within-participant comparison of the Android and optimized conditions (means over all participants). All values are read from \texttt{eval\_results.csv}; $p$ is the Wilcoxon signed-rank result.}
+        \caption{Overall within-participant comparison. The time row reports geometric means and the ratio of geometric means (optimized over Android) with the paired $t$-test $p$ on log-times; the secondary rows report the paired mean difference and the Wilcoxon $p$. All values are read from \texttt{eval\_results.csv}.}
         \label{tab:eval-overall}
         \end{table}
 
+        For the secondary measures, the overshoot-based error rate changed by \evalval{errDiff} (Android \evalval{errAndroid} vs.\ optimized \evalval{errOptimized}; Wilcoxon $p=\evalval{errWilcoxonP}$; McNemar $p=\evalval{mcnemarP}$) and the number of direction reversals by \evalval{swDiff} per trial ($p=\evalval{swWilcoxonP}$), indicating whether any timing change is accompanied by more or fewer corrective movements.
+
         \section{Comparison by Gender}
 
-        Because the sample is split by gender (\evalval{nFemale} women, \evalval{nMale} men), the same paired comparison is repeated separately within each group, and the two effects are contrasted. This is formalized as a $2\times 2$ mixed analysis of variance with the within-participant factor \emph{Function} (Android vs.\ optimized) and the between-participant factor \emph{Gender} (female vs.\ male). The main effect of \emph{Function} quantifies the overall benefit of optimization, the main effect of \emph{Gender} captures baseline differences in scrolling speed, and the \emph{Function}~$\times$~\emph{Gender} interaction indicates whether the optimization benefits one group more than the other. Figure~\ref{fig:eval-gender} shows the two conditions side by side for women and men, and Table~\ref{tab:eval-gender} reports the per-group paired differences. The between-group difference in the per-participant improvement $\Delta$ is assessed with the Mann-Whitney $U$ test ($p=\evalval{mannwhitneyDeltaP}$).
+        The sample comprises \evalval{nFemale} women and \evalval{nMale} men. The paired log-time comparison is repeated within each gender group that is large enough, and the per-participant improvement (the log-time difference) is compared between groups with the Mann-Whitney $U$ test ($p=\evalval{genderDeltaMwP}$). Table~\ref{tab:eval-gender} reports the per-group effect as a ratio of geometric means; Figure~\ref{fig:eval-gender} shows the geometric mean times side by side. Given the moderate and possibly unbalanced sample, this subgroup analysis is treated as exploratory.
 
         \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.8\textwidth]{eval_android_vs_optimized_by_gender.png}
-        \caption{Mean length-normalized completion time under the Android and optimized functions, separately for female and male participants. Error bars denote the standard error of the means.}
+        \includegraphics[width=0.7\textwidth]{eval_android_vs_optimized_by_gender.png}
+        \caption{Geometric mean completion time under the Android and optimized functions, separately for female and male participants (only groups with at least two participants are shown).}
         \label{fig:eval-gender}
-        \end{figure}
-
-        \begin{table}[htbp]
-        \centering
-        \begin{tabular}{l r r r r}
-        \hline
-        Group & Android & Optimized & $\Delta$ (Opt.$-$And.) & $p$ \\
-        \hline
-        Women ($n=\evalval{genderFemaleN}$) & \evalval{genderFemaleAndroid} & \evalval{genderFemaleOptimized} & \evalval{genderFemaleDiff} & \evalval{genderFemaleWilcoxonP} \\
-        Men ($n=\evalval{genderMaleN}$)   & \evalval{genderMaleAndroid} & \evalval{genderMaleOptimized} & \evalval{genderMaleDiff} & \evalval{genderMaleWilcoxonP} \\
-        \hline
-        \end{tabular}
-        \caption{Within-participant Android-vs-optimized comparison of the mean length-normalized time, separately by gender. The Function\,$\times$\,Gender interaction from the mixed ANOVA is reported in the text.}
-        \label{tab:eval-gender}
-        \end{table}
-
-        \section{Comparison by Target Distance}
-
-        The aggregate measures may mask distance-dependent effects, since near and far targets stress the fling behaviour differently. Each block contains exactly one trial per target position, so every participant contributes one completion time per condition and per distance $n \in \{30,60,\dots,300\}$. For this analysis the raw completion time $t_i$ (rather than the normalized $\hat{t}_i$) is used, because distance is now an explicit factor rather than something to be normalized away. The comparison is modelled as a $2\times 10$ repeated-measures analysis of variance with the within-participant factors \emph{Function} (Android vs.\ optimized) and \emph{Distance} (the ten target positions). The main effect of \emph{Distance} is expected to be large and merely confirms that farther targets take longer; the effect of interest is the \emph{Function}~$\times$~\emph{Distance} interaction, which reveals whether the optimized function's advantage is concentrated at short, medium, or long distances. Figure~\ref{fig:eval-distance} plots completion time against target distance for both conditions. The repeated-measures ANOVA reports a \emph{Distance} main effect ($F=\evalval{rmanovaDistanceF}$, $p=\evalval{rmanovaDistanceP}$), a \emph{Function} effect ($F=\evalval{rmanovaConditionF}$, $p=\evalval{rmanovaConditionP}$), and a \emph{Function}~$\times$~\emph{Distance} interaction ($F=\evalval{rmanovaInteractionF}$, $p=\evalval{rmanovaInteractionP}$); the linear mixed-effects model yields a matching interaction coefficient of \evalval{lmmInteractionCoef}\,ms/index ($p=\evalval{lmmInteractionP}$).
-
-        \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.8\textwidth]{eval_android_vs_optimized_by_distance.png}
-        \caption{Mean completion time as a function of target distance (index $30,60,\dots,300$) under the Android and optimized transfer functions, aggregated over all participants. Error bars denote the standard error of the means.}
-        \label{fig:eval-distance}
-        \end{figure}
-
-        Finally, the distance-resolved comparison is broken down by gender, yielding the same distance profiles separately for women and men (Figure~\ref{fig:eval-distance-gender}). This corresponds to a three-factor design with the within-participant factors \emph{Function} and \emph{Distance} and the between-participant factor \emph{Gender}, and it indicates whether any gender difference in the optimization benefit is uniform across distances or specific to particular scroll lengths.
-
-        \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.9\textwidth]{eval_android_vs_optimized_by_distance_gender.png}
-        \caption{Mean completion time versus target distance under the Android and optimized functions, separately for female and male participants.}
-        \label{fig:eval-distance-gender}
-        \end{figure}
-
-        \section{Parameter Influence on Performance}
-
-        The optimized transfer functions differ from one another in three correlated parameters, the fling friction $\mu$, the deceleration rate $r$, and the inflexion $\beta$. To quantify how each of them affects performance, \emph{all} blocks of \emph{all} participants are pooled: every block contributes one parameter vector $[\mu,\ r,\ \beta]$ and the mean length-normalized time achieved under it (lower is better). Because the three parameters differ in scale and range, both the parameters and the outcome are standardized to zero mean and unit variance, and a linear mixed-effects model $z(\hat{t}) \sim z(\mu)+z(r)+z(\beta)$ with a per-participant random intercept is fitted. The standardized coefficients are therefore directly comparable in magnitude, and a negative sign means that a larger value of that parameter shortens the completion time.
-
-        The largest influence is exerted by the deceleration rate $r$ (standardized $\beta=\evalval{inflDecelerationRateBeta}$, $p=\evalval{inflDecelerationRateP}$), followed by the inflexion $\beta$ ($\evalval{inflInflexionBeta}$, $p=\evalval{inflInflexionP}$) and the fling friction $\mu$ ($\evalval{inflScrollFrictionBeta}$, $p=\evalval{inflScrollFrictionP}$). Figure~\ref{fig:eval-param-influence} shows these coefficients and Table~\ref{tab:eval-influence} lists them together with the pooled Spearman correlations, while Figure~\ref{fig:eval-param-marginal} shows the marginal relationship between each parameter and the achieved time, revealing whether the effect is monotone or has an interior optimum.
-
-        \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=0.7\textwidth]{eval_param_influence.png}
-        \caption{Standardized effect of each parameter on the length-normalized completion time (pooled over all blocks and participants, with a per-participant random intercept). A negative coefficient means that increasing the parameter reduces completion time (better).}
-        \label{fig:eval-param-influence}
         \end{figure}
 
         \begin{table}[htbp]
         \centering
         \begin{tabular}{l r r r}
         \hline
-        Parameter & Std.\ $\beta$ & $p$ & Spearman $\rho$ \\
+        Group & $n$ & Ratio (Opt./And.) & $p$ \\
         \hline
-        $\mu$ (scrollFriction) & \evalval{inflScrollFrictionBeta} & \evalval{inflScrollFrictionP} & \evalval{spearmanScrollFriction} \\
-        $r$ (decelerationRate) & \evalval{inflDecelerationRateBeta} & \evalval{inflDecelerationRateP} & \evalval{spearmanDecelerationRate} \\
-        $\beta$ (inflexion) & \evalval{inflInflexionBeta} & \evalval{inflInflexionP} & \evalval{spearmanInflexion} \\
+        Women & \evalval{genderFemaleN} & \evalval{genderFemaleRatio} & \evalval{genderFemaleP} \\
+        Men & \evalval{genderMaleN} & \evalval{genderMaleRatio} & \evalval{genderMaleP} \\
         \hline
         \end{tabular}
-        \caption{Influence of each transfer-function parameter on the length-normalized completion time. Standardized mixed-model coefficients (negative $=$ faster) and pooled Spearman correlations, read from \texttt{eval\_results.csv}.}
-        \label{tab:eval-influence}
+        \caption{Within-participant Android-vs-optimized comparison per gender, expressed as the ratio of geometric mean times (optimized over Android; $<1$ = faster) with the paired $t$-test $p$. Entries are \texttt{NA} when a group is too small. Values are read from \texttt{eval\_results.csv}.}
+        \label{tab:eval-gender}
+        \end{table}
+
+        \section{Comparison by Target Distance}
+
+        Near and far targets stress the fling behaviour differently, so the aggregate comparison may mask distance-dependent effects. Each block contains exactly one trial per target position, so every participant contributes one log-time per condition and per distance $n\in\{30,60,\dots,300\}$. The joint effect is modelled as a $2\times 10$ repeated-measures ANOVA with the within-participant factors \emph{Function} and \emph{Distance}; Figure~\ref{fig:eval-distance} plots the log-time against target distance for both conditions.
+
+        Table~\ref{tab:eval-anova} reports the ANOVA. As expected, \emph{Distance} has a large main effect. The effect of interest is the \emph{Function}~$\times$~\emph{Distance} interaction, which reveals whether the optimized function's advantage is concentrated at particular scroll lengths. Mauchly's test rejects sphericity for the distance factor ($W=\evalval{mauchlyDistanceW}$, $p=\evalval{mauchlyDistanceP}$), so Greenhouse-Geisser-corrected $p$-values ($p_{\mathrm{GG}}$) are authoritative. The linear mixed-effects cross-check, which does not assume sphericity, agrees on the main effect of \emph{Function} ($p=\evalval{lmmFunctionP}$; effect as a time ratio \evalval{lmmFunctionRatio}).
+
+        \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.8\textwidth]{eval_android_vs_optimized_by_distance.png}
+        \caption{Mean log completion time as a function of target distance (index $30,60,\dots,300$) under the Android and optimized transfer functions. Error bars denote the standard error over participants.}
+        \label{fig:eval-distance}
+        \end{figure}
+
+        \begin{table}[htbp]
+        \centering
+        \begin{tabular}{l r r r r r}
+        \hline
+        Effect & $F$ & df & $p$ & $p_{\mathrm{GG}}$ & $\varepsilon$ \\
+        \hline
+        Function & \evalval{anovaFunctionF} & \evalval{anovaFunctionDf1},\,\evalval{anovaFunctionDf2} & \evalval{anovaFunctionP} & \evalval{anovaFunctionPgg} & \evalval{anovaFunctionEps} \\
+        Distance & \evalval{anovaDistanceF} & \evalval{anovaDistanceDf1},\,\evalval{anovaDistanceDf2} & \evalval{anovaDistanceP} & \evalval{anovaDistancePgg} & \evalval{anovaDistanceEps} \\
+        Function $\times$ Distance & \evalval{anovaInteractionF} & \evalval{anovaInteractionDf1},\,\evalval{anovaInteractionDf2} & \evalval{anovaInteractionP} & \evalval{anovaInteractionPgg} & \evalval{anovaInteractionEps} \\
+        \hline
+        \end{tabular}
+        \caption{Two-way repeated-measures ANOVA on log completion time. $p$ is uncorrected, $p_{\mathrm{GG}}$ is Greenhouse-Geisser-corrected, and $\varepsilon$ is the Greenhouse-Geisser epsilon. Values are read from \texttt{eval\_results.csv}.}
+        \label{tab:eval-anova}
+        \end{table}
+
+        \section{Overshoot and the Transfer Function Parameters}
+        \label{sec:eval-overshoot}
+
+        The comparisons so far treat each transfer function as a whole. This section asks which of the parameters $\mu$, $r$, and $\beta$ make a function overshoot the target, and how the overshoot of the Android default relates to that of other parameter values. During the blocks 1--18 every participant experienced a sequence of different parameter sets, generated by random sampling in the warm-up phase and by the optimizer thereafter, each for one block of ten trials that covers every target distance exactly once. The \evalval{ovNBlocks} such \emph{explored} blocks of the \evalval{ovNSubjects} participants therefore allow relating block-level overshoot to the parameters, with the participant's own Android block as the reference. On average, the explored blocks show an overshoot rate of \evalval{ovExploredRate} and an overshoot extent of \evalval{ovExploredPx}\,px, compared with \evalval{ovAndroidRate} and \evalval{ovAndroidPx}\,px in the Android block. Because the parameter sets of blocks 4--18 are proposed by the optimizer and therefore concentrate on promising regions rather than covering the search space uniformly, the analysis is observational and explorative.
+
+        \paragraph{Association with the parameters.} Table~\ref{tab:eval-ov-corr} lists the Spearman correlation between each parameter and the two overshoot measures, pooled over all explored blocks and as the mean of the within-participant correlations, together with the effect estimated by the mixed model that holds the other two parameters constant. The overshoot extent shows the following associations: with $\beta$ (pooled $\rho=\evalval{ovPxRhoBeta}$, within-participant $\bar\rho=\evalval{ovPxWithinRhoBeta}$, $p_{\mathrm{w}}=\evalval{ovPxWithinPBeta}$; mixed model $\evalval{ovPxLmmCoefBeta}$\,px per standard deviation, $p=\evalval{ovPxLmmPBeta}$), with $r$ ($\rho=\evalval{ovPxRhoR}$; mixed model $\evalval{ovPxLmmCoefR}$\,px, $p=\evalval{ovPxLmmPR}$), and with $\mu$ ($\rho=\evalval{ovPxRhoMu}$; mixed model $\evalval{ovPxLmmCoefMu}$\,px, $p=\evalval{ovPxLmmPMu}$). For the overshoot rate the corresponding mixed-model effects per standard deviation are \evalval{ovRateLmmCoefBeta} ($\beta$, $p=\evalval{ovRateLmmPBeta}$), \evalval{ovRateLmmCoefR} ($r$, $p=\evalval{ovRateLmmPR}$), and \evalval{ovRateLmmCoefMu} ($\mu$, $p=\evalval{ovRateLmmPMu}$). A positive sign means that larger parameter values go along with more overshoot. Figure~\ref{fig:eval-overshoot-params} shows the underlying blocks, the class means, and the Android default for each parameter.
+
+        \begin{table}[htbp]
+        \centering
+        \resizebox{\textwidth}{!}{%
+        \begin{tabular}{l l r r r r r r}
+        \hline
+        Parameter & Measure & $\rho$ (pooled) & $p$ & $\bar\rho$ (within) & $p_{\mathrm{w}}$ & Mixed-model effect per SD & $p_{\mathrm{LMM}}$ \\
+        \hline
+        $\mu$ & Rate & \evalval{ovRateRhoMu} & \evalval{ovRateRhoPMu} & \evalval{ovRateWithinRhoMu} & \evalval{ovRateWithinPMu} & \evalval{ovRateLmmCoefMu} & \evalval{ovRateLmmPMu} \\
+        $\mu$ & Extent (px) & \evalval{ovPxRhoMu} & \evalval{ovPxRhoPMu} & \evalval{ovPxWithinRhoMu} & \evalval{ovPxWithinPMu} & \evalval{ovPxLmmCoefMu} & \evalval{ovPxLmmPMu} \\
+        $r$ & Rate & \evalval{ovRateRhoR} & \evalval{ovRateRhoPR} & \evalval{ovRateWithinRhoR} & \evalval{ovRateWithinPR} & \evalval{ovRateLmmCoefR} & \evalval{ovRateLmmPR} \\
+        $r$ & Extent (px) & \evalval{ovPxRhoR} & \evalval{ovPxRhoPR} & \evalval{ovPxWithinRhoR} & \evalval{ovPxWithinPR} & \evalval{ovPxLmmCoefR} & \evalval{ovPxLmmPR} \\
+        $\beta$ & Rate & \evalval{ovRateRhoBeta} & \evalval{ovRateRhoPBeta} & \evalval{ovRateWithinRhoBeta} & \evalval{ovRateWithinPBeta} & \evalval{ovRateLmmCoefBeta} & \evalval{ovRateLmmPBeta} \\
+        $\beta$ & Extent (px) & \evalval{ovPxRhoBeta} & \evalval{ovPxRhoPBeta} & \evalval{ovPxWithinRhoBeta} & \evalval{ovPxWithinPBeta} & \evalval{ovPxLmmCoefBeta} & \evalval{ovPxLmmPBeta} \\
+        \hline
+        \end{tabular}}
+        \caption{Association between the transfer function parameters and block-level overshoot in the explored blocks. $\rho$: Spearman correlation over all blocks; $\bar\rho$: mean of the within-participant correlations, with $p_{\mathrm{w}}$ from a Wilcoxon test of these against zero; mixed-model effect: change of the measure per standard deviation of the parameter ($\mu$ logarithmic) with a per-participant random intercept, the other parameters held constant. Values are read from \texttt{eval\_results.csv}.}
+        \label{tab:eval-ov-corr}
         \end{table}
 
         \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.9\textwidth]{eval_param_marginal_effects.png}
-        \caption{Marginal relationship between each parameter value and the block-mean length-normalized time (scatter over all blocks, with a low-order polynomial fit and binned means). The dotted line marks the Android default.}
-        \label{fig:eval-param-marginal}
+        \includegraphics[width=\textwidth]{eval_overshoot_vs_params.png}
+        \caption{Overshoot rate (top) and overshoot extent (bottom) of the explored blocks (grey points) against the value of $\mu$, $r$, and $\beta$. Blue: mean of three classes of equal block count; red star: Android default block, plotted at the Android parameter value.}
+        \label{fig:eval-overshoot-params}
         \end{figure}
+
+        \paragraph{Android compared with other parameter values.} The Android default is $\mu=\evalval{ovAndroidValueMu}$, $r=\evalval{ovAndroidValueR}$, and $\beta=\evalval{ovAndroidValueBeta}$. Since none of the explored blocks reproduces this combination, the comparison is made per parameter: the explored blocks are grouped into three classes of that parameter and the overshoot of each class is compared with the participant's own Android block (Table~\ref{tab:eval-ov-android}). The $p$-values are Holm-adjusted over all 18 comparisons, and the table reports these adjusted values, so that individual class differences are only noted as significant if they survive the correction. As all classes mix different values of the other two parameters, the class differences are to be read together with the mixed-model estimates of Table~\ref{tab:eval-ov-corr}.
+
+        \begin{table}[htbp]
+        \centering
+        \small
+        \begin{tabular}{l l r r r r r r}
+        \hline
+        & & \multicolumn{3}{c}{Overshoot rate} & \multicolumn{3}{c}{Overshoot extent (px)} \\
+        Parameter & Class & Mean & $\Delta$ & $p_{\mathrm{Holm}}$ & Mean & $\Delta$ & $p_{\mathrm{Holm}}$ \\
+        \hline
+        Android & -- & \evalval{ovAndroidRate} & -- & -- & \evalval{ovAndroidPx} & -- & -- \\
+        \hline
+        $\mu$ & \evalval{ovBinRateMuC1Range} & \evalval{ovBinRateMuC1Mean} & \evalval{ovBinRateMuC1Diff} & \evalval{ovBinRateMuC1Pholm} & \evalval{ovBinPxMuC1Mean} & \evalval{ovBinPxMuC1Diff} & \evalval{ovBinPxMuC1Pholm} \\
+        $\mu$ & \evalval{ovBinRateMuC2Range} & \evalval{ovBinRateMuC2Mean} & \evalval{ovBinRateMuC2Diff} & \evalval{ovBinRateMuC2Pholm} & \evalval{ovBinPxMuC2Mean} & \evalval{ovBinPxMuC2Diff} & \evalval{ovBinPxMuC2Pholm} \\
+        $\mu$ & \evalval{ovBinRateMuC3Range} & \evalval{ovBinRateMuC3Mean} & \evalval{ovBinRateMuC3Diff} & \evalval{ovBinRateMuC3Pholm} & \evalval{ovBinPxMuC3Mean} & \evalval{ovBinPxMuC3Diff} & \evalval{ovBinPxMuC3Pholm} \\
+        \hline
+        $r$ & \evalval{ovBinRateRC1Range} & \evalval{ovBinRateRC1Mean} & \evalval{ovBinRateRC1Diff} & \evalval{ovBinRateRC1Pholm} & \evalval{ovBinPxRC1Mean} & \evalval{ovBinPxRC1Diff} & \evalval{ovBinPxRC1Pholm} \\
+        $r$ & \evalval{ovBinRateRC2Range} & \evalval{ovBinRateRC2Mean} & \evalval{ovBinRateRC2Diff} & \evalval{ovBinRateRC2Pholm} & \evalval{ovBinPxRC2Mean} & \evalval{ovBinPxRC2Diff} & \evalval{ovBinPxRC2Pholm} \\
+        $r$ & \evalval{ovBinRateRC3Range} & \evalval{ovBinRateRC3Mean} & \evalval{ovBinRateRC3Diff} & \evalval{ovBinRateRC3Pholm} & \evalval{ovBinPxRC3Mean} & \evalval{ovBinPxRC3Diff} & \evalval{ovBinPxRC3Pholm} \\
+        \hline
+        $\beta$ & \evalval{ovBinRateBetaC1Range} & \evalval{ovBinRateBetaC1Mean} & \evalval{ovBinRateBetaC1Diff} & \evalval{ovBinRateBetaC1Pholm} & \evalval{ovBinPxBetaC1Mean} & \evalval{ovBinPxBetaC1Diff} & \evalval{ovBinPxBetaC1Pholm} \\
+        $\beta$ & \evalval{ovBinRateBetaC2Range} & \evalval{ovBinRateBetaC2Mean} & \evalval{ovBinRateBetaC2Diff} & \evalval{ovBinRateBetaC2Pholm} & \evalval{ovBinPxBetaC2Mean} & \evalval{ovBinPxBetaC2Diff} & \evalval{ovBinPxBetaC2Pholm} \\
+        $\beta$ & \evalval{ovBinRateBetaC3Range} & \evalval{ovBinRateBetaC3Mean} & \evalval{ovBinRateBetaC3Diff} & \evalval{ovBinRateBetaC3Pholm} & \evalval{ovBinPxBetaC3Mean} & \evalval{ovBinPxBetaC3Diff} & \evalval{ovBinPxBetaC3Pholm} \\
+        \hline
+        \end{tabular}
+        \caption{Overshoot of the explored blocks, grouped into three classes of equal block count per parameter, compared with the participant's own Android block. Mean: class mean of the per-participant values; $\Delta$: mean paired difference class minus Android; $p_{\mathrm{Holm}}$: Holm-adjusted $p$-value of the paired Wilcoxon test. Values are read from \texttt{eval\_results.csv}.}
+        \label{tab:eval-ov-android}
+        \end{table}
+
+        With only a small number of participants these results are explorative: each Android reference is a single block of ten trials per participant, the classes are not independent of the optimizer's search path, and the Holm correction is conservative. The estimates are nevertheless informative about the direction in which the parameters push overshoot, which is relevant for the choice of the search-space bounds and the objective function of the optimization.
 
         \section{Does Personalization Pay Off?}
 
         A central premise of this work is that the transfer function is optimized \emph{per participant} rather than fitted once for the whole population. Whether this personalization is warranted depends on how much the learned optima actually differ between participants: if every participant converges to a similar parameter vector, a single pooled function would suffice and the per-participant machinery adds little; if the optima are widely dispersed, personalization is justified because no single function can serve everyone well. This question is therefore examined by quantifying the spread of the optimized parameters across participants and by relating it to the width of the admissible search space.
 
-        For each of the three free parameters the distribution of the learned values across the \evalval{nParticipants} participants is summarized (median, interquartile range, and full range), and its dispersion is expressed relative to the corresponding bound of the search space, e.g.\ the interquartile range of $\mu$ as a fraction of $[0.0025,0.2]$. A parameter whose optima cluster tightly within a small sub-interval indicates population-level agreement, whereas one that spreads across a large share of its admissible range indicates genuine inter-individual differences that only personalization can accommodate. Concretely, the interquartile range spans \evalval{spreadScrollFrictionIqrPct}\,\% of the admissible interval for $\mu$, \evalval{spreadDecelerationRateIqrPct}\,\% for $r$, and \evalval{spreadInflexionIqrPct}\,\% for $\beta$. Figure~\ref{fig:eval-param-spread} shows the per-parameter distributions of the optimized values together with the Android default as a reference line.
+        For each of the three free parameters the distribution of the learned values across the \evalval{nParticipants} participants is summarized (median, interquartile range, and full range), and its dispersion is expressed relative to the width of the corresponding bound of the search space. A parameter whose optima cluster tightly within a small sub-interval indicates population-level agreement, whereas one that spreads across a large share of its admissible range indicates genuine inter-individual differences that only personalization can accommodate. Concretely, the interquartile range spans \evalval{spreadMuIqrPct}\,\% of the admissible interval for $\mu$, \evalval{spreadRIqrPct}\,\% for $r$, and \evalval{spreadBetaIqrPct}\,\% for $\beta$. Figure~\ref{fig:eval-param-spread} shows the per-parameter distributions of the optimized values together with the Android default as a reference line.
 
         \begin{figure}[htbp]
         \centering
@@ -856,7 +903,7 @@
         \label{fig:eval-param-spread}
         \end{figure}
 
-        As a descriptive counterfactual, a single \emph{pooled} function is constructed from the element-wise median of the optimized parameter vectors, $[\tilde{\mu},\tilde{r},\tilde{\beta}]$, and its distance to each participant's own optimum is reported. Here $[\tilde{\mu},\tilde{r},\tilde{\beta}]=[\evalval{pooledMedianScrollFriction},\,\evalval{pooledMedianDecelerationRate},\,\evalval{pooledMedianInflexion}]$, and the individual optima lie at a mean normalized distance of \evalval{pooledDistMean} (at most \evalval{pooledDistMax}) from this pooled vector. Large per-participant deviations from this pooled vector would indicate that a one-size-fits-all function is a poor substitute for the personalized one. It must be stressed, however, that this comparison is necessarily \emph{descriptive}: because each participant provides completion times only for their own learned function and the Android default, the study contains no measurements of how a participant would have performed under the pooled function. A rigorous pooled-versus-personalized performance comparison would require either a further experimental condition in which the pooled function is presented, or a predictive simulation that estimates each participant's time under the pooled parameters from their fitted surrogate model; both are left to future work. The present analysis therefore establishes only whether the \emph{parameters} justify personalization, not the magnitude of the performance loss a pooled function would incur.
+        As a descriptive counterfactual, a single \emph{pooled} function is constructed from the element-wise median of the optimized parameter vectors, $[\tilde{\mu},\tilde{r},\tilde{\beta}]$, and its distance to each participant's own optimum is reported. Here $[\tilde{\mu},\tilde{r},\tilde{\beta}]=[\evalval{pooledMedianMu},\,\evalval{pooledMedianR},\,\evalval{pooledMedianBeta}]$, and the individual optima lie at a mean normalized distance of \evalval{pooledDistMean} (at most \evalval{pooledDistMax}) from this pooled vector. Large per-participant deviations from this pooled vector would indicate that a one-size-fits-all function is a poor substitute for the personalized one. It must be stressed, however, that this comparison is necessarily \emph{descriptive}: because each participant provides completion times only for their own learned function and the Android default, the study contains no measurements of how a participant would have performed under the pooled function. A rigorous pooled-versus-personalized performance comparison would require either a further experimental condition in which the pooled function is presented, or a predictive simulation that estimates each participant's time under the pooled parameters from their fitted surrogate model; both are left to future work. The present analysis therefore establishes only whether the \emph{parameters} justify personalization, not the magnitude of the performance loss a pooled function would incur.
 
         %%%%%%%%%%%%%%%%%%
         \chapter{Conclusion and Future Work}
