@@ -465,7 +465,7 @@ function ParticipantsList({ onBack }) {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id prolificPid gender smartphone handedness group createdAt attempts currentParameterSet nextParameterSet finalParameterSet parameterBlockMetrics } } }`,
+        query: `query ListParticipants { listParticipants { items { id gender smartphone handedness group createdAt attempts currentParameterSet nextParameterSet finalParameterSet parameterBlockMetrics } } }`,
       }),
     });
 
@@ -552,8 +552,7 @@ function ParticipantsList({ onBack }) {
   const buildParticipantExport = (p) => {
     const parsedAttempts = parseAttemptsPayload(p.attempts);
     return {
-      participantId: p.id,
-      prolificPid: p.prolificPid,
+      prolificPid: p.id,
       gender: p.gender,
       smartphone: p.smartphone,
       handedness: p.handedness,
@@ -630,9 +629,8 @@ function ParticipantsList({ onBack }) {
 
       for (const participant of sourceItems) {
         const participantNumber = numberMap.get(participant.id);
-        const namePart = sanitizeForFilename(participant.prolificPid);
-        const numberPart = participantNumber ? `p${participantNumber}` : sanitizeForFilename(participant.id);
-        const filenameParts = ['touch-scrolling-data', numberPart, namePart, timestamp].filter(Boolean);
+        const namePart = sanitizeForFilename(participant.id);
+        const filenameParts = ['touch-scrolling-data', participantNumber ? `p${participantNumber}` : '', namePart, timestamp].filter(Boolean);
         triggerJsonDownload(buildParticipantExport(participant), `${filenameParts.join('-')}.json`);
         // Small gap so the browser processes each download instead of blocking the batch.
         await new Promise((resolve) => setTimeout(resolve, 300));
@@ -663,9 +661,8 @@ function ParticipantsList({ onBack }) {
       const participantNumber = buildParticipantNumberMap(sourceItems).get(target.id);
 
       const timestamp = new Date().toISOString().split('T')[0];
-      const namePart = sanitizeForFilename(target.prolificPid);
-      const numberPart = participantNumber ? `p${participantNumber}` : sanitizeForFilename(target.id);
-      const filenameParts = ['touch-scrolling-data', numberPart, namePart, timestamp].filter(Boolean);
+      const namePart = sanitizeForFilename(target.id);
+      const filenameParts = ['touch-scrolling-data', participantNumber ? `p${participantNumber}` : '', namePart, timestamp].filter(Boolean);
 
       triggerJsonDownload(buildParticipantExport(target), `${filenameParts.join('-')}.json`);
     } catch (err) {
@@ -736,7 +733,6 @@ function ParticipantsList({ onBack }) {
             <thead>
               <tr>
                 <th style={{ textAlign: 'left', padding: 6 }}>Teilnehmer</th>
-                <th style={{ textAlign: 'left', padding: 6 }}>ID</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>PROLIFIC_PID</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Gender</th>
                 <th style={{ textAlign: 'left', padding: 6 }}>Smartphone</th>
@@ -754,7 +750,6 @@ function ParticipantsList({ onBack }) {
                       <tr key={p.id} style={{ borderTop: '1px solid #eee' }}>
                         <td style={{ padding: 6 }}>{participantNumber}</td>
                         <td style={{ padding: 6 }}>{p.id}</td>
-                        <td style={{ padding: 6 }}>{p.prolificPid}</td>
                         <td style={{ padding: 6 }}>{p.gender}</td>
                         <td style={{ padding: 6 }}>{p.smartphone}</td>
                         <td style={{ padding: 6 }}>{p.handedness}</td>
@@ -795,7 +790,7 @@ function ParticipantsList({ onBack }) {
       )}
           {selectedParticipant && (
             <div style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 6 }}>
-              <h3>Teilnehmer {selectedParticipant.participantNumber ?? buildParticipantNumberMap(items).get(selectedParticipant.id) ?? '-'} · {selectedParticipant.prolificPid} (ID: {selectedParticipant.id})</h3>
+              <h3>Teilnehmer {selectedParticipant.participantNumber ?? buildParticipantNumberMap(items).get(selectedParticipant.id) ?? '-'} · {selectedParticipant.id}</h3>
               <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
                 {(selectedParticipant.runGroups || []).length === 0 ? (
                   <p>Keine Durchläufe vorhanden.</p>
@@ -1038,7 +1033,7 @@ function App() {
   // Study group decides the order of the last two blocks (1 = optimized then Android, 2 = Android then optimized).
   const studyGroup = searchParams.get('GROUP') === '2' ? 2 : 1;
 
-  // 'checking' | 'landing' | 'consent' | 'form' | 'list' | 'test' | 'done' | 'scrolllist'
+  // 'checking' | 'landing' | 'consent' | 'form' | 'list' | 'done' | 'scrolllist'
   const [currentPage, setCurrentPage] = useState(
     hasProlific ? 'checking' : (isAdmin ? 'list' : 'landing')
   );
@@ -1068,12 +1063,13 @@ function App() {
         'x-api-key': outputs.data.api_key,
       },
       body: JSON.stringify({
-        query: `query ListParticipants { listParticipants { items { id prolificPid completedAt } } }`,
+        query: `query ListParticipants($filter: ModelParticipantFilterInput) { listParticipants(filter: $filter) { items { id completedAt } } }`,
+        variables: { filter: { id: { eq: prolificPid } } },
       }),
     });
     const json = await resp.json();
     const items = json.data?.listParticipants?.items || [];
-    return items.find((item) => String(item?.prolificPid ?? '').trim() === prolificPid) || null;
+    return items.find((item) => item?.id === prolificPid) || null;
   };
 
   const markParticipantCompleted = async (id) => {
@@ -1163,10 +1159,10 @@ function App() {
           'x-api-key': outputs.data.api_key,
         },
         body: JSON.stringify({
-          query: `mutation CreateParticipant($input: CreateParticipantInput!) { createParticipant(input: $input) { id prolificPid } }`,
+          query: `mutation CreateParticipant($input: CreateParticipantInput!) { createParticipant(input: $input) { id } }`,
           variables: {
             input: {
-              prolificPid,
+              id: prolificPid, // the PROLIFIC_PID is the participant id
               gender: formData.gender,
               smartphone: formData.smartphone,
               handedness: formData.handedness,
@@ -1182,12 +1178,16 @@ function App() {
       const createJson = await createResp.json();
       if (createJson.errors) {
         console.error(createJson.errors);
-        setStatus('Could not save your data. Please try again.');
-      } else {
-        const newId = createJson.data?.createParticipant?.id;
-        if (newId) {
-          setParticipantId(newId);
+        // The id already exists (e.g. double submit): resume that entry instead of failing.
+        const raced = await findParticipantByProlificPid();
+        if (raced) {
+          setParticipantId(raced.id);
+          setCurrentPage(raced.completedAt ? 'alreadyCompleted' : 'scrolllist');
+        } else {
+          setStatus('Could not save your data. Please try again.');
         }
+      } else {
+        setParticipantId(createJson.data?.createParticipant?.id || prolificPid);
         setCurrentPage('scrolllist');
       }
     } catch (error) {
@@ -1206,15 +1206,10 @@ function App() {
         </div>
       ) : currentPage === 'landing' ? (
         <div className="card">
-          <h1>Willkommen</h1>
+          <h1>Touch Scrolling Study</h1>
           <p style={{ color: '#555' }}>
-            Die Studie kann nur über den persönlichen Studien-Link (mit PROLIFIC_PID) gestartet werden.
+            This page cannot be accessed directly. The study can only be started via your personal Prolific study link.
           </p>
-          <div style={{ display: 'grid', gap: 12 }}>
-            <button className="nav-button" onClick={() => setCurrentPage('test')} style={{ background: '#455a64' }}>
-              Zur Testumgebung
-            </button>
-          </div>
         </div>
       ) : currentPage === 'consent' ? (
         <div className="card card-scrollable">
@@ -1340,8 +1335,6 @@ function App() {
         </div>
       ) : currentPage === 'list' ? (
         <ParticipantsList onBack={() => setCurrentPage(hasProlific ? 'checking' : 'landing')} />
-      ) : currentPage === 'test' ? (
-        <ScrollList mode="test" onExitTestEnvironment={() => setCurrentPage('landing')} />
       ) : currentPage === 'alreadyCompleted' ? (
         <div className="card">
           <h1>Study completed</h1>

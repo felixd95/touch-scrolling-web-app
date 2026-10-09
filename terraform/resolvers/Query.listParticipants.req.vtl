@@ -9,16 +9,6 @@
   $util.qr($expValues.put(":id", $util.dynamodb.toDynamoDB($filter.id.eq)))
 #end
 
-#if($filter.prolificPid && $filter.prolificPid.eq)
-  #if($exp != "")
-    #set($exp = "$exp AND #prolificPid = :prolificPid")
-  #else
-    #set($exp = "#prolificPid = :prolificPid")
-  #end
-  $util.qr($expNames.put("#prolificPid", "prolificPid"))
-  $util.qr($expValues.put(":prolificPid", $util.dynamodb.toDynamoDB($filter.prolificPid.eq)))
-#end
-
 #if($exp != "")
 {
   "version": "2018-05-29",

@@ -5,7 +5,9 @@ data "archive_file" "next_parameter_set_lambda" {
 }
 
 resource "aws_dynamodb_table" "participant" {
-  name         = "${local.resource_name_prefix}-participant"
+  # Changing the table name forces Terraform to replace the table; all existing items are deleted.
+  # Items are keyed by the PROLIFIC_PID (no generated ids), so the table was recreated empty.
+  name         = "${local.resource_name_prefix}-participant-v2"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
 

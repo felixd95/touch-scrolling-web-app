@@ -1,6 +1,7 @@
 #set($input = $ctx.args.input)
-#if(!$input.id)
-  $util.qr($input.put("id", $util.autoId()))
+## The id is the PROLIFIC_PID sent by the client; no id is generated here.
+#if($util.isNullOrBlank($input.id))
+  $util.error("id (PROLIFIC_PID) is required", "BadRequest")
 #end
 
 #if(!$util.isNull($input.attempts) && $util.isString($input.attempts))
@@ -22,6 +23,9 @@ $util.qr($input.put("updatedAt", $util.time.nowISO8601()))
   "operation": "PutItem",
   "key": {
     "id": $util.dynamodb.toDynamoDBJson($input.id)
+  },
+  "condition": {
+    "expression": "attribute_not_exists(id)"
   },
   "attributeValues": $util.dynamodb.toMapValuesJson($input)
 }
